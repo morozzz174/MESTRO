@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import '../models/order.dart';
+import '../utils/app_design.dart';
 
 class PhotoAnnotationScreen extends StatefulWidget {
   final PhotoAnnotation photo;
@@ -52,12 +53,12 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
 
           // Панель инструментов
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(AppDesign.spacing8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppDesign.cardBackground,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppDesign.deepSteelBlue.withOpacity(0.1),
                   blurRadius: 4,
                   offset: const Offset(0, -2),
                 ),
@@ -112,7 +113,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
     setState(() {
       _currentStroke = DrawingStroke(
         points: [position],
-        color: _mode == DrawMode.text ? Colors.yellow : Colors.red,
+        color: _mode == DrawMode.text ? AppDesign.accentTeal : AppDesign.statusCancelled,
         mode: _mode,
         width: _mode == DrawMode.pen ? 4.0 : 2.0,
       );
@@ -184,7 +185,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
         _strokes.add(
           DrawingStroke(
             points: [const Offset(100, 100)],
-            color: Colors.yellow,
+            color: AppDesign.accentTeal.withOpacity(0.8),
             mode: DrawMode.text,
             text: text,
             width: 0,
@@ -196,13 +197,12 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
 
   Future<void> _changeColor() async {
     final colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.yellow,
-      Colors.orange,
-      Colors.purple,
-      Colors.white,
+      AppDesign.statusCancelled,
+      AppDesign.deepSteelBlue,
+      AppDesign.accentTeal,
+      AppDesign.warmTaupe,
+      AppDesign.primaryDark,
+      AppDesign.cardBackground,
     ];
 
     final color = await showDialog<Color>(
@@ -221,7 +221,7 @@ class _PhotoAnnotationScreenState extends State<PhotoAnnotationScreen> {
                     decoration: BoxDecoration(
                       color: c,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.black, width: 2),
+                      border: Border.all(color: AppDesign.midBlueGrayBorder, width: 2),
                     ),
                   ),
                 ),
@@ -414,7 +414,7 @@ class _CanvasImageState extends State<_CanvasImage> {
             widget.onStrokeEnd();
           },
           child: Container(
-            color: Colors.black,
+            color: AppDesign.primaryDark,
             child: Center(
               child: FittedBox(
                 fit: BoxFit.contain,
@@ -529,7 +529,7 @@ class _AnnotationPainter extends CustomPainter {
                 fontWeight: FontWeight.bold,
                 shadows: [
                   const Shadow(
-                    color: Colors.black,
+                    color: AppDesign.primaryDark,
                     offset: Offset(1, 1),
                     blurRadius: 2,
                   ),
@@ -597,22 +597,34 @@ class _ToolButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(AppDesign.radiusChip),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppDesign.spacing8,
+          vertical: AppDesign.spacing4,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue.shade100 : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? AppDesign.deepSteelBlue.withOpacity(0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppDesign.radiusChip),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: isSelected ? Colors.blue : Colors.grey.shade700),
+            Icon(
+              icon,
+              color: isSelected
+                  ? AppDesign.deepSteelBlue
+                  : AppDesign.midBlueGray,
+            ),
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: isSelected ? Colors.blue : Colors.grey.shade600,
+                color: isSelected
+                    ? AppDesign.deepSteelBlue
+                    : AppDesign.midBlueGray,
               ),
             ),
           ],

@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
 import '../bloc/checklist_bloc.dart';
@@ -14,11 +13,13 @@ import '../models/order.dart';
 import '../models/checklist_config.dart';
 import '../utils/app_design.dart';
 import '../utils/condition_evaluator.dart';
-import '../utils/cost_calculator.dart';
-import '../utils/pdf_generator.dart';
 import '../utils/location_helper.dart';
 import '../services/voice_input_service.dart';
 import '../features/voice/presentation/widgets/voice_input_button.dart';
+import '../features/checklists_list/presentation/widgets/checklist_client_info.dart';
+import '../features/checklists_list/presentation/widgets/checklist_field_widget.dart';
+import '../features/checklists_list/presentation/widgets/checklist_photos_section.dart';
+import '../features/checklists_list/presentation/managers/checklist_actions_manager.dart';
 
 class ChecklistScreen extends StatefulWidget {
   final Order order;
@@ -32,50 +33,25 @@ class ChecklistScreen extends StatefulWidget {
 class _ChecklistScreenState extends State<ChecklistScreen> {
   late Order _order;
   final _formKey = GlobalKey<FormState>();
+  late ChecklistActionsManager _actionsManager;
 
   @override
   void initState() {
     super.initState();
     _order = widget.order;
-    // Загружаем чек-лист
+    _actionsManager = ChecklistActionsManager(
+      context: context,
+      order: _order,
+    );
     context.read<ChecklistBloc>().add(
       LoadChecklist(_order.workType.checklistFile),
     );
   }
 
   @override
-  void dispose() {
-    // Не вызываем ResetChecklist если виджет уже размонтирован
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: AppDesign.appBarGradient,
-            boxShadow: AppDesign.appBarShadow,
-          ),
-          child: AppBar(
-            title: Text('Чек-лист: ${_order.workType.title}'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.mic_none),
-                onPressed: _showVoiceInput,
-                tooltip: 'Голосовой ввод',
-              ),
-              IconButton(
-                icon: const Icon(Icons.save),
-                onPressed: _saveOrder,
-                tooltip: 'Сохранить',
-              ),
-            ],
-          ),
-        ),
-      ),
+      appBar: _buildAppBar(),
       body: BlocBuilder<ChecklistBloc, ChecklistState>(
         builder: (context, state) {
           if (state is ChecklistLoading) {
@@ -107,6 +83,33 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     );
   }
 
+  PreferredSizeWidget _buildAppBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: AppDesign.appBarGradient,
+          boxShadow: AppDesign.appBarShadow,
+        ),
+        child: AppBar(
+          title: Text('Чек-лист: ${_order.workType.title}'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.mic_none),
+              onPressed: _showVoiceInput,
+              tooltip: 'Голосовой ввод',
+            ),
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: _saveOrder,
+              tooltip: 'Сохранить',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildForm(BuildContext context, ChecklistLoaded state) {
     return Form(
       key: _formKey,
@@ -114,7 +117,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         padding: const EdgeInsets.all(AppDesign.spacing16),
         children: [
           // Информация о клиенте
-          _buildClientInfoSection(),
+          ChecklistClientInfo(
+            order: _order,
+            onOrderChanged: (updatedOrder) {
+              setState(() => _order = updatedOrder);
+            },
+          ),
           const SizedBox(height: AppDesign.spacing16),
           AppDesign.separator(),
           const SizedBox(height: AppDesign.spacing8),
@@ -125,201 +133,36 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                 (field) =>
                     ConditionEvaluator.isFieldVisible(field, state.formData),
               )
-              .map((field) => _buildField(context, field, state)),
+              .map((field) => _buildField(field, state)),
 
           const SizedBox(height: AppDesign.spacing16),
           AppDesign.separator(),
           const SizedBox(height: AppDesign.spacing8),
 
           // Фото заявки
-          _buildPhotosSection(),
+          ChecklistPhotosSection(
+            orderId: _order.id,
+            onTakePhoto: _takePhoto,
+            onViewPhoto: _viewPhoto,
+            onDeletePhoto: _deletePhoto,
+          ),
           const SizedBox(height: AppDesign.spacing16),
         ],
       ),
     );
   }
 
-  Widget _buildClientInfoSection() {
-    return Container(
-      decoration: AppDesign.cardDecoration,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDesign.spacing16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Информация о клиенте', style: AppDesign.subtitleStyle),
-            const SizedBox(height: AppDesign.spacing12),
-            TextFormField(
-              initialValue: _order.clientName.isEmpty
-                  ? null
-                  : _order.clientName,
-              decoration: const InputDecoration(
-                labelText: 'Имя клиента',
-                prefixIcon: Icon(Icons.person),
-              ),
-              onChanged: (value) {
-                _order = _order.copyWith(clientName: value);
-              },
-            ),
-            const SizedBox(height: AppDesign.spacing12),
-            TextFormField(
-              initialValue: _order.address.isEmpty ? null : _order.address,
-              decoration: const InputDecoration(
-                labelText: 'Адрес',
-                prefixIcon: Icon(Icons.location_on),
-              ),
-              maxLines: 2,
-              onChanged: (value) {
-                _order = _order.copyWith(address: value);
-              },
-            ),
-            const SizedBox(height: AppDesign.spacing12),
-            InkWell(
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: _order.date,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2030),
-                );
-                if (date != null) {
-                  setState(() {
-                    _order = _order.copyWith(date: date);
-                  });
-                }
-              },
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Дата замера',
-                  prefixIcon: Icon(Icons.calendar_today),
-                ),
-                child: Text(DateFormat('dd.MM.yyyy', 'ru').format(_order.date)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildField(
-    BuildContext context,
-    ChecklistField field,
-    ChecklistLoaded state,
-  ) {
+  Widget _buildField(ChecklistField field, ChecklistLoaded state) {
     final value = state.formData[field.id];
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: _FieldWidget(
+      child: ChecklistFieldWidget(
         field: field,
         value: value,
         onChanged: (val) {
           context.read<ChecklistBloc>().add(UpdateField(field.id, val));
         },
-      ),
-    );
-  }
-
-  Widget _buildPhotosSection() {
-    return Container(
-      decoration: AppDesign.cardDecoration,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDesign.spacing16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Фотофиксация', style: AppDesign.subtitleStyle),
-                ElevatedButton.icon(
-                  onPressed: _takePhoto,
-                  icon: const Icon(Icons.camera_alt, size: 18),
-                  label: const Text('Добавить фото'),
-                  style: AppDesign.accentButtonStyle,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppDesign.spacing12),
-            BlocBuilder<OrderBloc, OrderState>(
-              builder: (context, state) {
-                if (state is OrderLoaded) {
-                  final order = state.orders.firstWhere(
-                    (o) => o.id == _order.id,
-                    orElse: () => _order,
-                  );
-                  if (order.photos.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppDesign.spacing24),
-                        child: Text(
-                          'Нет фото. Нажмите кнопку выше.',
-                          style: AppDesign.captionStyle,
-                        ),
-                      ),
-                    );
-                  }
-
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: AppDesign.spacing8,
-                          mainAxisSpacing: AppDesign.spacing8,
-                        ),
-                    itemCount: order.photos.length,
-                    itemBuilder: (context, index) {
-                      final photo = order.photos[index];
-                      return GestureDetector(
-                        onTap: () => _viewPhoto(photo),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                AppDesign.radiusListItem,
-                              ),
-                              child: Image.file(
-                                File(photo.annotatedPath ?? photo.filePath),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Positioned(
-                              top: 4,
-                              right: 4,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppDesign.statusCancelled.withOpacity(
-                                    0.9,
-                                  ),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                  onPressed: () => _deletePhoto(photo),
-                                  constraints: const BoxConstraints(),
-                                  padding: const EdgeInsets.all(4),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -395,42 +238,41 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
   Future<void> _viewPhoto(PhotoAnnotation photo) async {
     final path = photo.annotatedPath ?? photo.filePath;
-    if (await File(path).exists() && mounted) {
-      showDialog(
-        context: context,
-        builder: (context) => Dialog(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.file(File(path)),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    if (photo.checklistFieldId != null)
-                      Text('Пункт: ${photo.checklistFieldId}'),
+    if (!await File(path).exists() || !mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.file(File(path)),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  if (photo.checklistFieldId != null)
+                    Text('Пункт: ${photo.checklistFieldId}'),
+                  Text(
+                    'Дата: ${DateFormat('dd.MM.yyyy HH:mm', 'ru').format(photo.timestamp)}',
+                  ),
+                  if (photo.latitude != null)
                     Text(
-                      'Дата: ${DateFormat('dd.MM.yyyy HH:mm', 'ru').format(photo.timestamp)}',
+                      'Координаты: ${photo.latitude!.toStringAsFixed(6)}, ${photo.longitude!.toStringAsFixed(6)}',
                     ),
-                    if (photo.latitude != null)
-                      Text(
-                        'Координаты: ${photo.latitude!.toStringAsFixed(6)}, ${photo.longitude!.toStringAsFixed(6)}',
-                      ),
-                  ],
-                ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Закрыть'),
-              ),
-            ],
-          ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Закрыть'),
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
   }
 
-  /// Показать диалог голосового ввода
   Future<void> _showVoiceInput() async {
     await VoiceInputDialog.show(
       context,
@@ -440,12 +282,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     );
   }
 
-  /// Применить данные из голосового ввода к полям формы
   void _applyVoiceInput(String text) {
     final service = VoiceInputService();
     final data = service.extractData(text);
 
     if (!data.hasData) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Не удалось распознать параметры. Текст: "$text"'),
@@ -462,7 +304,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       final newNotes = currentNotes.isEmpty
           ? data.notes!
           : '$currentNotes; ${data.notes}';
-      _order = _order.copyWith(notes: newNotes);
+      setState(() => _order = _order.copyWith(notes: newNotes));
     }
 
     // Обновляем поля чек-листа через BLoC
@@ -493,6 +335,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     }
 
     // Уведомление пользователя
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Column(
@@ -546,218 +389,33 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   }
 
   Future<void> _saveOrder() async {
-    // Валидация
     final state = context.read<ChecklistBloc>().state;
-    if (state is ChecklistLoaded) {
-      final errors = ConditionEvaluator.validateRequiredFields(
-        state.config.fields,
-        state.formData,
-      );
-      if (errors.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Заполните обязательные поля: ${errors.join(', ')}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
+    if (state is! ChecklistLoaded) return;
 
-      // Сохраняем данные чек-листа в заявку
-      _order = _order.copyWith(
-        checklistData: Map<String, dynamic>.from(state.formData),
-        updatedAt: DateTime.now(),
-      );
+    // Обновляем order в actionsManager
+    _actionsManager.order = _order;
+    final success = await _actionsManager.saveOrder();
+    if (success && mounted) {
+      setState(() => _order = _actionsManager.order);
     }
-
-    if (_order.clientName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Введите имя клиента'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    context.read<OrderBloc>().add(UpdateOrder(_order));
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Заявка сохранена')));
   }
 
   Future<void> _calculateCost() async {
     final state = context.read<ChecklistBloc>().state;
     if (state is! ChecklistLoaded) return;
 
-    final cost = CostCalculator.calculate(_order, state.config);
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Расчёт стоимости'),
-        content: Text(
-          'Предварительная стоимость работ:\n\n'
-          '${NumberFormat.currency(locale: 'ru_RU', symbol: '₽', decimalDigits: 0).format(cost)}',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Применить'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true && mounted) {
-      _order = _order.copyWith(estimatedCost: cost, updatedAt: DateTime.now());
-      context.read<OrderBloc>().add(UpdateOrder(_order));
+    _actionsManager.order = _order;
+    final cost = await _actionsManager.calculateCost(state.config);
+    if (cost != null && mounted) {
+      setState(() => _order = _actionsManager.order);
     }
   }
 
   Future<void> _generatePdf() async {
-    // Сначала сохраняем текущее состояние
-    final state = context.read<ChecklistBloc>().state;
-    if (state is ChecklistLoaded) {
-      _order = _order.copyWith(
-        checklistData: state.formData,
-        updatedAt: DateTime.now(),
-      );
-    }
-
-    // Загружаем актуальные фото
-    final orderBlocState = context.read<OrderBloc>().state;
-    if (orderBlocState is OrderLoaded) {
-      final freshOrder = orderBlocState.orders.firstWhere(
-        (o) => o.id == _order.id,
-        orElse: () => _order,
-      );
-      _order = _order.copyWith(photos: freshOrder.photos);
-    }
-
-    if (!mounted) return;
-
-    try {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Генерация PDF...')));
-
-      final file = await PdfGenerator.generateProposal(_order);
-
-      if (!mounted) return;
-
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text: 'Коммерческое предложение',
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Ошибка генерации PDF: $e')));
-    }
-  }
-}
-
-// ===== Виджет для поля формы =====
-class _FieldWidget extends StatelessWidget {
-  final ChecklistField field;
-  final dynamic value;
-  final ValueChanged<dynamic> onChanged;
-
-  const _FieldWidget({
-    required this.field,
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    switch (field.type) {
-      case 'text':
-        return TextFormField(
-          initialValue: value?.toString(),
-          decoration: InputDecoration(
-            labelText: field.label,
-            hintText: field.hint,
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: onChanged,
-        );
-
-      case 'number':
-        return TextFormField(
-          initialValue: value?.toString() ?? '',
-          decoration: InputDecoration(
-            labelText: field.label,
-            hintText: field.hint,
-            border: const OutlineInputBorder(),
-            suffixText: field.hint,
-          ),
-          keyboardType: TextInputType.number,
-          onChanged: (val) {
-            final numValue = double.tryParse(val);
-            if (numValue != null) onChanged(numValue);
-          },
-        );
-
-      case 'select':
-        return DropdownButtonFormField<String>(
-          initialValue: value?.toString(),
-          decoration: InputDecoration(
-            labelText: field.label,
-            border: const OutlineInputBorder(),
-          ),
-          items: (field.options ?? [])
-              .map((opt) => DropdownMenuItem(value: opt, child: Text(opt)))
-              .toList(),
-          onChanged: (val) => onChanged(val),
-        );
-
-      case 'boolean':
-        return SwitchListTile(
-          title: Text(field.label),
-          value: value == true,
-          onChanged: (val) => onChanged(val),
-          contentPadding: EdgeInsets.zero,
-        );
-
-      case 'date':
-        return InkWell(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: value is DateTime
-                  ? value as DateTime
-                  : DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-            );
-            if (date != null) onChanged(date);
-          },
-          child: InputDecorator(
-            decoration: InputDecoration(
-              labelText: field.label,
-              border: const OutlineInputBorder(),
-            ),
-            child: Text(
-              value is DateTime
-                  ? DateFormat('dd.MM.yyyy', 'ru').format(value)
-                  : 'Выберите дату',
-            ),
-          ),
-        );
-
-      default:
-        return Text('Неизвестный тип поля: ${field.type}');
+    _actionsManager.order = _order;
+    await _actionsManager.generatePdf();
+    if (mounted) {
+      setState(() => _order = _actionsManager.order);
     }
   }
 }

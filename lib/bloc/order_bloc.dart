@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../services/app_logger.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/impl/order_repository_impl.dart';
 import 'order_event.dart';
@@ -23,7 +24,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     try {
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('OrderBloc', 'Ошибка загрузки заявок', e, st);
       emit(OrderError('Ошибка загрузки заявок: $e'));
     }
   }
@@ -44,8 +46,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       // В фоне перезагружаем для синхронизации
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
       // Откат при ошибке
+      AppLogger.error('OrderBloc', 'Ошибка создания заявки', e, st);
       emit(OrderError('Ошибка создания заявки: $e'));
       add(LoadOrders());
     }
@@ -69,7 +72,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       // В фоне синхронизируем
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('OrderBloc', 'Ошибка обновления заявки', e, st);
       emit(OrderError('Ошибка обновления заявки: $e'));
       add(LoadOrders());
     }
@@ -91,7 +95,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       // В фоне синхронизируем
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('OrderBloc', 'Ошибка удаления заявки', e, st);
       emit(OrderError('Ошибка удаления заявки: $e'));
       add(LoadOrders());
     }
@@ -115,7 +120,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       // В фоне синхронизируем
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('OrderBloc', 'Ошибка добавления фото', e, st);
       emit(OrderError('Ошибка добавления фото: $e'));
       add(LoadOrders());
     }
@@ -144,7 +150,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       await _repository.updatePhoto(event.photo);
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('OrderBloc', 'Ошибка обновления фото', e, st);
       emit(OrderError('Ошибка обновления фото: $e'));
       add(LoadOrders());
     }
@@ -171,7 +178,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       await _repository.deletePhoto(event.photoId);
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('OrderBloc', 'Ошибка удаления фото', e, st);
       emit(OrderError('Ошибка удаления фото: $e'));
       add(LoadOrders());
     }

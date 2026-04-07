@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../repositories/order_repository.dart';
 import '../../../../repositories/impl/order_repository_impl.dart';
+import '../../../../services/app_logger.dart';
 import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
 import '../../notifications/services/scheduling_service.dart';
@@ -62,9 +63,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
           selectedDayOrders: dayOrders,
         ),
       );
-    } catch (e) {
-      // Логируем ошибку синхронизации
-      debugPrint('[CalendarBloc] Sync error: $e');
+    } catch (e, st) {
+      AppLogger.error('CalendarBloc', 'Ошибка синхронизации с OrderBloc', e, st);
     }
   }
 
@@ -87,7 +87,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
           selectedDayOrders: ordersByDay[selectedKey] ?? [],
         ),
       );
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('CalendarBloc', 'Ошибка загрузки календаря', e, st);
       emit(CalendarError('Ошибка загрузки календаря: $e'));
     }
   }
@@ -119,7 +120,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
       }
 
       add(CalendarLoadOrders());
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('CalendarBloc', 'Ошибка создания заявки', e, st);
       emit(CalendarError('Ошибка создания заявки: $e'));
     }
   }
@@ -131,7 +133,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     try {
       await _repository.updateOrder(event.order);
       add(CalendarLoadOrders());
-    } catch (e) {
+    } catch (e, st) {
+      AppLogger.error('CalendarBloc', 'Ошибка обновления заявки', e, st);
       emit(CalendarError('Ошибка обновления заявки: $e'));
     }
   }
