@@ -1,0 +1,106 @@
+{
+  "work_type": "windows",
+  "title": "Замер окон",
+  "fields": [
+    {
+      "id": "width",
+      "type": "number",
+      "label": "Ширина проёма (мм)",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "height",
+      "type": "number",
+      "label": "Высота проёма (мм)",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "glass_type",
+      "type": "select",
+      "label": "Тип стеклопакета",
+      "required": true,
+      "options": ["single", "double"]
+    },
+    {
+      "id": "has_quarter",
+      "type": "boolean",
+      "label": "Есть четверть?"
+    },
+    {
+      "id": "quarter_depth",
+      "type": "number",
+      "label": "Глубина четверти (мм)",
+      "required": true,
+      "hint": "мм",
+      "condition": {
+        "field": "has_quarter",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "quarter_width",
+      "type": "number",
+      "label": "Ширина четверти (мм)",
+      "required": true,
+      "hint": "мм",
+      "condition": {
+        "field": "has_quarter",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_slopes",
+      "type": "boolean",
+      "label": "Нужны откосы?"
+    },
+    {
+      "id": "slope_type",
+      "type": "select",
+      "label": "Тип откосов",
+      "options": ["plastic", "sandwich", "plaster"],
+      "condition": {
+        "field": "has_slopes",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_sill",
+      "type": "boolean",
+      "label": "Нужен подоконник?",
+      "hint": "Да/Нет"
+    },
+    {
+      "id": "sill_width",
+      "type": "number",
+      "label": "Ширина подоконника (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_sill",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "opening_type",
+      "type": "select",
+      "label": "Тип открывания",
+      "options": ["глухое", "поворотное", "поворотно-откидное", "раздвижное"]
+    },
+    {
+      "id": "floor_number",
+      "type": "number",
+      "label": "Этаж"
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

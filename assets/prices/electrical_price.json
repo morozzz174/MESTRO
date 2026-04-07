@@ -1,0 +1,62 @@
+{
+  "work_type": "electrical",
+  "title": "Прайс-лист: Электрика",
+  "items": [
+    {
+      "id": "cable_vvg_per_m",
+      "name": "Кабель ВВГнг",
+      "unit": "м.п.",
+      "price": 80,
+      "formula": "cable_length"
+    },
+    {
+      "id": "cable_nym_per_m",
+      "name": "Кабель NYM",
+      "unit": "м.п.",
+      "price": 100,
+      "formula": "cable_length"
+    },
+    {
+      "id": "socket",
+      "name": "Розетка",
+      "unit": "шт",
+      "price": 400,
+      "formula": "sockets_count"
+    },
+    {
+      "id": "switch",
+      "name": "Выключатель",
+      "unit": "шт",
+      "price": 350,
+      "formula": "switches_count"
+    },
+    {
+      "id": "light_point",
+      "name": "Точка освещения",
+      "unit": "шт",
+      "price": 800,
+      "formula": "lighting_count"
+    },
+    {
+      "id": "panel_assembly",
+      "name": "Сборка щитка",
+      "unit": "шт",
+      "price": 5000,
+      "formula": "1"
+    },
+    {
+      "id": "cable_routing_per_m",
+      "name": "Прокладка кабеля",
+      "unit": "м.п.",
+      "price": 300,
+      "formula": "wall_routes_length + floor_routes_length + ceiling_routes_length"
+    },
+    {
+      "id": "smart_home_point",
+      "name": "Точка умного дома",
+      "unit": "точка",
+      "price": 3000,
+      "formula": "smart_home_points_count"
+    }
+  ]
+}

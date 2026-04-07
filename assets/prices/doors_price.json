@@ -1,0 +1,41 @@
+{
+  "work_type": "doors",
+  "title": "Прайс-лист: Двери",
+  "items": [
+    {
+      "id": "door_leaf",
+      "name": "Дверное полотно",
+      "unit": "шт",
+      "price": 8000,
+      "formula": "1"
+    },
+    {
+      "id": "door_frame",
+      "name": "Дверная коробка",
+      "unit": "шт",
+      "price": 3000,
+      "formula": "1"
+    },
+    {
+      "id": "door_lock",
+      "name": "Замок",
+      "unit": "шт",
+      "price": 2500,
+      "formula": "1"
+    },
+    {
+      "id": "door_handle",
+      "name": "Ручка",
+      "unit": "шт",
+      "price": 800,
+      "formula": "1"
+    },
+    {
+      "id": "door_installation",
+      "name": "Монтаж двери",
+      "unit": "шт",
+      "price": 5000,
+      "formula": "1"
+    }
+  ]
+}

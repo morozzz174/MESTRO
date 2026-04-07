@@ -1,0 +1,197 @@
+{
+  "work_type": "electrical",
+  "title": "Замер электрики",
+  "fields": [
+    {
+      "id": "object_type",
+      "type": "select",
+      "label": "Тип объекта",
+      "required": true,
+      "options": ["Квартира (новостройка)", "Квартира (вторичка)", "Частный дом (ИЖС)", "Коммерческое помещение", "Дача"]
+    },
+    {
+      "id": "wall_perimeter",
+      "type": "number",
+      "label": "Периметр стен (м)",
+      "hint": "м"
+    },
+    {
+      "id": "ceiling_height",
+      "type": "number",
+      "label": "Высота потолка (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "windows_count",
+      "type": "number",
+      "label": "Количество окон"
+    },
+    {
+      "id": "doors_count",
+      "type": "number",
+      "label": "Количество дверей"
+    },
+    {
+      "id": "power_appliances",
+      "type": "text",
+      "label": "Мощные потребители (электроплита, бойлер, кондиционер и т.д.) с мощностью (кВт)"
+    },
+    {
+      "id": "sockets_count",
+      "type": "number",
+      "label": "Количество розеток"
+    },
+    {
+      "id": "sockets_type",
+      "type": "select",
+      "label": "Тип розеток",
+      "options": ["Обычные", "Влагозащищённые", "С заземлением", "Смешанные"]
+    },
+    {
+      "id": "lighting_type",
+      "type": "select",
+      "label": "Тип светильников",
+      "options": ["Точечные", "Люстры", "Светодиодные ленты", "Смешанные"]
+    },
+    {
+      "id": "lighting_count",
+      "type": "number",
+      "label": "Количество светильников"
+    },
+    {
+      "id": "switches_type",
+      "type": "select",
+      "label": "Тип управления освещением",
+      "options": ["Обычные выключатели", "Проходные переключатели", "Диммеры", "Смешанные"]
+    },
+    {
+      "id": "input_voltage",
+      "type": "select",
+      "label": "Тип ввода",
+      "required": true,
+      "options": ["Однофазный 220В", "Трёхфазный 380В"]
+    },
+    {
+      "id": "input_current",
+      "type": "select",
+      "label": "Номинальный ток ввода",
+      "required": true,
+      "options": ["16А", "25А", "32А", "40А", "50А", "63А"]
+    },
+    {
+      "id": "circuits_count",
+      "type": "number",
+      "label": "Количество отходящих линий (автоматов)",
+      "required": true
+    },
+    {
+      "id": "has_rcd",
+      "type": "boolean",
+      "label": "Есть УЗО/дифференциальные автоматы?"
+    },
+    {
+      "id": "rcd_leakage_current",
+      "type": "select",
+      "label": "Ток утечки УЗО (мА)",
+      "options": ["10", "30", "100", "300"],
+      "condition": {
+        "field": "has_rcd",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "panel_location",
+      "type": "text",
+      "label": "Место установки щитка"
+    },
+    {
+      "id": "panel_dimensions",
+      "type": "text",
+      "label": "Габариты щитка (мм)"
+    },
+    {
+      "id": "cable_routing",
+      "type": "select",
+      "label": "Способ прокладки кабеля",
+      "required": true,
+      "options": ["Скрытая (в штробе)", "Открытая (в кабель-канале)", "В гофре"]
+    },
+    {
+      "id": "cable_brand",
+      "type": "select",
+      "label": "Марка кабеля",
+      "required": true,
+      "options": ["ВВГнг", "NYM", "ПуГВ"]
+    },
+    {
+      "id": "wall_routes_length",
+      "type": "number",
+      "label": "Длина трасс по стенам (м)",
+      "hint": "м"
+    },
+    {
+      "id": "floor_routes_length",
+      "type": "number",
+      "label": "Длина трасс по полу (м)",
+      "hint": "м"
+    },
+    {
+      "id": "ceiling_routes_length",
+      "type": "number",
+      "label": "Длина трасс по потолку (м)",
+      "hint": "м"
+    },
+    {
+      "id": "has_lightning_protection",
+      "type": "boolean",
+      "label": "Есть система молниезащиты?"
+    },
+    {
+      "id": "has_grounding_circuit",
+      "type": "boolean",
+      "label": "Есть контур заземления?"
+    },
+    {
+      "id": "has_internet_tv",
+      "type": "boolean",
+      "label": "Есть интернет/ТВ?"
+    },
+    {
+      "id": "internet_tv_sockets_count",
+      "type": "number",
+      "label": "Количество розеток для интернета/ТВ",
+      "condition": {
+        "field": "has_internet_tv",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_cctv",
+      "type": "boolean",
+      "label": "Есть видеонаблюдение?"
+    },
+    {
+      "id": "has_smart_home",
+      "type": "boolean",
+      "label": "Есть система умный дом?"
+    },
+    {
+      "id": "smart_home_devices",
+      "type": "text",
+      "label": "Устройства умного дома (диммеры, датчики движения, контроллеры)",
+      "condition": {
+        "field": "has_smart_home",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

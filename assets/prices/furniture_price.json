@@ -1,0 +1,48 @@
+{
+  "work_type": "furniture",
+  "title": "Прайс-лист: Мебельные блоки",
+  "items": [
+    {
+      "id": "ldsp_per_m2",
+      "name": "Корпус ЛДСП",
+      "unit": "м²",
+      "price": 2500,
+      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
+    },
+    {
+      "id": "mdf_per_m2",
+      "name": "Корпус МДФ",
+      "unit": "м²",
+      "price": 3500,
+      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
+    },
+    {
+      "id": "solid_per_m2",
+      "name": "Корпус массив",
+      "unit": "м²",
+      "price": 6000,
+      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
+    },
+    {
+      "id": "facade_per_m2",
+      "name": "Фасады",
+      "unit": "м²",
+      "price": 4000,
+      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
+    },
+    {
+      "id": "drawer_mechanism",
+      "name": "Механизм выдвижной",
+      "unit": "шт",
+      "price": 1500,
+      "formula": "drawers_count"
+    },
+    {
+      "id": "furniture_assembly",
+      "name": "Сборка",
+      "unit": "м.п.",
+      "price": 3000,
+      "formula": "wall_length / 1000"
+    }
+  ]
+}

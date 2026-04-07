@@ -1,0 +1,41 @@
+{
+  "work_type": "air_conditioners",
+  "title": "Прайс-лист: Кондиционеры",
+  "items": [
+    {
+      "id": "ac_install_basic",
+      "name": "Базовый монтаж кондиционера",
+      "unit": "шт",
+      "price": 15000,
+      "formula": "1"
+    },
+    {
+      "id": "ac_install_complex",
+      "name": "Сложный монтаж кондиционера",
+      "unit": "шт",
+      "price": 25000,
+      "formula": "1"
+    },
+    {
+      "id": "ac_mount",
+      "name": "Кронштейны",
+      "unit": "компл.",
+      "price": 3000,
+      "formula": "1"
+    },
+    {
+      "id": "ac_copper_pipe",
+      "name": "Медная труба",
+      "unit": "м.п.",
+      "price": 800,
+      "formula": "pipe_length"
+    },
+    {
+      "id": "ac_drain",
+      "name": "Дренаж",
+      "unit": "м.п.",
+      "price": 500,
+      "formula": "drain_length"
+    }
+  ]
+}

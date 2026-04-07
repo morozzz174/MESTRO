@@ -1,0 +1,48 @@
+{
+  "work_type": "tiles",
+  "title": "Прайс-лист: Плиточные работы",
+  "items": [
+    {
+      "id": "tile_per_m2",
+      "name": "Плитка (материал)",
+      "unit": "м²",
+      "price": 800,
+      "formula": "tile_area"
+    },
+    {
+      "id": "tile_install_simple",
+      "name": "Укладка простая",
+      "unit": "м²",
+      "price": 1200,
+      "formula": "tile_area"
+    },
+    {
+      "id": "tile_install_diagonal",
+      "name": "Укладка диагональная",
+      "unit": "м²",
+      "price": 1600,
+      "formula": "tile_area"
+    },
+    {
+      "id": "tile_grout",
+      "name": "Затирка",
+      "unit": "м²",
+      "price": 150,
+      "formula": "tile_area"
+    },
+    {
+      "id": "tile_glue",
+      "name": "Клей",
+      "unit": "м²",
+      "price": 200,
+      "formula": "tile_area"
+    },
+    {
+      "id": "tile_warm_floor",
+      "name": "Тёплый пол",
+      "unit": "м²",
+      "price": 800,
+      "formula": "heating_area"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "work_type": "kitchens",
+  "title": "Прайс-лист: Кухни",
+  "items": [
+    {
+      "id": "kitchen_lm_meter",
+      "name": "Кухня за погонный метр",
+      "unit": "м.п.",
+      "price": 15000,
+      "formula": "kitchen_length / 1000"
+    },
+    {
+      "id": "kitchen_countertop",
+      "name": "Столешница",
+      "unit": "м.п.",
+      "price": 8000,
+      "formula": "kitchen_length / 1000"
+    },
+    {
+      "id": "kitchen_appliance_install",
+      "name": "Установка техники",
+      "unit": "шт",
+      "price": 3000,
+      "formula": "appliance_count"
+    },
+    {
+      "id": "kitchen_sink",
+      "name": "Мойка",
+      "unit": "шт",
+      "price": 5000,
+      "formula": "1"
+    },
+    {
+      "id": "kitchen_backsplash",
+      "name": "Фартук",
+      "unit": "м²",
+      "price": 2000,
+      "formula": "(backsplash_length / 1000) * 0.6"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "work_type": "windows",
+  "title": "Прайс-лист: Окна",
+  "items": [
+    {
+      "id": "frame_per_m2",
+      "name": "Рама (профиль) за м²",
+      "unit": "м²",
+      "price": 3500,
+      "formula": "(width / 1000) * (height / 1000)"
+    },
+    {
+      "id": "glass_single",
+      "name": "Однокамерный стеклопакет за м²",
+      "unit": "м²",
+      "price": 1500,
+      "formula": "(width / 1000) * (height / 1000)"
+    },
+    {
+      "id": "glass_double",
+      "name": "Двухкамерный стеклопакет за м²",
+      "unit": "м²",
+      "price": 2500,
+      "formula": "(width / 1000) * (height / 1000)"
+    },
+    {
+      "id": "hardware",
+      "name": "Фурнитура",
+      "unit": "компл.",
+      "price": 2000,
+      "formula": "1"
+    },
+    {
+      "id": "sill",
+      "name": "Подоконник",
+      "unit": "м.п.",
+      "price": 800,
+      "formula": "(width / 1000)"
+    },
+    {
+      "id": "slope",
+      "name": "Откосы",
+      "unit": "м.п.",
+      "price": 1200,
+      "formula": "2 * (width / 1000) + (height / 1000)"
+    },
+    {
+      "id": "installation",
+      "name": "Монтаж",
+      "unit": "м²",
+      "price": 2500,
+      "formula": "(width / 1000) * (height / 1000)"
+    }
+  ]
+}
