@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/user.dart';
+import '../../../../models/order.dart';
 import '../../../../screens/registration_screen.dart';
 import '../../../../utils/app_design.dart';
+import '../../../../services/export_service.dart';
+import '../../../../services/database_backup_service.dart';
+import '../../../../features/work_types/presentation/pages/work_type_selection_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -29,6 +33,58 @@ class _ProfilePageState extends State<ProfilePage> {
         _user = user;
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _exportToExcel() async {
+    final success = await ExportService.exportToExcel();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Экспорт в Excel завершён' : 'Ошибка экспорта',
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _exportDatabase() async {
+    await DatabaseBackupService.exportDatabase(context);
+  }
+
+  Future<void> _importDatabase() async {
+    final success = await DatabaseBackupService.importDatabase(context);
+    if (success && mounted) {
+      _loadUser();
+    }
+  }
+
+  Future<void> _editWorkTypes() async {
+    final result = await Navigator.of(context).push<List<String>>(
+      MaterialPageRoute(
+        builder: (_) => WorkTypeSelectionScreen(
+          initialSelection: _user?.selectedWorkTypes ?? [],
+        ),
+      ),
+    );
+
+    if (result != null && mounted && _user != null) {
+      final updatedUser = _user!.copyWith(
+        selectedWorkTypes: result,
+        updatedAt: DateTime.now(),
+      );
+      await DatabaseHelper().updateUser(updatedUser);
+      setState(() => _user = updatedUser);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ниши обновлены'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     }
   }
 
@@ -80,9 +136,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     if (_user == null) {
-      return const Center(
-        child: Text('Данные пользователя не найдены'),
-      );
+      return const Center(child: Text('Данные пользователя не найдены'));
     }
 
     final dateFormat = DateFormat('dd.MM.yyyy', 'ru');
@@ -141,10 +195,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Информация',
-                  style: AppDesign.subtitleStyle,
-                ),
+                Text('Информация', style: AppDesign.subtitleStyle),
                 const SizedBox(height: AppDesign.spacing16),
                 _InfoRow(
                   icon: Icons.phone,
@@ -182,6 +233,81 @@ class _ProfilePageState extends State<ProfilePage> {
 
         const SizedBox(height: AppDesign.spacing16),
 
+        // Мои ниши
+        Container(
+          decoration: AppDesign.cardDecoration,
+          child: Padding(
+            padding: const EdgeInsets.all(AppDesign.spacing16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppDesign.accentTeal.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(
+                              AppDesign.radiusListItem,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.work,
+                            color: AppDesign.accentTeal,
+                          ),
+                        ),
+                        const SizedBox(width: AppDesign.spacing12),
+                        Text('Мои ниши', style: AppDesign.subtitleStyle),
+                      ],
+                    ),
+                    TextButton.icon(
+                      onPressed: _editWorkTypes,
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text('Изменить'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDesign.spacing12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: _user!.selectedWorkTypes.map((type) {
+                    final wt = WorkType.values.firstWhere(
+                      (e) => e.checklistFile == type,
+                      orElse: () => WorkType.windows,
+                    );
+                    return Chip(
+                      label: Text(
+                        wt.title,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      backgroundColor: AppDesign.accentTeal.withOpacity(0.12),
+                      side: const BorderSide(
+                        color: AppDesign.accentTeal,
+                        width: 1.5,
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    );
+                  }).toList(),
+                ),
+                if (_user!.selectedWorkTypes.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Ни одна ниша не выбрана. Нажмите "Изменить" для выбора.',
+                      style: AppDesign.captionStyle,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: AppDesign.spacing16),
+
         // Настройки уведомлений
         Container(
           decoration: AppDesign.cardDecoration,
@@ -197,10 +323,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: AppDesign.accentTeal,
                     ),
                     const SizedBox(width: AppDesign.spacing8),
-                    Text(
-                      'Уведомления',
-                      style: AppDesign.subtitleStyle,
-                    ),
+                    Text('Уведомления', style: AppDesign.subtitleStyle),
                   ],
                 ),
                 const SizedBox(height: AppDesign.spacing16),
@@ -247,10 +370,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'О приложении',
-                  style: AppDesign.subtitleStyle,
-                ),
+                Text('О приложении', style: AppDesign.subtitleStyle),
                 const SizedBox(height: AppDesign.spacing16),
                 _InfoRow(
                   icon: Icons.info_outline,
@@ -270,6 +390,85 @@ class _ProfilePageState extends State<ProfilePage> {
 
         const SizedBox(height: AppDesign.spacing24),
 
+        // Управление данными
+        Container(
+          decoration: AppDesign.cardDecoration,
+          child: Padding(
+            padding: const EdgeInsets.all(AppDesign.spacing16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Управление данными', style: AppDesign.subtitleStyle),
+                const SizedBox(height: AppDesign.spacing16),
+                // Экспорт в Excel
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppDesign.accentTeal.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusListItem,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.table_chart,
+                      color: AppDesign.accentTeal,
+                    ),
+                  ),
+                  title: const Text('Экспорт в Excel'),
+                  subtitle: const Text('Выгрузка заявок с ценами'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _exportToExcel,
+                ),
+                AppDesign.separator(),
+                // Резервная копия
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppDesign.deepSteelBlue.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusListItem,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.cloud_upload,
+                      color: AppDesign.deepSteelBlue,
+                    ),
+                  ),
+                  title: const Text('Резервная копия'),
+                  subtitle: const Text('Экспорт базы данных'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _exportDatabase,
+                ),
+                AppDesign.separator(),
+                // Восстановление
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppDesign.midBlueGray.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusListItem,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.cloud_download,
+                      color: AppDesign.midBlueGray,
+                    ),
+                  ),
+                  title: const Text('Восстановить из копии'),
+                  subtitle: const Text('Импорт базы данных'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: _importDatabase,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: AppDesign.spacing24),
+
         // Кнопка выхода
         SizedBox(
           width: double.infinity,
@@ -278,10 +477,7 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: const Icon(Icons.logout, color: AppDesign.statusCancelled),
             label: const Text(
               'Выйти из аккаунта',
-              style: TextStyle(
-                color: AppDesign.statusCancelled,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: AppDesign.statusCancelled, fontSize: 16),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -315,25 +511,15 @@ class _InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppDesign.spacing8),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 20,
-            color: AppDesign.midBlueGray,
-          ),
+          Icon(icon, size: 20, color: AppDesign.midBlueGray),
           const SizedBox(width: AppDesign.spacing12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: AppDesign.captionStyle,
-                ),
+                Text(label, style: AppDesign.captionStyle),
                 const SizedBox(height: AppDesign.spacing4),
-                Text(
-                  value,
-                  style: AppDesign.bodyStyle,
-                ),
+                Text(value, style: AppDesign.bodyStyle),
               ],
             ),
           ),

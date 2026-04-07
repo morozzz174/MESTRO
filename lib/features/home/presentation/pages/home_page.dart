@@ -6,11 +6,12 @@ import '../../../../utils/app_design.dart';
 import 'dashboard_page.dart';
 import '../../../appointments/presentation/pages/appointments_page.dart';
 import '../../../calendar/presentation/pages/calendar_page.dart';
-import '../../../checklists_list/presentation/pages/checklists_list_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../calendar/presentation/dialogs/create_appointment_dialog.dart';
 import '../../../calendar/bloc/calendar_bloc.dart';
 import '../../../calendar/bloc/calendar_event.dart';
+import '../../../../database/database_helper.dart';
+import '../../../../models/order.dart';
 import '../../../../screens/checklist_screen.dart';
 
 class HomePage extends StatefulWidget {
@@ -42,7 +43,6 @@ class _HomePageState extends State<HomePage> {
       DashboardPage(onNavigate: switchTab),
       const AppointmentsPage(),
       CalendarPage(onNavigate: switchTab),
-      const ChecklistsListPage(),
       const ProfilePage(),
     ];
     _loadUser();
@@ -58,17 +58,14 @@ class _HomePageState extends State<HomePage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppDesign.appBarGradient,
             boxShadow: AppDesign.appBarShadow,
           ),
           child: AppBar(
             title: const Text(
               'MESTRO',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.2,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
             ),
             centerTitle: true,
             actions: [
@@ -111,11 +108,6 @@ class _HomePageState extends State<HomePage> {
               label: 'Календарь',
             ),
             NavigationDestination(
-              icon: Icon(Icons.assignment_turned_in_outlined),
-              selectedIcon: Icon(Icons.assignment_turned_in),
-              label: 'Чек-листы',
-            ),
-            NavigationDestination(
               icon: Icon(Icons.person_outline),
               selectedIcon: Icon(Icons.person),
               label: 'Профиль',
@@ -143,10 +135,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(width: 8),
                   Text(
                     'Замер',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                 ],
               ),
@@ -158,7 +147,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _createAppointment() async {
-    final order = await CreateAppointmentDialog.show(context, DateTime.now());
+    // Получаем ниши пользователя
+    final user = await DatabaseHelper().getCurrentUser();
+    if (!mounted) return;
+    final availableWorkTypes = (user?.selectedWorkTypes ?? [])
+        .map((type) => WorkType.values.where((wt) => wt.checklistFile == type))
+        .expand((i) => i)
+        .toList();
+
+    final order = await CreateAppointmentDialog.show(
+      context,
+      DateTime.now(),
+      availableWorkTypes: availableWorkTypes,
+    );
     if (order != null && mounted) {
       context.read<CalendarBloc>().add(CalendarCreateOrder(order));
       if (mounted) {

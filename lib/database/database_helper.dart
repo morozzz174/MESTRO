@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -71,6 +71,12 @@ class DatabaseHelper {
         'CREATE INDEX IF NOT EXISTS idx_notif_scheduled ON notifications (scheduled_at)',
       );
     }
+    if (oldVersion < 4) {
+      // Миграция v3 -> v4: добавляем ниши пользователей
+      await db.execute(
+        'ALTER TABLE users ADD COLUMN selected_work_types TEXT DEFAULT ""',
+      );
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -82,6 +88,7 @@ class DatabaseHelper {
         full_name TEXT,
         consent_date TEXT NOT NULL,
         consent_version TEXT NOT NULL,
+        selected_work_types TEXT DEFAULT '',
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )

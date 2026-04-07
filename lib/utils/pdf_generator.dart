@@ -222,6 +222,11 @@ class PdfGenerator {
         'mosquito_net': 'Москитная сетка',
         'film': 'Плёнка',
         'color': 'Цвет профиля',
+        'has_quarter': 'Есть четверть',
+        'quarter_depth': 'Глубина четверти',
+        'quarter_width': 'Ширина четверти',
+        'floor_number': 'Этаж',
+        'slope_type': 'Тип откосов',
       },
       'doors': {
         ...commonLabels,

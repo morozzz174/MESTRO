@@ -17,7 +17,7 @@ class OrdersScreen extends StatelessWidget {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppDesign.appBarGradient,
             boxShadow: AppDesign.appBarShadow,
           ),

@@ -5,6 +5,9 @@ class User {
   final String? fullName;
   final DateTime consentDate;
   final String consentVersion;
+
+  /// Выбранные ниши мастера (тип работ)
+  final List<String> selectedWorkTypes;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -14,6 +17,7 @@ class User {
     this.fullName,
     required this.consentDate,
     required this.consentVersion,
+    this.selectedWorkTypes = const [],
     required this.createdAt,
     required this.updatedAt,
   });
@@ -27,6 +31,7 @@ class User {
     String? fullName,
     DateTime? consentDate,
     String? consentVersion,
+    List<String>? selectedWorkTypes,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -36,6 +41,7 @@ class User {
       fullName: fullName ?? this.fullName,
       consentDate: consentDate ?? this.consentDate,
       consentVersion: consentVersion ?? this.consentVersion,
+      selectedWorkTypes: selectedWorkTypes ?? this.selectedWorkTypes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -48,18 +54,25 @@ class User {
       'full_name': fullName,
       'consent_date': consentDate.toIso8601String(),
       'consent_version': consentVersion,
+      'selected_work_types': selectedWorkTypes.join(','),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
+    final workTypesStr = map['selected_work_types'] as String?;
+    final selectedWorkTypes = workTypesStr != null && workTypesStr.isNotEmpty
+        ? workTypesStr.split(',')
+        : <String>[];
+
     return User(
       id: map['id'] as String,
       phone: map['phone'] as String,
       fullName: map['full_name'] as String?,
       consentDate: DateTime.parse(map['consent_date'] as String),
       consentVersion: map['consent_version'] as String,
+      selectedWorkTypes: selectedWorkTypes,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );

@@ -19,7 +19,6 @@ import '../utils/pdf_generator.dart';
 import '../utils/location_helper.dart';
 import '../services/voice_input_service.dart';
 import '../features/voice/presentation/widgets/voice_input_button.dart';
-import 'photo_annotation_screen.dart';
 
 class ChecklistScreen extends StatefulWidget {
   final Order order;
@@ -56,7 +55,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppDesign.appBarGradient,
             boxShadow: AppDesign.appBarShadow,
           ),
@@ -98,6 +97,13 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         onCalculate: _calculateCost,
         onGeneratePdf: _generatePdf,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _takePhoto,
+        icon: const Icon(Icons.camera_alt),
+        label: const Text('Фото'),
+        backgroundColor: AppDesign.accentTeal,
+        foregroundColor: Colors.white,
+      ),
     );
   }
 
@@ -127,7 +133,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
           // Фото заявки
           _buildPhotosSection(),
-          const SizedBox(height: 80), // место для FAB
+          const SizedBox(height: AppDesign.spacing16),
         ],
       ),
     );
@@ -141,13 +147,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Информация о клиенте',
-              style: AppDesign.subtitleStyle,
-            ),
+            Text('Информация о клиенте', style: AppDesign.subtitleStyle),
             const SizedBox(height: AppDesign.spacing12),
             TextFormField(
-              initialValue: _order.clientName.isEmpty ? null : _order.clientName,
+              initialValue: _order.clientName.isEmpty
+                  ? null
+                  : _order.clientName,
               decoration: const InputDecoration(
                 labelText: 'Имя клиента',
                 prefixIcon: Icon(Icons.person),
@@ -227,10 +232,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Фотофиксация',
-                  style: AppDesign.subtitleStyle,
-                ),
+                Text('Фотофиксация', style: AppDesign.subtitleStyle),
                 ElevatedButton.icon(
                   onPressed: _takePhoto,
                   icon: const Icon(Icons.camera_alt, size: 18),
@@ -262,11 +264,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                   return GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: AppDesign.spacing8,
-                      mainAxisSpacing: AppDesign.spacing8,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: AppDesign.spacing8,
+                          mainAxisSpacing: AppDesign.spacing8,
+                        ),
                     itemCount: order.photos.length,
                     itemBuilder: (context, index) {
                       final photo = order.photos[index];
@@ -276,7 +279,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                           fit: StackFit.expand,
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+                              borderRadius: BorderRadius.circular(
+                                AppDesign.radiusListItem,
+                              ),
                               child: Image.file(
                                 File(photo.annotatedPath ?? photo.filePath),
                                 fit: BoxFit.cover,
@@ -287,7 +292,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
                               right: 4,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: AppDesign.statusCancelled.withOpacity(0.9),
+                                  color: AppDesign.statusCancelled.withOpacity(
+                                    0.9,
+                                  ),
                                   shape: BoxShape.circle,
                                 ),
                                 child: IconButton(
@@ -323,42 +330,28 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
     if (pickedFile == null || !mounted) return;
 
-    // Получаем геолокацию
     final position = await LocationHelper.getCurrentPosition();
-
     if (!mounted) return;
 
-    // Показываем выбор пункта чек-листа
     final state = context.read<ChecklistBloc>().state;
     if (state is! ChecklistLoaded) return;
 
     final fieldId = await _showFieldSelector(state.config.fields);
-
     if (!mounted) return;
 
     final photo = PhotoAnnotation(
       id: const Uuid().v4(),
       orderId: _order.id,
       filePath: pickedFile.path,
+      annotatedPath: pickedFile.path,
       checklistFieldId: fieldId,
       latitude: position?.latitude,
       longitude: position?.longitude,
       timestamp: DateTime.now(),
     );
 
-    // Открываем экран аннотаций
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => PhotoAnnotationScreen(photo: photo)),
-    );
-
     if (!mounted) return;
-
-    if (result != null && result is PhotoAnnotation) {
-      context.read<OrderBloc>().add(AddPhoto(_order.id, result));
-    } else {
-      // Всё равно сохраняем без аннотаций
-      context.read<OrderBloc>().add(AddPhoto(_order.id, photo));
-    }
+    context.read<OrderBloc>().add(AddPhoto(_order.id, photo));
   }
 
   Future<String?> _showFieldSelector(List<ChecklistField> fields) async {

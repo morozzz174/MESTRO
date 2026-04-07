@@ -73,7 +73,6 @@ class MestroApp extends StatelessWidget {
               fontFamily: AppDesign.fontFamily,
             ),
             iconTheme: const IconThemeData(color: AppDesign.warmTaupe),
-            shadow: AppDesign.appBarShadow,
             toolbarHeight: AppDesign.appBarHeight,
           ),
           cardTheme: CardThemeData(

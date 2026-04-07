@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../database/database_helper.dart';
 import '../models/user.dart';
+import '../models/order.dart';
 import '../services/ucaller_service.dart';
 import '../utils/app_design.dart';
 import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/work_types/presentation/pages/work_type_selection_screen.dart';
 
 /// Конфигурация uCaller — замените на реальные данные при необходимости
 const _ucallerServiceId = 366080;
@@ -31,13 +33,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: AppDesign.appBarGradient,
             boxShadow: AppDesign.appBarShadow,
           ),
-          child: AppBar(
-            title: const Text('Регистрация'),
-          ),
+          child: AppBar(title: const Text('Регистрация')),
         ),
       ),
       body: SafeArea(
@@ -69,7 +69,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   },
                 ),
                 isActive: _currentStep >= 0,
-                state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+                state: _currentStep > 0
+                    ? StepState.complete
+                    : StepState.indexed,
               ),
               Step(
                 title: const Text('Профиль'),
@@ -80,7 +82,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   },
                 ),
                 isActive: _currentStep >= 1,
-                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+                state: _currentStep > 1
+                    ? StepState.complete
+                    : StepState.indexed,
               ),
               Step(
                 title: const Text('Готово'),
@@ -436,6 +440,7 @@ class _ProfileStepState extends State<_ProfileStep> {
   final _nameController = TextEditingController();
   bool _consentAccepted = false;
   bool _isLoading = false;
+  List<String> _selectedWorkTypes = [];
 
   @override
   void dispose() {
@@ -518,16 +523,66 @@ class _ProfileStepState extends State<_ProfileStep> {
         ),
         const SizedBox(height: AppDesign.spacing24),
 
+        // Выбор ниш
+        OutlinedButton.icon(
+          onPressed: _selectWorkTypes,
+          icon: const Icon(Icons.work_outline),
+          label: Text(
+            _selectedWorkTypes.isEmpty
+                ? 'Выберите ниши (минимум 1)'
+                : 'Ниши: ${_selectedWorkTypes.length} выбрано',
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            foregroundColor: _selectedWorkTypes.isEmpty
+                ? AppDesign.statusCancelled
+                : AppDesign.accentTeal,
+          ),
+        ),
+        if (_selectedWorkTypes.isNotEmpty) ...[
+          const SizedBox(height: AppDesign.spacing8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _selectedWorkTypes.map((type) {
+              final wt = WorkType.values.firstWhere(
+                (e) => e.checklistFile == type,
+                orElse: () => WorkType.windows,
+              );
+              return Chip(
+                label: Text(wt.title, style: const TextStyle(fontSize: 12)),
+                backgroundColor: AppDesign.accentTeal.withOpacity(0.12),
+                side: const BorderSide(color: AppDesign.accentTeal),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              );
+            }).toList(),
+          ),
+        ],
+
+        const SizedBox(height: AppDesign.spacing24),
+
         if (_isLoading)
           const Center(child: CircularProgressIndicator())
         else
           ElevatedButton.icon(
-            onPressed: _register,
+            onPressed: _selectedWorkTypes.isEmpty ? null : _register,
             icon: const Icon(Icons.person_add),
             label: const Text('Завершить регистрацию'),
           ),
       ],
     );
+  }
+
+  Future<void> _selectWorkTypes() async {
+    final result = await Navigator.of(context).push<List<String>>(
+      MaterialPageRoute(
+        builder: (_) =>
+            WorkTypeSelectionScreen(initialSelection: _selectedWorkTypes),
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _selectedWorkTypes = result);
+    }
   }
 
   Future<void> _register() async {
@@ -536,6 +591,16 @@ class _ProfileStepState extends State<_ProfileStep> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Введите ФИО'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedWorkTypes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Выберите хотя бы одну нишу'),
           backgroundColor: Colors.red,
         ),
       );
@@ -563,6 +628,7 @@ class _ProfileStepState extends State<_ProfileStep> {
         fullName: fullName,
         consentDate: DateTime.now(),
         consentVersion: User.currentConsentVersion,
+        selectedWorkTypes: _selectedWorkTypes,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -596,10 +662,7 @@ class _SuccessStep extends StatelessWidget {
       children: [
         const Icon(Icons.check_circle, size: 64, color: AppDesign.accentTeal),
         const SizedBox(height: AppDesign.spacing16),
-        Text(
-          'Регистрация завершена!',
-          style: AppDesign.titleStyle,
-        ),
+        Text('Регистрация завершена!', style: AppDesign.titleStyle),
         const SizedBox(height: AppDesign.spacing8),
         Text(
           'Теперь вы можете создавать заявки и проводить замеры.',

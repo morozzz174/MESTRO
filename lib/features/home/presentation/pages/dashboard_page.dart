@@ -83,10 +83,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               style: AppDesign.titleStyle,
                             ),
                             const SizedBox(height: AppDesign.spacing4),
-                            Text(
-                              today,
-                              style: AppDesign.captionStyle,
-                            ),
+                            Text(today, style: AppDesign.captionStyle),
                           ],
                         ),
                       ),
@@ -213,12 +210,16 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 AppDesign.separator(),
                 _QuickActionTile(
-                  icon: Icons.assignment_turned_in_outlined,
-                  title: 'Чек-листы',
-                  subtitle: 'Шаблоны и отчёты',
-                  color: AppDesign.warmTaupe,
+                  icon: Icons.price_change,
+                  title: 'Прайс-лист',
+                  subtitle: 'Управление цена',
+                  color: AppDesign.deepSteelBlue,
                   onTap: () {
-                    widget.onNavigate(3); // Чек-листы
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PriceListScreen(),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -264,14 +265,8 @@ class _StatCard extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  value,
-                  style: AppDesign.titleStyle.copyWith(fontSize: 24),
-                ),
-                Text(
-                  label,
-                  style: AppDesign.captionStyle,
-                ),
+                Text(value, style: AppDesign.titleStyle.copyWith(fontSize: 24)),
+                Text(label, style: AppDesign.captionStyle),
               ],
             ),
           ],
@@ -319,15 +314,9 @@ class _QuickActionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: AppDesign.subtitleStyle,
-                    ),
+                    Text(title, style: AppDesign.subtitleStyle),
                     const SizedBox(height: AppDesign.spacing4),
-                    Text(
-                      subtitle,
-                      style: AppDesign.captionStyle,
-                    ),
+                    Text(subtitle, style: AppDesign.captionStyle),
                   ],
                 ),
               ),

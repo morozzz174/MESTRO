@@ -5,16 +5,31 @@ import '../../../../../models/order.dart';
 
 class CreateAppointmentDialog extends StatefulWidget {
   final DateTime selectedDate;
+  final List<WorkType> availableWorkTypes;
 
-  const CreateAppointmentDialog({super.key, required this.selectedDate});
+  const CreateAppointmentDialog({
+    super.key,
+    required this.selectedDate,
+    this.availableWorkTypes = const [],
+  });
 
   @override
-  State<CreateAppointmentDialog> createState() => _CreateAppointmentDialogState();
+  State<CreateAppointmentDialog> createState() =>
+      _CreateAppointmentDialogState();
 
-  static Future<Order?> show(BuildContext context, DateTime selectedDate) {
+  static Future<Order?> show(
+    BuildContext context,
+    DateTime selectedDate, {
+    List<WorkType> availableWorkTypes = const [],
+  }) {
     return showDialog<Order>(
       context: context,
-      builder: (_) => CreateAppointmentDialog(selectedDate: selectedDate),
+      builder: (_) => CreateAppointmentDialog(
+        selectedDate: selectedDate,
+        availableWorkTypes: availableWorkTypes.isEmpty
+            ? WorkType.values
+            : availableWorkTypes,
+      ),
     );
   }
 }
@@ -28,12 +43,15 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
 
   DateTime? _appointmentDate;
   TimeOfDay _appointmentTime = const TimeOfDay(hour: 10, minute: 0);
-  WorkType _selectedWorkType = WorkType.windows;
+  late WorkType _selectedWorkType;
   OrderStatus _selectedStatus = OrderStatus.newOrder;
 
   @override
   void initState() {
     super.initState();
+    _selectedWorkType = widget.availableWorkTypes.isNotEmpty
+        ? widget.availableWorkTypes.first
+        : WorkType.windows;
     // Установить дату из календаря + время по умолчанию
     _appointmentDate = DateTime(
       widget.selectedDate.year,
@@ -114,7 +132,8 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
                       border: OutlineInputBorder(),
                     ),
                     textCapitalization: TextCapitalization.words,
-                    validator: (v) => v?.trim().isEmpty == true ? 'Введите имя' : null,
+                    validator: (v) =>
+                        v?.trim().isEmpty == true ? 'Введите имя' : null,
                   ),
                   const SizedBox(height: 12),
 
@@ -140,7 +159,8 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
                       border: OutlineInputBorder(),
                     ),
                     maxLines: 2,
-                    validator: (v) => v?.trim().isEmpty == true ? 'Введите адрес' : null,
+                    validator: (v) =>
+                        v?.trim().isEmpty == true ? 'Введите адрес' : null,
                   ),
                   const SizedBox(height: 12),
 
@@ -152,11 +172,8 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
                       prefixIcon: Icon(Icons.work_outline),
                       border: OutlineInputBorder(),
                     ),
-                    items: WorkType.values.map((wt) {
-                      return DropdownMenuItem(
-                        value: wt,
-                        child: Text(wt.title),
-                      );
+                    items: widget.availableWorkTypes.map((wt) {
+                      return DropdownMenuItem(value: wt, child: Text(wt.title));
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedWorkType = val);
@@ -173,10 +190,7 @@ class _CreateAppointmentDialogState extends State<CreateAppointmentDialog> {
                       border: OutlineInputBorder(),
                     ),
                     items: OrderStatus.values.map((s) {
-                      return DropdownMenuItem(
-                        value: s,
-                        child: Text(s.label),
-                      );
+                      return DropdownMenuItem(value: s, child: Text(s.label));
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedStatus = val);
