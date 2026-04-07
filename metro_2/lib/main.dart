@@ -4,13 +4,20 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'bloc/order_bloc.dart';
 import 'bloc/order_event.dart';
 import 'bloc/checklist_bloc.dart';
+import 'features/calendar/bloc/calendar_bloc.dart';
+import 'features/calendar/bloc/calendar_event.dart';
+import 'features/notifications/services/notification_service.dart';
 import 'database/database_helper.dart';
 import 'screens/registration_screen.dart';
-import 'screens/orders_screen.dart';
+import 'features/home/presentation/pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ru', null);
+
+  // Инициализация уведомлений
+  await NotificationService().initialize();
+
   runApp(const MestroApp());
 }
 
@@ -19,10 +26,15 @@ class MestroApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final orderBloc = OrderBloc()..add(LoadOrders());
+    final calendarBloc = CalendarBloc()..add(CalendarLoadOrders());
+    calendarBloc.syncFromOrderBloc(orderBloc);
+
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => OrderBloc()..add(LoadOrders())),
+        BlocProvider.value(value: orderBloc),
         BlocProvider(create: (_) => ChecklistBloc()),
+        BlocProvider.value(value: calendarBloc),
       ],
       child: MaterialApp(
         title: 'Mestro',
@@ -44,6 +56,10 @@ class MestroApp extends StatelessWidget {
             elevation: 4,
           ),
         ),
+        routes: {
+          '/registration': (_) => const RegistrationScreen(),
+          '/home': (_) => const HomePage(),
+        },
         home: const _AppEntryPoint(),
       ),
     );
@@ -87,7 +103,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
     }
 
     if (_isRegistered) {
-      return const OrdersScreen();
+      return const HomePage();
     }
 
     return const RegistrationScreen();

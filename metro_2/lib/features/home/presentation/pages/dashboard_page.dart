@@ -8,7 +8,6 @@ import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../models/user.dart';
 import '../../../../utils/app_design.dart';
 import '../../../price_list/presentation/pages/price_list_screen.dart';
-import '../../../floor_plan/presentation/pages/floor_plan_page.dart';
 
 class DashboardPage extends StatefulWidget {
   final ValueChanged<int> onNavigate;

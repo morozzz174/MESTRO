@@ -210,6 +210,23 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                   },
                 ),
+                AppDesign.separator(),
+                _QuickActionTile(
+                  icon: Icons.design_services,
+                  title: 'Планы помещений',
+                  subtitle: 'Генерация и просмотр планов',
+                  color: AppDesign.deepSteelBlue,
+                  onTap: () {
+                    // Переход на вкладку Замеры, где можно выбрать заявку и открыть план
+                    widget.onNavigate(1);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Выберите замер → кнопка "План"'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
