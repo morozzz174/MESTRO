@@ -1,0 +1,232 @@
+{
+  "work_type": "tiles",
+  "title": "Замер плиточных работ",
+  "fields": [
+    {
+      "id": "surface_type",
+      "type": "select",
+      "label": "Тип поверхности",
+      "required": true,
+      "options": ["Стены", "Пол", "Фартук (кухня/ванна)", "Наружная отделка (цоколь, крыльцо)"]
+    },
+    {
+      "id": "tile_material",
+      "type": "select",
+      "label": "Материал плитки",
+      "required": true,
+      "options": ["Керамическая плитка", "Керамогранит", "Мозаика", "Клинкерная", "Натуральный камень"]
+    },
+    {
+      "id": "laying_method",
+      "type": "select",
+      "label": "Способ укладки",
+      "required": true,
+      "options": ["Прямая", "Диагональная", "Со смещением (кирпич)", "Модульная", "Узор (пэчворк, ёлочка)"]
+    },
+    {
+      "id": "wall_height",
+      "type": "number",
+      "label": "Высота стены (от пола до потолка, мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Стены"
+      }
+    },
+    {
+      "id": "wall_length",
+      "type": "number",
+      "label": "Длина стены (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Стены"
+      }
+    },
+    {
+      "id": "has_windows_doors",
+      "type": "boolean",
+      "label": "Есть окна/двери для вычета?",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Стены"
+      }
+    },
+    {
+      "id": "windows_doors_area",
+      "type": "number",
+      "label": "Площадь окон/дверей (м²)",
+      "hint": "м²",
+      "condition": {
+        "field": "has_windows_doors",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "floor_length",
+      "type": "number",
+      "label": "Длина пола (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Пол"
+      }
+    },
+    {
+      "id": "floor_width",
+      "type": "number",
+      "label": "Ширина пола (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Пол"
+      }
+    },
+    {
+      "id": "floor_complex_shape",
+      "type": "boolean",
+      "label": "Сложная конфигурация пола?",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Пол"
+      }
+    },
+    {
+      "id": "apron_height",
+      "type": "number",
+      "label": "Высота фартука (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Фартук (кухня/ванна)"
+      }
+    },
+    {
+      "id": "apron_length",
+      "type": "number",
+      "label": "Длина фартука (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Фартук (кухня/ванна)"
+      }
+    },
+    {
+      "id": "has_sockets",
+      "type": "boolean",
+      "label": "Есть вырезы под розетки?",
+      "condition": {
+        "field": "surface_type",
+        "operator": "equals",
+        "value": "Фартук (кухня/ванна)"
+      }
+    },
+    {
+      "id": "sockets_count",
+      "type": "number",
+      "label": "Количество розеток",
+      "condition": {
+        "field": "has_sockets",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "tile_length",
+      "type": "number",
+      "label": "Длина плитки (мм)",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "tile_width",
+      "type": "number",
+      "label": "Ширина плитки (мм)",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "tile_thickness",
+      "type": "number",
+      "label": "Толщина плитки (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "tile_caliber",
+      "type": "text",
+      "label": "Калибр плитки (опционально)"
+    },
+    {
+      "id": "reserve_coefficient",
+      "type": "select",
+      "label": "Коэффициент запаса",
+      "options": ["1.05", "1.10", "1.15"]
+    },
+    {
+      "id": "has_decorative_inserts",
+      "type": "boolean",
+      "label": "Есть декоративные вставки (бордюры, панно)?"
+    },
+    {
+      "id": "decorative_inserts_count",
+      "type": "number",
+      "label": "Количество декоративных вставок",
+      "condition": {
+        "field": "has_decorative_inserts",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_underfloor_heating",
+      "type": "boolean",
+      "label": "Есть тёплый пол?"
+    },
+    {
+      "id": "heating_type",
+      "type": "select",
+      "label": "Тип тёплого пола",
+      "options": ["Кабельный", "Нагревательный мат"],
+      "condition": {
+        "field": "has_underfloor_heating",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "heating_power",
+      "type": "number",
+      "label": "Мощность тёплого пола (Вт/м²)",
+      "condition": {
+        "field": "has_underfloor_heating",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "heating_area",
+      "type": "number",
+      "label": "Площадь укладки тёплого пола (м²)",
+      "condition": {
+        "field": "has_underfloor_heating",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}
