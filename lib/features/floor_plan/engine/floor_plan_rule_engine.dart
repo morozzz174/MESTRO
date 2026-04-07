@@ -1,11 +1,24 @@
 import '../models/floor_plan_models.dart';
+import 'ai_floor_plan_optimizer.dart';
 import '../../../services/app_logger.dart';
 
 /// Генератор планировки на основе правил СНиП
 ///
 /// Генерирует валидный план помещения без использования ИИ.
-/// В будущем может быть оптимизирован TFLite моделью.
+/// Оптимизация через AIFloorPlanOptimizer (TFLite).
 class FloorPlanRuleEngine {
+  final AIFloorPlanOptimizer? _aiOptimizer;
+
+  FloorPlanRuleEngine({AIFloorPlanOptimizer? aiOptimizer})
+      : _aiOptimizer = aiOptimizer;
+
+  /// Инициализация AI оптимизатора (опционально)
+  Future<void> initializeAI() async {
+    if (_aiOptimizer != null) {
+      await _aiOptimizer.initialize();
+      AppLogger.info('FloorPlan', 'AI оптимизатор инициализирован');
+    }
+  }
   /// Дефолтные размеры комнат (м)
   static const Map<RoomType, _RoomDefaults> _defaultSizes = {
     RoomType.livingRoom: _RoomDefaults(width: 5.0, height: 3.5),
@@ -254,11 +267,17 @@ class FloorPlanRuleEngine {
     return windows;
   }
 
-  /// Оптимизировать план (заглушка для будущей TFLite модели)
+  /// Оптимизировать план
   FloorPlan optimize(FloorPlan plan) {
-    // Сейчас просто возвращаем исходный план
-    // В будущем: TFLite модель для оптимизации расстановки
-    AppLogger.info('FloorPlan', 'Оптимизация: используется Rule Engine (TFLite не подключён)');
+    if (_aiOptimizer != null && _aiOptimizer.isAvailable) {
+      AppLogger.info('FloorPlan', 'Запуск AI оптимизации...');
+      final optimized = _aiOptimizer.optimize(plan);
+      AppLogger.info('FloorPlan',
+          'AI оптимизация завершена, compliance: ${optimized.complianceScore.toStringAsFixed(2)}');
+      return optimized;
+    }
+
+    AppLogger.info('FloorPlan', 'Оптимизация: используется Rule Engine (AI недоступен)');
     return plan;
   }
 }

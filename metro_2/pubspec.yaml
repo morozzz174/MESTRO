@@ -55,6 +55,9 @@ dependencies:
   excel: ^4.0.6
   file_picker: ^8.1.2
 
+  # AI/ML оптимизация планов
+  tflite_flutter: ^0.11.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -68,4 +71,5 @@ flutter:
     - assets/checklists/
     - assets/prices/
     - assets/fonts/
+    - assets/models/
     - assets/

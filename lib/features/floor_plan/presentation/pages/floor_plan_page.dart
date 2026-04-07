@@ -5,6 +5,7 @@ import '../../../utils/app_design.dart';
 import '../../../utils/pdf_generator.dart';
 import '../models/floor_plan_models.dart';
 import '../engine/floor_plan_rule_engine.dart';
+import '../engine/ai_floor_plan_optimizer.dart';
 import '../widgets/floor_plan_painter.dart';
 
 /// Экран просмотра и редакти плана помещения
@@ -19,16 +20,25 @@ class FloorPlanPage extends StatefulWidget {
 
 class _FloorPlanPageState extends State<FloorPlanPage> {
   late final FloorPlanRuleEngine _ruleEngine;
+  late final AIFloorPlanOptimizer _aiOptimizer;
   FloorPlan? _plan;
   double _zoom = 1.0;
   bool _isGenerating = false;
+  bool _isAIOptimized = false;
   final TransformationController _transformationController = TransformationController();
 
   @override
   void initState() {
     super.initState();
-    _ruleEngine = FloorPlanRuleEngine();
+    _aiOptimizer = AIFloorPlanOptimizer();
+    _ruleEngine = FloorPlanRuleEngine(aiOptimizer: _aiOptimizer);
+    _initializeAI();
     _generatePlan();
+  }
+
+  Future<void> _initializeAI() async {
+    await _aiOptimizer.initialize();
+    if (mounted) setState(() {});
   }
 
   void _generatePlan() {
@@ -78,6 +88,13 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           child: AppBar(
             title: Text('План: ${widget.order.workType.title}'),
             actions: [
+              if (_aiOptimizer.isAvailable)
+                IconButton(
+                  icon: Icon(_isAIOptimized ? Icons.check_circle : Icons.auto_awesome),
+                  color: _isAIOptimized ? Colors.green : null,
+                  onPressed: _optimizeWithAI,
+                  tooltip: 'AI Оптимизация',
+                ),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 onPressed: _generatePlan,
@@ -303,6 +320,32 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         SnackBar(content: Text('Ошибка экспорта: $e')),
       );
     }
+  }
+
+  /// AI оптимизация плана
+  void _optimizeWithAI() {
+    if (_plan == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('AI оптимизация...')),
+    );
+
+    final optimizedPlan = _ruleEngine.optimize(_plan!);
+
+    setState(() {
+      _plan = optimizedPlan;
+      _isAIOptimized = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Compliance: ${(optimizedPlan.complianceScore * 100).toInt()}%',
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 }
 
