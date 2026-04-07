@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
 import '../models/order.dart';
+import '../utils/app_design.dart';
 import 'work_type_screen.dart';
 import 'checklist_screen.dart';
 
@@ -13,7 +14,16 @@ class OrdersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Заявки')),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: AppDesign.appBarGradient,
+            boxShadow: AppDesign.appBarShadow,
+          ),
+          child: AppBar(title: const Text('Заявки')),
+        ),
+      ),
       body: BlocBuilder<OrderBloc, OrderState>(
         builder: (context, state) {
           if (state is OrderLoading) {
@@ -29,20 +39,19 @@ class OrdersScreen extends StatelessWidget {
                     Icon(
                       Icons.assignment_outlined,
                       size: 80,
-                      color: Colors.grey.shade400,
+                      color: AppDesign.warmTaupe,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppDesign.spacing16),
                     Text(
                       'Нет заявок',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey.shade600,
+                      style: AppDesign.subtitleStyle.copyWith(
+                        color: AppDesign.midBlueGray,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: AppDesign.spacing8),
                     Text(
                       'Нажмите + чтобы создать новую',
-                      style: TextStyle(color: Colors.grey.shade500),
+                      style: AppDesign.captionStyle,
                     ),
                   ],
                 ),
@@ -54,7 +63,7 @@ class OrdersScreen extends StatelessWidget {
                 context.read<OrderBloc>().add(LoadOrders());
               },
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppDesign.spacing16),
                 itemCount: state.orders.length,
                 itemBuilder: (context, index) {
                   final order = state.orders[index];
@@ -69,10 +78,14 @@ class OrdersScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(state.message),
-                  const SizedBox(height: 16),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 60,
+                    color: AppDesign.statusCancelled,
+                  ),
+                  const SizedBox(height: AppDesign.spacing16),
+                  Text(state.message, style: AppDesign.bodyStyle),
+                  const SizedBox(height: AppDesign.spacing16),
                   ElevatedButton(
                     onPressed: () {
                       context.read<OrderBloc>().add(LoadOrders());
@@ -87,14 +100,43 @@ class OrdersScreen extends StatelessWidget {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const WorkTypeScreen()));
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Новая заявка'),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+          gradient: AppDesign.accentButtonGradient,
+          boxShadow: AppDesign.fabShadow,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const WorkTypeScreen()));
+            },
+            borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDesign.spacing16,
+                vertical: AppDesign.spacing12,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.add, size: 20),
+                  SizedBox(width: AppDesign.spacing8),
+                  Text(
+                    'Новая заявка',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -114,95 +156,109 @@ class _OrderCard extends StatelessWidget {
       decimalDigits: 0,
     );
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => ChecklistScreen(order: order)),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppDesign.spacing12),
+      decoration: AppDesign.cardDecoration,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ChecklistScreen(order: order)),
+            );
+          },
+          borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+          child: Padding(
+            padding: const EdgeInsets.all(AppDesign.spacing16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        order.clientName,
+                        style: AppDesign.subtitleStyle,
+                      ),
+                    ),
+                    _StatusChip(status: order.status),
+                  ],
+                ),
+                const SizedBox(height: AppDesign.spacing12),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.work_outline,
+                      size: 16,
+                      color: AppDesign.midBlueGray,
+                    ),
+                    const SizedBox(width: AppDesign.spacing8),
+                    Text(
+                      order.workType.title,
+                      style: AppDesign.bodyStyle.copyWith(
+                        color: AppDesign.midBlueGray,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDesign.spacing8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 16,
+                      color: AppDesign.midBlueGray,
+                    ),
+                    const SizedBox(width: AppDesign.spacing8),
+                    Expanded(
+                      child: Text(
+                        order.address,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppDesign.bodyStyle.copyWith(
+                          color: AppDesign.midBlueGray,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppDesign.spacing8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: AppDesign.midBlueGray,
+                    ),
+                    const SizedBox(width: AppDesign.spacing8),
+                    Text(
+                      dateFormat.format(order.date),
+                      style: AppDesign.captionStyle,
+                    ),
+                  ],
+                ),
+                if (order.estimatedCost != null) ...[
+                  const SizedBox(height: AppDesign.spacing12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDesign.spacing12,
+                      vertical: AppDesign.spacing8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppDesign.accentTeal.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+                    ),
                     child: Text(
-                      order.clientName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                      currencyFormat.format(order.estimatedCost),
+                      style: AppDesign.subtitleStyle.copyWith(
+                        color: AppDesign.accentTeal,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  _StatusChip(status: order.status),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.work_outline,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    order.workType.title,
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      order.address,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.grey.shade700),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    dateFormat.format(order.date),
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-              if (order.estimatedCost != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  currencyFormat.format(order.estimatedCost),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -217,30 +273,22 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    switch (status) {
-      case OrderStatus.newOrder:
-        color = Colors.blue;
-        break;
-      case OrderStatus.inProgress:
-        color = Colors.orange;
-        break;
-      case OrderStatus.completed:
-        color = Colors.green;
-        break;
-      case OrderStatus.cancelled:
-        color = Colors.red;
-        break;
-    }
+    final color = AppDesign.getOrderStatusColor(status);
 
-    return Chip(
-      label: Text(
-        status.label,
-        style: const TextStyle(fontSize: 12, color: Colors.white),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(AppDesign.radiusPill),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
-      backgroundColor: color,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
+      child: Text(
+        status.label,
+        style: AppDesign.captionStyle.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

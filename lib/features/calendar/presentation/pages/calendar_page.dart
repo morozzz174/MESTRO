@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../../../../models/order.dart';
+import '../../../../../utils/app_design.dart';
+import '../../../../../models/order.dart';
 import '../../bloc/calendar_bloc.dart';
 import '../../bloc/calendar_event.dart';
 import '../../bloc/calendar_state.dart';
@@ -35,10 +36,14 @@ class _CalendarPageState extends State<CalendarPage> {
         return Column(
           children: [
             // Календарь
-            Card(
-              margin: const EdgeInsets.all(8),
+            Container(
+              margin: const EdgeInsets.all(AppDesign.spacing8),
+              decoration: AppDesign.cardDecoration,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDesign.spacing8,
+                  vertical: AppDesign.spacing4,
+                ),
                 child: TableCalendar<Order>(
                   firstDay: DateTime.utc(2024, 1, 1),
                   lastDay: DateTime.utc(2030, 12, 31),
@@ -59,25 +64,41 @@ class _CalendarPageState extends State<CalendarPage> {
                   },
                   calendarStyle: CalendarStyle(
                     todayDecoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: AppDesign.deepSteelBlue.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    selectedDecoration: const BoxDecoration(
-                      color: Colors.blue,
+                    selectedDecoration: BoxDecoration(
+                      color: AppDesign.deepSteelBlue,
                       shape: BoxShape.circle,
                     ),
-                    markerDecoration: const BoxDecoration(
-                      color: Colors.orange,
+                    markerDecoration: BoxDecoration(
+                      color: AppDesign.accentTeal,
                       shape: BoxShape.circle,
                     ),
                     markersMaxCount: 3,
                     markerSize: 6,
                     markerMargin: const EdgeInsets.symmetric(horizontal: 1.5),
+                    defaultTextStyle: AppDesign.bodyStyle,
+                    weekendTextStyle: AppDesign.bodyStyle.copyWith(
+                      color: AppDesign.midBlueGray,
+                    ),
+                    holidayTextStyle: AppDesign.bodyStyle.copyWith(
+                      color: AppDesign.midBlueGray,
+                    ),
                   ),
-                  headerStyle: const HeaderStyle(
+                  headerStyle: HeaderStyle(
                     formatButtonVisible: true,
                     titleCentered: true,
-                    formatButtonTextStyle: TextStyle(fontSize: 14),
+                    formatButtonTextStyle: AppDesign.captionStyle,
+                    titleTextStyle: AppDesign.subtitleStyle,
+                    leftChevronIcon: Icon(
+                      Icons.chevron_left,
+                      color: AppDesign.deepSteelBlue,
+                    ),
+                    rightChevronIcon: Icon(
+                      Icons.chevron_right,
+                      color: AppDesign.deepSteelBlue,
+                    ),
                   ),
                   onDaySelected: (selectedDay, focusedDay) {
                     setState(() {
@@ -101,18 +122,18 @@ class _CalendarPageState extends State<CalendarPage> {
                         bottom: 1,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
+                            horizontal: AppDesign.spacing4,
                             vertical: 1,
                           ),
                           decoration: BoxDecoration(
                             color: count > 0
                                 ? (events.any((e) => e.isToday)
-                                    ? Colors.green
+                                    ? AppDesign.statusCompleted
                                     : events.any((e) => e.isPast)
-                                        ? Colors.grey
-                                        : Colors.orange)
-                                : Colors.orange,
-                            borderRadius: BorderRadius.circular(4),
+                                        ? AppDesign.warmTaupe
+                                        : AppDesign.accentTeal)
+                                : AppDesign.accentTeal,
+                            borderRadius: BorderRadius.circular(AppDesign.radiusChip),
                           ),
                           child: Text(
                             '$count',
@@ -132,28 +153,28 @@ class _CalendarPageState extends State<CalendarPage> {
 
             // Фильтр-чипы
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing16),
               child: Row(
                 children: [
                   _FilterChip(
                     label: 'Прошедшие',
-                    color: Colors.grey,
+                    color: AppDesign.warmTaupe,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDesign.spacing8),
                   _FilterChip(
                     label: 'Сегодня',
-                    color: Colors.green,
+                    color: AppDesign.statusCompleted,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppDesign.spacing8),
                   _FilterChip(
                     label: 'Будущие',
-                    color: Colors.orange,
+                    color: AppDesign.accentTeal,
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDesign.spacing8),
 
             // Список замеров за выбранный день
             if (state is CalendarLoading)
@@ -190,10 +211,13 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppDesign.spacing12,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppDesign.radiusPill),
         border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Row(
@@ -210,10 +234,9 @@ class _FilterChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+            style: AppDesign.captionStyle.copyWith(
               color: color,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

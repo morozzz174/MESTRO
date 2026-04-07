@@ -12,6 +12,7 @@ import '../bloc/checklist_bloc.dart';
 import '../bloc/checklist_event.dart';
 import '../models/order.dart';
 import '../models/checklist_config.dart';
+import '../utils/app_design.dart';
 import '../utils/condition_evaluator.dart';
 import '../utils/cost_calculator.dart';
 import '../utils/pdf_generator.dart';
@@ -52,20 +53,29 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Чек-лист: ${_order.workType.title}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.mic_none),
-            onPressed: _showVoiceInput,
-            tooltip: 'Голосовой ввод',
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: AppDesign.appBarGradient,
+            boxShadow: AppDesign.appBarShadow,
           ),
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveOrder,
-            tooltip: 'Сохранить',
+          child: AppBar(
+            title: Text('Чек-лист: ${_order.workType.title}'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.mic_none),
+                onPressed: _showVoiceInput,
+                tooltip: 'Голосовой ввод',
+              ),
+              IconButton(
+                icon: const Icon(Icons.save),
+                onPressed: _saveOrder,
+                tooltip: 'Сохранить',
+              ),
+            ],
           ),
-        ],
+        ),
       ),
       body: BlocBuilder<ChecklistBloc, ChecklistState>(
         builder: (context, state) {
@@ -95,13 +105,13 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     return Form(
       key: _formKey,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDesign.spacing16),
         children: [
           // Информация о клиенте
           _buildClientInfoSection(),
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDesign.spacing16),
+          AppDesign.separator(),
+          const SizedBox(height: AppDesign.spacing8),
 
           // Поля чек-листа
           ...state.config.fields
@@ -111,9 +121,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
               )
               .map((field) => _buildField(context, field, state)),
 
-          const SizedBox(height: 16),
-          const Divider(),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDesign.spacing16),
+          AppDesign.separator(),
+          const SizedBox(height: AppDesign.spacing8),
 
           // Фото заявки
           _buildPhotosSection(),
@@ -124,65 +134,66 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   }
 
   Widget _buildClientInfoSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Информация о клиенте',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          initialValue: _order.clientName.isEmpty ? null : _order.clientName,
-          decoration: const InputDecoration(
-            labelText: 'Имя клиента',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.person),
-          ),
-          onChanged: (value) {
-            _order = _order.copyWith(clientName: value);
-          },
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          initialValue: _order.address.isEmpty ? null : _order.address,
-          decoration: const InputDecoration(
-            labelText: 'Адрес',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.location_on),
-          ),
-          maxLines: 2,
-          onChanged: (value) {
-            _order = _order.copyWith(address: value);
-          },
-        ),
-        const SizedBox(height: 12),
-        InkWell(
-          onTap: () async {
-            final date = await showDatePicker(
-              context: context,
-              initialDate: _order.date,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-            );
-            if (date != null) {
-              setState(() {
-                _order = _order.copyWith(date: date);
-              });
-            }
-          },
-          child: InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'Дата замера',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.calendar_today),
+    return Container(
+      decoration: AppDesign.cardDecoration,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDesign.spacing16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Информация о клиенте',
+              style: AppDesign.subtitleStyle,
             ),
-            child: Text(DateFormat('dd.MM.yyyy', 'ru').format(_order.date)),
-          ),
+            const SizedBox(height: AppDesign.spacing12),
+            TextFormField(
+              initialValue: _order.clientName.isEmpty ? null : _order.clientName,
+              decoration: const InputDecoration(
+                labelText: 'Имя клиента',
+                prefixIcon: Icon(Icons.person),
+              ),
+              onChanged: (value) {
+                _order = _order.copyWith(clientName: value);
+              },
+            ),
+            const SizedBox(height: AppDesign.spacing12),
+            TextFormField(
+              initialValue: _order.address.isEmpty ? null : _order.address,
+              decoration: const InputDecoration(
+                labelText: 'Адрес',
+                prefixIcon: Icon(Icons.location_on),
+              ),
+              maxLines: 2,
+              onChanged: (value) {
+                _order = _order.copyWith(address: value);
+              },
+            ),
+            const SizedBox(height: AppDesign.spacing12),
+            InkWell(
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: _order.date,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                );
+                if (date != null) {
+                  setState(() {
+                    _order = _order.copyWith(date: date);
+                  });
+                }
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Дата замера',
+                  prefixIcon: Icon(Icons.calendar_today),
+                ),
+                child: Text(DateFormat('dd.MM.yyyy', 'ru').format(_order.date)),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -206,92 +217,103 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   }
 
   Widget _buildPhotosSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      decoration: AppDesign.cardDecoration,
+      child: Padding(
+        padding: const EdgeInsets.all(AppDesign.spacing16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Фотофиксация',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Фотофиксация',
+                  style: AppDesign.subtitleStyle,
+                ),
+                ElevatedButton.icon(
+                  onPressed: _takePhoto,
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: const Text('Добавить фото'),
+                  style: AppDesign.accentButtonStyle,
+                ),
+              ],
             ),
-            ElevatedButton.icon(
-              onPressed: _takePhoto,
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Добавить фото'),
+            const SizedBox(height: AppDesign.spacing12),
+            BlocBuilder<OrderBloc, OrderState>(
+              builder: (context, state) {
+                if (state is OrderLoaded) {
+                  final order = state.orders.firstWhere(
+                    (o) => o.id == _order.id,
+                    orElse: () => _order,
+                  );
+                  if (order.photos.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppDesign.spacing24),
+                        child: Text(
+                          'Нет фото. Нажмите кнопку выше.',
+                          style: AppDesign.captionStyle,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: AppDesign.spacing8,
+                      mainAxisSpacing: AppDesign.spacing8,
+                    ),
+                    itemCount: order.photos.length,
+                    itemBuilder: (context, index) {
+                      final photo = order.photos[index];
+                      return GestureDetector(
+                        onTap: () => _viewPhoto(photo),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+                              child: Image.file(
+                                File(photo.annotatedPath ?? photo.filePath),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 4,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppDesign.statusCancelled.withOpacity(0.9),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  onPressed: () => _deletePhoto(photo),
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        BlocBuilder<OrderBloc, OrderState>(
-          builder: (context, state) {
-            if (state is OrderLoaded) {
-              final order = state.orders.firstWhere(
-                (o) => o.id == _order.id,
-                orElse: () => _order,
-              );
-              if (order.photos.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      'Нет фото. Нажмите кнопку выше.',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ),
-                );
-              }
-
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8,
-                ),
-                itemCount: order.photos.length,
-                itemBuilder: (context, index) {
-                  final photo = order.photos[index];
-                  return GestureDetector(
-                    onTap: () => _viewPhoto(photo),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(
-                            File(photo.annotatedPath ?? photo.filePath),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            onPressed: () => _deletePhoto(photo),
-                            constraints: const BoxConstraints(),
-                            padding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-      ],
+      ),
     );
   }
 
@@ -760,13 +782,13 @@ class _BottomActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDesign.spacing16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: AppDesign.cardBackground,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
+            color: AppDesign.deepSteelBlue.withOpacity(0.12),
+            blurRadius: 16,
             offset: const Offset(0, -2),
           ),
         ],
@@ -776,16 +798,17 @@ class _BottomActions extends StatelessWidget {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: onCalculate,
-              icon: const Icon(Icons.calculate),
+              icon: const Icon(Icons.calculate, size: 18),
               label: const Text('Рассчитать'),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppDesign.spacing12),
           Expanded(
             child: ElevatedButton.icon(
               onPressed: onGeneratePdf,
-              icon: const Icon(Icons.picture_as_pdf),
+              icon: const Icon(Icons.picture_as_pdf, size: 18),
               label: const Text('PDF'),
+              style: AppDesign.accentButtonStyle,
             ),
           ),
         ],

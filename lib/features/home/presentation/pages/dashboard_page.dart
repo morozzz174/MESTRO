@@ -5,6 +5,7 @@ import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/user.dart';
+import '../../../../utils/app_design.dart';
 import '../../../price_list/presentation/pages/price_list_screen.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -43,62 +44,60 @@ class _DashboardPageState extends State<DashboardPage> {
         await _loadUser();
       },
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDesign.spacing20),
         children: [
           // Приветствие
-          Card(
+          Container(
+            decoration: AppDesign.cardDecoration,
             child: Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(AppDesign.spacing20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primaryContainer,
-                        child: Icon(
-                          Icons.person,
-                          size: 28,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: AppDesign.primaryButtonGradient,
+                          boxShadow: AppDesign.secondaryButtonShadow,
+                        ),
+                        padding: const EdgeInsets.all(2),
+                        child: CircleAvatar(
+                          radius: 28,
+                          backgroundColor: AppDesign.cardBackground,
+                          child: const Icon(
+                            Icons.person,
+                            size: 28,
+                            color: AppDesign.deepSteelBlue,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: AppDesign.spacing16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               _user?.fullName ?? 'Пользователь',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: AppDesign.titleStyle,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppDesign.spacing4),
                             Text(
                               today,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
-                              ),
+                              style: AppDesign.captionStyle,
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppDesign.spacing16),
                   Text(
                     'Добро пожаловать в MESTRO! '
                     'Управляйте замерами, клиентами и чек-листами в одном месте.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
+                    style: AppDesign.bodyStyle.copyWith(
+                      color: AppDesign.midBlueGray,
                       height: 1.5,
                     ),
                   ),
@@ -107,7 +106,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDesign.spacing16),
 
           // Статистика
           BlocBuilder<OrderBloc, OrderState>(
@@ -134,75 +133,76 @@ class _DashboardPageState extends State<DashboardPage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: AppDesign.spacing12,
+                mainAxisSpacing: AppDesign.spacing12,
                 childAspectRatio: 1.5,
                 children: [
                   _StatCard(
                     icon: Icons.assignment_outlined,
                     label: 'Всего заявок',
                     value: totalOrders.toString(),
-                    color: Colors.blue,
+                    color: AppDesign.deepSteelBlue,
                   ),
                   _StatCard(
                     icon: Icons.fiber_new,
                     label: 'Новые',
                     value: newOrders.toString(),
-                    color: Colors.orange,
+                    color: AppDesign.accentTeal,
                   ),
                   _StatCard(
                     icon: Icons.pending,
                     label: 'В работе',
                     value: inProgress.toString(),
-                    color: Colors.purple,
+                    color: AppDesign.warmTaupe,
                   ),
                   _StatCard(
                     icon: Icons.check_circle_outline,
                     label: 'Завершены',
                     value: completed.toString(),
-                    color: Colors.green,
+                    color: AppDesign.statusCompleted,
                   ),
                 ],
               );
             },
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: AppDesign.spacing24),
 
           // Быстрые действия
-          const Text(
+          Text(
             'Быстрые действия',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: AppDesign.titleStyle.copyWith(fontSize: 18),
           ),
-          const SizedBox(height: 12),
-          Card(
+          const SizedBox(height: AppDesign.spacing12),
+          Container(
+            decoration: AppDesign.cardDecoration,
             child: Column(
               children: [
                 _QuickActionTile(
                   icon: Icons.add_circle_outline,
                   title: 'Новая заявка',
                   subtitle: 'Создать заявку на замер',
-                  color: Colors.blue,
+                  color: AppDesign.deepSteelBlue,
                   onTap: () {
                     widget.onNavigate(1); // Замеры
                   },
                 ),
-                Divider(height: 1, color: Colors.grey.shade200),
+                AppDesign.separator(),
                 _QuickActionTile(
                   icon: Icons.meeting_room_outlined,
                   title: 'Мои замеры',
                   subtitle: 'Просмотр списка замеров',
-                  color: Colors.teal,
+                  color: AppDesign.accentTeal,
                   onTap: () {
                     widget.onNavigate(1); // Замеры
                   },
                 ),
-                Divider(height: 1, color: Colors.grey.shade200),
+                AppDesign.separator(),
                 _QuickActionTile(
                   icon: Icons.price_change,
                   title: 'Прайс-лист',
                   subtitle: 'Управление ценами',
-                  color: Colors.deepOrange,
+                  color: AppDesign.midBlueGray,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -211,12 +211,12 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                   },
                 ),
-                Divider(height: 1, color: Colors.grey.shade200),
+                AppDesign.separator(),
                 _QuickActionTile(
                   icon: Icons.assignment_turned_in_outlined,
                   title: 'Чек-листы',
                   subtitle: 'Шаблоны и отчёты',
-                  color: Colors.orange,
+                  color: AppDesign.warmTaupe,
                   onTap: () {
                     widget.onNavigate(3); // Чек-листы
                   },
@@ -245,27 +245,32 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
+      decoration: AppDesign.cardDecoration,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppDesign.spacing16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(icon, color: color, size: 28),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppDesign.titleStyle.copyWith(fontSize: 24),
                 ),
                 Text(
                   label,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  style: AppDesign.captionStyle,
                 ),
               ],
             ),
@@ -298,41 +303,38 @@ class _QuickActionTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppDesign.spacing16),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
                 ),
                 child: Icon(icon, color: color, size: 24),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppDesign.spacing16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppDesign.subtitleStyle,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppDesign.spacing4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
+                      style: AppDesign.captionStyle,
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Colors.grey.shade400),
+              Icon(
+                Icons.chevron_right,
+                color: AppDesign.midBlueGray.withOpacity(0.6),
+              ),
             ],
           ),
         ),

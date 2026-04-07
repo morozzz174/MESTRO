@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
+import '../../../../utils/app_design.dart';
 import 'dashboard_page.dart';
 import '../../../appointments/presentation/pages/appointments_page.dart';
 import '../../../calendar/presentation/pages/calendar_page.dart';
@@ -54,60 +55,104 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'MESTRO',
-          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Обновить',
-            onPressed: () {
-              context.read<OrderBloc>().add(LoadOrders());
-            },
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: AppDesign.appBarGradient,
+            boxShadow: AppDesign.appBarShadow,
           ),
-        ],
+          child: AppBar(
+            title: const Text(
+              'MESTRO',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Обновить',
+                onPressed: () {
+                  context.read<OrderBloc>().add(LoadOrders());
+                },
+              ),
+            ],
+          ),
+        ),
       ),
       body: IndexedStack(index: _currentIndex, children: _pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Главная',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.meeting_room_outlined),
-            selectedIcon: Icon(Icons.meeting_room),
-            label: 'Замеры',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'Календарь',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_turned_in_outlined),
-            selectedIcon: Icon(Icons.assignment_turned_in),
-            label: 'Чек-листы',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Профиль',
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppDesign.primaryDark.withOpacity(0.92),
+          boxShadow: AppDesign.bottomBarShadow,
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() => _currentIndex = index);
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Главная',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.meeting_room_outlined),
+              selectedIcon: Icon(Icons.meeting_room),
+              label: 'Замеры',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: 'Календарь',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.assignment_turned_in_outlined),
+              selectedIcon: Icon(Icons.assignment_turned_in),
+              label: 'Чек-листы',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Профиль',
+            ),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createAppointment,
-        icon: const Icon(Icons.add),
-        label: const Text('Замер'),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+          gradient: AppDesign.accentButtonGradient,
+          boxShadow: AppDesign.fabShadow,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _createAppointment,
+            borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(Icons.add, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Замер',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
