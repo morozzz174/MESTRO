@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/user.dart';
 import '../../../../screens/registration_screen.dart';
+import '../../../../utils/app_design.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -37,13 +38,20 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Выход из аккаунта'),
         content: const Text('Вы уверены, что хотите выйти?'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('Отмена'),
           ),
-          FilledButton(
+          ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppDesign.statusCancelled,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Выйти'),
           ),
         ],
@@ -80,37 +88,42 @@ class _ProfilePageState extends State<ProfilePage> {
     final dateFormat = DateFormat('dd.MM.yyyy', 'ru');
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDesign.spacing16),
       children: [
         // Аватар и имя
-        Card(
+        Container(
+          decoration: AppDesign.cardDecoration,
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppDesign.spacing24),
             child: Column(
               children: [
-                CircleAvatar(
-                  radius: 48,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.person,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppDesign.primaryButtonGradient,
+                    boxShadow: AppDesign.primaryButtonShadow,
+                  ),
+                  padding: const EdgeInsets.all(3),
+                  child: CircleAvatar(
+                    radius: 48,
+                    backgroundColor: AppDesign.cardBackground,
+                    child: const Icon(
+                      Icons.person,
+                      size: 48,
+                      color: AppDesign.deepSteelBlue,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDesign.spacing16),
                 Text(
                   _user!.fullName ?? 'Пользователь',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppDesign.titleStyle,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDesign.spacing8),
                 Text(
                   _user!.phone,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
+                  style: AppDesign.bodyStyle.copyWith(
+                    color: AppDesign.midBlueGray,
                   ),
                 ),
               ],
@@ -118,47 +131,45 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDesign.spacing16),
 
         // Информация
-        Card(
+        Container(
+          decoration: AppDesign.cardDecoration,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDesign.spacing16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Информация',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppDesign.subtitleStyle,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDesign.spacing16),
                 _InfoRow(
                   icon: Icons.phone,
                   label: 'Телефон',
                   value: _user!.phone,
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.person_outline,
                   label: 'ФИО',
                   value: _user!.fullName ?? 'Не указано',
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.event_available,
                   label: 'Дата согласия',
                   value: dateFormat.format(_user!.consentDate),
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.file_copy,
                   label: 'Версия согласия',
                   value: _user!.consentVersion,
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.calendar_today,
                   label: 'Дата регистрации',
@@ -169,58 +180,57 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDesign.spacing16),
 
         // Настройки уведомлений
-        Card(
+        Container(
+          decoration: AppDesign.cardDecoration,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDesign.spacing16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.notifications_active, color: Colors.orange),
-                    SizedBox(width: 8),
+                    const Icon(
+                      Icons.notifications_active,
+                      color: AppDesign.accentTeal,
+                    ),
+                    const SizedBox(width: AppDesign.spacing8),
                     Text(
                       'Уведомления',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: AppDesign.subtitleStyle,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDesign.spacing16),
                 _InfoRow(
                   icon: Icons.alarm,
                   label: 'За 1 час до замера',
                   value: 'Локальное ✓',
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.alarm,
                   label: 'За 30 мин до замера',
                   value: 'Локальное ✓',
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.sms,
                   label: 'Клиенту за 24 часа',
                   value: 'SMS (настр.)',
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.sms,
                   label: 'Клиенту за 2 часа',
                   value: 'SMS (настр.)',
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppDesign.spacing12),
                 Text(
                   'Для SMS-уведомлений укажите API ключ в настройках приложения.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
+                  style: AppDesign.captionStyle.copyWith(
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -229,27 +239,25 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: 16),
-        Card(
+        const SizedBox(height: AppDesign.spacing16),
+        Container(
+          decoration: AppDesign.cardDecoration,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppDesign.spacing16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'О приложении',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppDesign.subtitleStyle,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppDesign.spacing16),
                 _InfoRow(
                   icon: Icons.info_outline,
                   label: 'Версия',
                   value: '1.0.0',
                 ),
-                const Divider(height: 24),
+                AppDesign.separator(),
                 _InfoRow(
                   icon: Icons.business,
                   label: 'Разработчик',
@@ -260,28 +268,31 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDesign.spacing24),
 
         // Кнопка выхода
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: _logout,
-            icon: const Icon(Icons.logout, color: Colors.red),
+            icon: const Icon(Icons.logout, color: AppDesign.statusCancelled),
             label: const Text(
               'Выйти из аккаунта',
-              style: TextStyle(color: Colors.red, fontSize: 16),
+              style: TextStyle(
+                color: AppDesign.statusCancelled,
+                fontSize: 16,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: const BorderSide(color: Colors.red),
+              side: BorderSide(color: AppDesign.statusCancelled, width: 1.5),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppDesign.radiusButton),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDesign.spacing16),
       ],
     );
   }
@@ -300,30 +311,34 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey.shade600),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 15),
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppDesign.spacing8),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: AppDesign.midBlueGray,
           ),
-        ),
-      ],
+          const SizedBox(width: AppDesign.spacing12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppDesign.captionStyle,
+                ),
+                const SizedBox(height: AppDesign.spacing4),
+                Text(
+                  value,
+                  style: AppDesign.bodyStyle,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

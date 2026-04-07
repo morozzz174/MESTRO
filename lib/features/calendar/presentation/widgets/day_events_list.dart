@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../../models/order.dart';
+import '../../../../../utils/app_design.dart';
 import '../../../../../screens/checklist_screen.dart';
 
 class DayEventsList extends StatelessWidget {
@@ -39,156 +40,149 @@ class DayEventsList extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Замеры (${sortedOrders.length})',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppDesign.subtitleStyle,
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDesign.spacing8),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing16),
             itemCount: sortedOrders.length,
             itemBuilder: (context, index) {
               final order = sortedOrders[index];
               final time = order.appointmentDate ?? order.date;
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => ChecklistScreen(order: order),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                dateFormat.format(time),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
-                                  fontSize: 14,
+              return Container(
+                margin: const EdgeInsets.only(bottom: AppDesign.spacing8),
+                decoration: AppDesign.cardDecoration,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ChecklistScreen(order: order),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppDesign.spacing12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppDesign.spacing8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppDesign.deepSteelBlue.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+                                ),
+                                child: Text(
+                                  dateFormat.format(time),
+                                  style: AppDesign.captionStyle.copyWith(
+                                    color: AppDesign.deepSteelBlue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                order.clientName,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            _StatusBadge(status: order.status),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.work_outline,
-                              size: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              order.workType.title,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on_outlined,
-                              size: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                order.address,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade700,
+                              const SizedBox(width: AppDesign.spacing8),
+                              Expanded(
+                                child: Text(
+                                  order.clientName,
+                                  style: AppDesign.subtitleStyle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        if (order.clientPhone != null) ...[
-                          const SizedBox(height: 4),
+                              _StatusBadge(status: order.status),
+                            ],
+                          ),
+                          const SizedBox(height: AppDesign.spacing8),
                           Row(
                             children: [
                               Icon(
-                                Icons.phone,
+                                Icons.work_outline,
                                 size: 14,
-                                color: Colors.grey.shade600,
+                                color: AppDesign.midBlueGray,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: AppDesign.spacing4),
                               Text(
-                                order.clientPhone!,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade700,
+                                order.workType.title,
+                                style: AppDesign.captionStyle,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppDesign.spacing4),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 14,
+                                color: AppDesign.midBlueGray,
+                              ),
+                              const SizedBox(width: AppDesign.spacing4),
+                              Expanded(
+                                child: Text(
+                                  order.address,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppDesign.captionStyle,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                        if (order.estimatedCost != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            currencyFormat.format(order.estimatedCost),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
+                          if (order.clientPhone != null) ...[
+                            const SizedBox(height: AppDesign.spacing4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.phone,
+                                  size: 14,
+                                  color: AppDesign.midBlueGray,
+                                ),
+                                const SizedBox(width: AppDesign.spacing4),
+                                Text(
+                                  order.clientPhone!,
+                                  style: AppDesign.captionStyle,
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
+                          if (order.estimatedCost != null) ...[
+                            const SizedBox(height: AppDesign.spacing8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppDesign.spacing12,
+                                vertical: AppDesign.spacing4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppDesign.accentTeal.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+                              ),
+                              child: Text(
+                                currencyFormat.format(order.estimatedCost),
+                                style: AppDesign.captionStyle.copyWith(
+                                  color: AppDesign.accentTeal,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -208,34 +202,19 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    switch (status) {
-      case OrderStatus.newOrder:
-        color = Colors.blue;
-        break;
-      case OrderStatus.inProgress:
-        color = Colors.orange;
-        break;
-      case OrderStatus.completed:
-        color = Colors.green;
-        break;
-      case OrderStatus.cancelled:
-        color = Colors.red;
-        break;
-    }
+    final color = AppDesign.getOrderStatusColor(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppDesign.radiusChip),
       ),
       child: Text(
         status.label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+        style: AppDesign.captionStyle.copyWith(
           color: color,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -254,28 +233,22 @@ class _EmptyDay extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppDesign.spacing24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.event_busy, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
+            Icon(Icons.event_busy, size: 64, color: AppDesign.warmTaupe),
+            const SizedBox(height: AppDesign.spacing16),
             Text(
               'Нет замеров на ${dateFormat.format(selectedDay)}',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+              style: AppDesign.bodyStyle.copyWith(color: AppDesign.midBlueGray),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppDesign.spacing24),
             ElevatedButton.icon(
               onPressed: onNavigate != null ? () => onNavigate!(0) : null,
-              icon: const Icon(Icons.add),
+              icon: const Icon(Icons.add, size: 18),
               label: const Text('Создать замер'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
             ),
           ],
         ),

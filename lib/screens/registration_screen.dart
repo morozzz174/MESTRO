@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../database/database_helper.dart';
 import '../models/user.dart';
 import '../services/ucaller_service.dart';
+import '../utils/app_design.dart';
 import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 
@@ -27,47 +28,68 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: AppDesign.appBarGradient,
+            boxShadow: AppDesign.appBarShadow,
+          ),
+          child: AppBar(
+            title: const Text('Регистрация'),
+          ),
+        ),
+      ),
       body: SafeArea(
-        child: Stepper(
-          currentStep: _currentStep,
-          controlsBuilder: (_, _) => const SizedBox.shrink(),
-          onStepTapped: (step) {
-            if (step >= _currentStep) {
-              setState(() => _currentStep = step);
-            }
-          },
-          steps: [
-            Step(
-              title: const Text('Телефон'),
-              content: _PhoneVerificationStep(
-                onVerified: (phone) {
-                  setState(() {
-                    _verifiedPhone = phone;
-                    _currentStep = 1;
-                  });
-                },
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: AppDesign.deepSteelBlue,
+              primary: AppDesign.deepSteelBlue,
+              secondary: AppDesign.accentTeal,
+            ),
+          ),
+          child: Stepper(
+            currentStep: _currentStep,
+            controlsBuilder: (_, _) => const SizedBox.shrink(),
+            onStepTapped: (step) {
+              if (step >= _currentStep) {
+                setState(() => _currentStep = step);
+              }
+            },
+            steps: [
+              Step(
+                title: const Text('Телефон'),
+                content: _PhoneVerificationStep(
+                  onVerified: (phone) {
+                    setState(() {
+                      _verifiedPhone = phone;
+                      _currentStep = 1;
+                    });
+                  },
+                ),
+                isActive: _currentStep >= 0,
+                state: _currentStep > 0 ? StepState.complete : StepState.indexed,
               ),
-              isActive: _currentStep >= 0,
-              state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-            ),
-            Step(
-              title: const Text('Профиль'),
-              content: _ProfileStep(
-                verifiedPhone: _verifiedPhone ?? '',
-                onRegistered: () {
-                  setState(() => _currentStep = 2);
-                },
+              Step(
+                title: const Text('Профиль'),
+                content: _ProfileStep(
+                  verifiedPhone: _verifiedPhone ?? '',
+                  onRegistered: () {
+                    setState(() => _currentStep = 2);
+                  },
+                ),
+                isActive: _currentStep >= 1,
+                state: _currentStep > 1 ? StepState.complete : StepState.indexed,
               ),
-              isActive: _currentStep >= 1,
-              state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-            ),
-            Step(
-              title: const Text('Готово'),
-              content: _SuccessStep(),
-              isActive: _currentStep >= 2,
-              state: StepState.indexed,
-            ),
-          ],
+              Step(
+                title: const Text('Готово'),
+                content: _SuccessStep(),
+                isActive: _currentStep >= 2,
+                state: StepState.indexed,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -122,23 +144,21 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
           controller: _phoneController,
           keyboardType: TextInputType.phone,
           enabled: !_codeSent,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Номер телефона',
             hintText: '+7 (999) 123-45-67',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.phone_outlined),
+            prefixIcon: const Icon(Icons.phone_outlined),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDesign.spacing8),
         Text(
-          '💡 Тест: 79000000001 — всегда успешный звонок',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.blue.shade700,
+          'Тест: 79000000001 — всегда успешный звонок',
+          style: AppDesign.captionStyle.copyWith(
+            color: AppDesign.deepSteelBlue,
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDesign.spacing16),
 
         if (_codeSent) ...[
           TextField(
@@ -148,17 +168,16 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
             decoration: const InputDecoration(
               labelText: 'Код из звонка',
               hintText: 'Введите код, который продиктует оператор',
-              border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.pin_outlined),
               counterText: '',
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppDesign.spacing8),
           Text(
             'Вам поступит входящий звонок. Оператор продиктует код — введите его выше.',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            style: AppDesign.captionStyle,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDesign.spacing16),
           Row(
             children: [
               Expanded(
@@ -172,15 +191,18 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppDesign.spacing16),
         ],
 
         if (_errorMessage != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: AppDesign.spacing12),
             child: Text(
               _errorMessage!,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
+              style: const TextStyle(
+                color: AppDesign.statusCancelled,
+                fontSize: 13,
+              ),
             ),
           ),
 
@@ -196,12 +218,6 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
                 )
               : Icon(_codeSent ? Icons.check : Icons.phone),
           label: Text(_codeSent ? 'Подтвердить код' : 'Получить звонок'),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
         ),
       ],
     );
@@ -438,23 +454,21 @@ class _ProfileStepState extends State<_ProfileStep> {
           decoration: const InputDecoration(
             labelText: 'ФИО',
             hintText: 'Иванов Иван Иванович',
-            border: OutlineInputBorder(),
             prefixIcon: Icon(Icons.person_outline),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppDesign.spacing16),
         TextField(
           controller: TextEditingController(text: widget.verifiedPhone),
           keyboardType: TextInputType.phone,
           readOnly: true,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             labelText: 'Телефон (верифицирован)',
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.phone_outlined),
-            suffixIcon: const Icon(Icons.check_circle, color: Colors.green),
+            prefixIcon: Icon(Icons.phone_outlined),
+            suffixIcon: Icon(Icons.check_circle, color: AppDesign.accentTeal),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDesign.spacing24),
 
         // Чекбокс согласия
         Row(
@@ -471,17 +485,19 @@ class _ProfileStepState extends State<_ProfileStep> {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppDesign.spacing8),
             Expanded(
               child: RichText(
                 text: TextSpan(
-                  style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
+                  style: AppDesign.bodyStyle.copyWith(
+                    color: AppDesign.primaryDark,
+                  ),
                   children: [
                     const TextSpan(text: 'Я принимаю условия '),
                     TextSpan(
                       text: 'Согласия на обработку персональных данных',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
+                        color: AppDesign.deepSteelBlue,
                         decoration: TextDecoration.underline,
                         fontWeight: FontWeight.w600,
                       ),
@@ -500,7 +516,7 @@ class _ProfileStepState extends State<_ProfileStep> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDesign.spacing24),
 
         if (_isLoading)
           const Center(child: CircularProgressIndicator())
@@ -509,12 +525,6 @@ class _ProfileStepState extends State<_ProfileStep> {
             onPressed: _register,
             icon: const Icon(Icons.person_add),
             label: const Text('Завершить регистрацию'),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
           ),
       ],
     );
@@ -584,19 +594,19 @@ class _SuccessStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Icon(Icons.check_circle, size: 64, color: Colors.green),
-        const SizedBox(height: 16),
-        const Text(
+        const Icon(Icons.check_circle, size: 64, color: AppDesign.accentTeal),
+        const SizedBox(height: AppDesign.spacing16),
+        Text(
           'Регистрация завершена!',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppDesign.titleStyle,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: AppDesign.spacing8),
         Text(
           'Теперь вы можете создавать заявки и проводить замеры.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey.shade600),
+          style: AppDesign.bodyStyle.copyWith(color: AppDesign.midBlueGray),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: AppDesign.spacing24),
         ElevatedButton.icon(
           onPressed: () {
             Navigator.of(context).pushAndRemoveUntil(
@@ -606,12 +616,6 @@ class _SuccessStep extends StatelessWidget {
           },
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Перейти к заявкам'),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
         ),
       ],
     );

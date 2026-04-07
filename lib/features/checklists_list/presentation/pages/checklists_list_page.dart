@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
+import '../../../../utils/app_design.dart';
 
 class ChecklistsListPage extends StatefulWidget {
   const ChecklistsListPage({super.key});
@@ -57,21 +58,19 @@ class _ChecklistsListPageState extends State<ChecklistsListPage> {
             Icon(
               Icons.assignment_turned_in_outlined,
               size: 80,
-              color: Colors.grey.shade400,
+              color: AppDesign.warmTaupe,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppDesign.spacing16),
             Text(
               'Нет чек-листов',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade600,
+              style: AppDesign.subtitleStyle.copyWith(
+                color: AppDesign.midBlueGray,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppDesign.spacing8),
             Text(
               'Чек-листы для замеров появятся здесь',
-              style: TextStyle(color: Colors.grey.shade500),
+              style: AppDesign.captionStyle,
             ),
           ],
         ),
@@ -79,34 +78,64 @@ class _ChecklistsListPageState extends State<ChecklistsListPage> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppDesign.spacing16),
       itemCount: _checklistFiles.length,
       itemBuilder: (context, index) {
         final fileName = _checklistFiles[index];
         final title = fileName.replaceAll('.json', '').replaceAll('_', ' ');
 
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppDesign.spacing12),
+          decoration: AppDesign.cardDecoration,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Чек-лист: $title')),
+                );
+              },
+              borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+              child: Padding(
+                padding: const EdgeInsets.all(AppDesign.spacing16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(AppDesign.spacing12),
+                      decoration: BoxDecoration(
+                        color: AppDesign.warmTaupe.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+                      ),
+                      child: const Icon(
+                        Icons.assignment_outlined,
+                        color: AppDesign.warmTaupe,
+                      ),
+                    ),
+                    const SizedBox(width: AppDesign.spacing16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' '),
+                            style: AppDesign.subtitleStyle,
+                          ),
+                          const SizedBox(height: AppDesign.spacing4),
+                          Text(
+                            fileName,
+                            style: AppDesign.captionStyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: AppDesign.midBlueGray.withOpacity(0.6),
+                    ),
+                  ],
+                ),
               ),
-              child: const Icon(Icons.assignment_outlined, color: Colors.orange),
             ),
-            title: Text(
-              title.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' '),
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(fileName),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Чек-лист: $title')),
-              );
-            },
           ),
         );
       },
