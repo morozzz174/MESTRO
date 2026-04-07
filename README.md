@@ -4,17 +4,64 @@
 
 Мобильное приложение для выездных специалистов (замерщики, монтажники, строительные бригады). Автоматизирует запись клиентов, заполнение чек-листов, фотофиксацию с аннотациями и расчёт стоимости.
 
+**🆕 Новое в v1.1:** Генератор планов помещений с AI-оптимизацией и интерактивным редактором!
+
 ## 🎯 Возможности
 
-- 📋 **Динамические чек-листы** — поля появляются/скрываются в зависимости от ответов
-- 📷 **Фотофиксация с аннотациями** — стрелки, круги, текст поверх фото
-- 📍 **Геотеги** — координаты автоматически привязываются к каждому фото
-- 🎤 **Голосовой ввод** — надиктовка замеров с автозаполнением полей
-- 💰 **Расчёт стоимости** — авторасчёт по редактируемым прайс-листам
-- 📄 **PDF коммерческих предложений** — с кириллицей, фото и ценой
-- 📅 **Календарь замеров** — визуальный календарь с оптимизацией маршрутов
-- 📡 **Офлайн-режим** — все данные хранятся локально в SQLite
-- 🔒 **Авторизация по телефону** — звонок от uCaller с кодом верификации
+### 📋 Чек-листы и замеры
+- **Динамические чек-листы** — поля появляются/скрываются в зависимости от ответов
+- **Фотофиксация с аннотациями** — стрелки, круги, текст поверх фото
+- **Геотеги** — координаты автоматически привязываются к каждому фото
+- **Голосовой ввод** — надиктовка замеров с автозаполнением полей
+- **Расчёт стоимости** — авторасчёт по редактируемым прайс-листам
+
+### 🏗️ Генератор планов помещений (НОВОЕ)
+- **Rule Engine** — автоматическая генерация плана из размеров замера с учётом СНиП
+- **AI-оптимизация** — TFLite модель (66 KB) для оптимальной расстановки комнат
+- **Интерактивный редактор** — drag & drop комнат, resize, добавление/удаление
+- **Валидация в реальном времени** — проверка площадей, пересечений, размеров
+- **Undo/Redo** — стек из 50 состояний
+- **Экспорт PDF** — таблица комнат, compliance score, стоимость работ
+
+### 📄 Документы
+- **PDF коммерческих предложений** — с кириллицей, фото, планом помещения и ценой
+- **Календарь замеров** — визуальный календарь с оптимизацией маршрутов
+- **Экспорт в Excel** — все заявки в .xlsx
+- **Резервное копирование** — экспорт/импорт базы данных SQLite
+
+### 📱 Приложение
+- **Офлайн-режим** — все данные хранятся локально в SQLite
+- **Авторизация по телефону** — звонок от uCaller с кодом верификации
+- **Локальные уведомления** — напоминания за 1 час и 30 минут до замера
+
+## 🏗️ Генератор планов
+
+### Как работает
+
+```
+Размеры из чек-листа → Rule Engine → План помещения → AI оптимизация → Редактор → PDF
+```
+
+1. **Rule Engine** генерирует план на основе ширины/высоты из чек-листа
+2. **AI оптимизатор** (TFLite) улучшает расстановку комнат
+3. **Интерактивный редактор** позволяет двигать, изменять размеры, добавлять комнаты
+4. **Валидатор СНиП** проверяет площади, пересечения, освещение в реальном времени
+5. **Экспорт PDF** — план с таблицей комнат и compliance score
+
+### 10 типов комнат
+
+| Комната | Мин. площадь | Иконка |
+|---------|-------------|--------|
+| Кухня | 8.0 м² | 🍳 |
+| Гостиная | 16.0 м² | 🛋️ |
+| Спальня | 12.0 м² | 🛏️ |
+| Детская | 12.0 м² | 🧸 |
+| Ванная | 3.5 м² | 🚿 |
+| Туалет | 1.2 м² | 🚽 |
+| Кабинет | 9.0 м² | 💼 |
+| Кладовая | 2.0 м² | 📦 |
+| Коридор | — | 🚶 |
+| Балкон | — | 🌿 |
 
 ## 📊 8 типов работ
 
@@ -33,42 +80,58 @@
 
 ```
 lib/
-├── main.dart                          # Точка входа, BLoC инициализация
+├── main.dart                          # Точка входа, BLoC инициализация, dotenv
 ├── models/
 │   ├── order.dart                     # Заявка (Order, PhotoAnnotation)
-│   ├── user.dart                      # Пользователь
+│   ├── user.dart                      # Пользователь с нишами работ
 │   ├── checklist_config.dart          # Конфигурация чек-листа
 │   └── price_item.dart                # Элемент прайс-листа
 ├── bloc/
-│   ├── order_bloc.dart                # Управление заявками (CRUD)
-│   ├── checklist_bloc.dart            # Управление чек-листами
+│   ├── order_bloc.dart                # Управление заявками (CRUD + optimistic updates)
+│   └── checklist_bloc.dart            # Управление чек-листами
+├── repositories/
+│   ├── order_repository.dart          # Абстракция для работы с заявками
+│   ├── user_repository.dart           # Абстракция для работы с пользователями
+│   └── impl/                          # Реализации на основе DatabaseHelper
 ├── screens/
-│   ├── registration_screen.dart       # Авторизация (uCaller)
-│   ├── checklist_screen.dart          # Экран замера
-│   ├── photo_annotation_screen.dart   # Аннотирование фото
+│   ├── registration_screen.dart       # Авторизация (uCaller, .env)
+│   ├── checklist_screen.dart          # Экран замера (3 кнопки: Расчёт | План | PDF)
+│   ├── photo_annotation_screen.dart   # Аннотирование фото (AppDesign)
 │   └── consent_screen.dart            # Согласие на ПДн
 ├── database/
-│   └── database_helper.dart           # SQLite CRUD
+│   └── database_helper.dart           # SQLite CRUD (v4, миграции)
 ├── features/
-│   ├── home/                          # Дашборд + главная
-│   ├── appointments/                  # Список замеров
-│   ├── calendar/                      # Календарь замеров
+│   ├── home/                          # Дашборд + главная (4 вкладки)
+│   ├── appointments/                  # Список замеров (+ кнопка "План")
+│   ├── calendar/                      # Календарь замеров (+ иконка "План")
+│   ├── floor_plan/                    # 🆕 Генератор планов
+│   │   ├── models/                    #   EditorState, FloorPlanModels
+│   │   ├── engine/                    #   RuleEngine, AIOptimizer, Validator, UndoRedo
+│   │   ├── presentation/              #   FloorPlanPage, Editor, Toolbar, Painter
+│   │   └── widgets/                   #   Интерактивные виджеты
 │   ├── price_list/                    # Управление прайсами
 │   ├── voice/                         # Голосовой ввод
-│   └── profile/                       # Профиль
+│   ├── profile/                       # Профиль
+│   └── notifications/                 # Локальные + SMS уведомления
 ├── services/
 │   ├── ucaller_service.dart           # API ucaller.ru
-│   ├── price_list_service.dart        # Сервис прайс-листов
-│   └── voice_input_service.dart       # Голос → данные
+│   ├── price_list_service.dart        # Сервис прайс-листов с формулами
+│   ├── voice_input_service.dart       # Голос → данные (regex-парсер)
+│   ├── app_logger.dart                # Централизованное логирование
+│   ├── export_service.dart            # Экспорт заявок в Excel
+│   └── database_backup_service.dart   # Экспорт/импорт .db
 └── utils/
-    ├── cost_calculator.dart           # Калькулятор стоимости
-    ├── pdf_generator.dart             # Генерация PDF
-    └── checklist_loader.dart          # Загрузка JSON
+    ├── cost_calculator.dart           # Калькулятор стоимости (8 типов работ)
+    ├── pdf_generator.dart             # Генерация PDF (+ floor_plan PDF)
+    ├── checklist_loader.dart          # Загрузка JSON чек-листов
+    ├── condition_evaluator.dart       # Валидация обязательных полей
+    └── location_helper.dart           # Геолокация
 
 assets/
 ├── checklists/                        # 8 JSON-шаблонов
-├── prices/                            # 8 JSON-прайсов
-└── fonts/                             # Arial (кириллица для PDF)
+├── prices/                            # 8 JSON-прайсов с формулами
+├── fonts/                             # Arial (кириллица для PDF)
+└── models/                            # 🆕 TFLite модель оптимизации (66 KB)
 ```
 
 ## 🛠️ Технологический стек
@@ -76,15 +139,35 @@ assets/
 | Технология | Назначение |
 |------------|-----------|
 | **Flutter 3.x** | Кроссплатформенный фреймворк |
-| **flutter_bloc** | State Management (BLoC pattern) |
+| **flutter_bloc** | State Management (BLoC + Optimistic Updates) |
 | **sqflite** | Локальная база данных SQLite |
+| **tflite_flutter** | 🆕 AI-оптимизация планировок (on-device) |
 | **image_picker** | Съёмка камеры / галерея |
 | **speech_to_text** | Голосовой ввод |
 | **geolocator** | Геолокация |
-| **pdf + printing** | Генерация PDF |
+| **pdf + printing** | Генерация PDF (коммерческие предложения + планы) |
 | **share_plus** | Шеринг PDF |
-| **intl** | Форматирование дат |
-| **http** | API запросы (uCaller) |
+| **table_calendar** | Визуальный календарь |
+| **flutter_local_notifications** | Локальные уведомления |
+| **flutter_dotenv** | Безопасное хранение секретов |
+| **excel** | Экспорт в Excel |
+| **uuid** | Генерация идентификаторов |
+
+## 🧪 Тесты
+
+```bash
+# Запуск всех unit-тестов
+flutter test test/unit
+
+# Покрытие
+# ✅ CostCalculator: 17 тестов (все 8 типов работ + edge cases)
+# ✅ ConditionEvaluator: 14 тестов (видимость + валидация)
+# ✅ OrderBloc: 14 тестов (CRUD + optimistic updates + photos)
+# ✅ PriceListService: 15 тестов (формулы + парсер + edge cases)
+# ✅ FloorPlan: 24 теста (модели, Rule Engine, валидация)
+# ─────────────────────────────────────────────────────
+# Итого: 84 теста (95%+ pass rate)
+```
 
 ## 🚀 Быстрый старт
 
@@ -94,6 +177,10 @@ cd metro_2
 
 # Установка зависимостей
 flutter pub get
+
+# Создание .env файла (скопируйте из .env.example)
+cp .env.example .env
+# Отредактируйте .env — укажите UCALLER_SERVICE_ID и UCALLER_SECRET_KEY
 
 # Запуск на подключённом устройстве
 flutter run
@@ -122,14 +209,19 @@ flutter build ios --release
 ### Таблица `orders`
 - `id`, `client_name`, `address`, `date`, `status`, `work_type`
 - `checklist_data` (JSON), `estimated_cost`
-- `appointment_date`, `client_phone`, `notes`
+- `appointment_date`, `appointment_end`, `client_phone`, `notes`
 
 ### Таблица `photo_annotations`
 - `id`, `order_id`, `file_path`, `annotated_path`
-- `latitude`, `longitude`, `timestamp`
+- `checklist_field_id`, `latitude`, `longitude`, `timestamp`
 
 ### Таблица `users`
-- `id`, `phone`, `full_name`, `consent_date`
+- `id`, `phone`, `full_name`, `consent_date`, `consent_version`
+- `selected_work_types`, `created_at`, `updated_at`
+
+### Таблица `notifications`
+- `id`, `order_id`, `template_id`, `recipient_phone`
+- `scheduled_at`, `sent_at`, `status`, `message`, `type`
 
 ## 📋 Структура чек-листа
 
@@ -154,16 +246,32 @@ flutter build ios --release
 }
 ```
 
-## 📄 Документация
-
-Полная документация проекта: [PROJECT_DOCS.md](PROJECT_DOCS.md)
-
 ## 📈 Roadmap
 
 - [x] v1.0 — Базовый функционал, 8 типов работ, голосовой ввод, прайс-листы
-- [ ] v1.1 — Premium подписка (Google Play Billing + App Store IAP)
-- [ ] v1.2 — ИИ-подсказки (Gemini Flash API)
+- [x] v1.1 — Генератор планов помещений, AI-оптимизация, интерактивный редактор
+- [ ] v1.2 — Premium подписка (Google Play Billing + App Store IAP)
+- [ ] v1.3 — ИИ-подсказки (Gemini Flash API)
 - [ ] v2.0 — Mestro AI Server (анализ фото, Whisper, диагностика)
+
+### 🔄 В разработке (Фаза 3+)
+- [ ] Синхронизация изменений плана обратно в Order.checklistData
+- [ ] Snap к сетке при редактировании
+- [ ] Рисование стен/перегородок
+- [ ] Экспорт плана в SVG/DXF
+- [ ] TFLite модель: дообучение на реальных данных
+
+## 🔐 Безопасность
+
+- Секреты uCaller хранятся в `.env` (не в коде)
+- `.env` добавлен в `.gitignore`
+- Используется `flutter_dotenv` для безопасного доступа
+- Согласие на обработку персональных данных (152-ФЗ)
+
+## 📄 Документация
+
+- [PROJECT_DOCS.md](PROJECT_DOCS.md) — полная документация проекта
+- [ui-ux.md](ui-ux.md) — дизайн-система и UI/UX гайдлайны
 
 ## 📝 Лицензия
 
@@ -171,4 +279,4 @@ flutter build ios --release
 
 ---
 
-**MESTRO v1.0.0** — [github.com/morozzz174/MESTRO](https://github.com/morozzz174/MESTRO)
+**MESTRO v1.1.0** — [github.com/morozzz174/MESTRO](https://github.com/morozzz174/MESTRO)
