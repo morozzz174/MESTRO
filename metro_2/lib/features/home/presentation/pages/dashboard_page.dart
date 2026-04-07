@@ -8,6 +8,7 @@ import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../models/user.dart';
 import '../../../../utils/app_design.dart';
 import '../../../price_list/presentation/pages/price_list_screen.dart';
+import '../../../floor_plan/presentation/pages/floor_plan_page.dart';
 
 class DashboardPage extends StatefulWidget {
   final ValueChanged<int> onNavigate;
@@ -206,6 +207,23 @@ class _DashboardPageState extends State<DashboardPage> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => const PriceListScreen(),
+                      ),
+                    );
+                  },
+                ),
+                AppDesign.separator(),
+                _QuickActionTile(
+                  icon: Icons.design_services,
+                  title: 'Планы помещений',
+                  subtitle: 'Генерация и просмотр планов',
+                  color: AppDesign.deepSteelBlue,
+                  onTap: () {
+                    // Переход на вкладку Замеры, где можно выбрать заявку и открыть план
+                    widget.onNavigate(1);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Выберите замер → кнопка "План"'),
+                        behavior: SnackBarBehavior.floating,
                       ),
                     );
                   },

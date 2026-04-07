@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../../models/order.dart';
 import '../../../../../utils/app_design.dart';
 import '../../../../../screens/checklist_screen.dart';
+import '../../../../../features/floor_plan/presentation/pages/floor_plan_page.dart';
 
 class DayEventsList extends StatelessWidget {
   final List<Order> orders;
@@ -140,6 +141,28 @@ class DayEventsList extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: AppDesign.captionStyle,
+                                ),
+                              ),
+                              // Кнопка "План"
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => FloorPlanPage(order: order),
+                                    ),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppDesign.accentTeal.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+                                  ),
+                                  child: const Icon(
+                                    Icons.design_services,
+                                    size: 16,
+                                    color: AppDesign.accentTeal,
+                                  ),
                                 ),
                               ),
                             ],

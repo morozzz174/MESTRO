@@ -6,6 +6,7 @@ import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
 import '../../../../models/order.dart';
 import '../../../../screens/checklist_screen.dart';
+import '../../../../features/floor_plan/presentation/pages/floor_plan_page.dart';
 
 class AppointmentsPage extends StatefulWidget {
   const AppointmentsPage({super.key});
@@ -240,6 +241,13 @@ class _AppointmentsPageState extends State<AppointmentsPage> {
                             ),
                           );
                         },
+                        onViewFloorPlan: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => FloorPlanPage(order: order),
+                            ),
+                          );
+                        },
                         onCall: () => _callClient(order.clientPhone),
                         onNavigate: () => _navigateToAddress(order),
                         onDuplicate: () => _duplicateOrder(order),
@@ -380,6 +388,7 @@ class _EmptyAppointments extends StatelessWidget {
 class _AppointmentCard extends StatelessWidget {
   final Order order;
   final VoidCallback onTap;
+  final VoidCallback onViewFloorPlan;
   final VoidCallback onCall;
   final VoidCallback onNavigate;
   final VoidCallback onDuplicate;
@@ -387,6 +396,7 @@ class _AppointmentCard extends StatelessWidget {
   const _AppointmentCard({
     required this.order,
     required this.onTap,
+    required this.onViewFloorPlan,
     required this.onCall,
     required this.onNavigate,
     required this.onDuplicate,
@@ -483,6 +493,18 @@ class _AppointmentCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: onViewFloorPlan,
+                      icon: const Icon(Icons.design_services, size: 16),
+                      label: const Text('План'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        foregroundColor: Colors.deepPurple,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: onCall,
