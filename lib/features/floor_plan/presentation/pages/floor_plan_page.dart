@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:uuid/uuid.dart';
+import 'dart:math' as math;
 import '../../../models/order.dart';
 import '../../../utils/app_design.dart';
 import '../../../utils/pdf_generator.dart';
 import '../models/floor_plan_models.dart';
+import '../models/editor_state.dart';
 import '../engine/floor_plan_rule_engine.dart';
 import '../engine/ai_floor_plan_optimizer.dart';
+import '../engine/editor_undo_redo.dart';
+import '../engine/floor_plan_validator.dart';
 import '../widgets/floor_plan_painter.dart';
+import '../widgets/floor_plan_editor.dart';
+import '../widgets/editor_toolbar.dart';
 
 /// Экран просмотра и редакти плана помещения
 class FloorPlanPage extends StatefulWidget {
@@ -21,10 +28,14 @@ class FloorPlanPage extends StatefulWidget {
 class _FloorPlanPageState extends State<FloorPlanPage> {
   late final FloorPlanRuleEngine _ruleEngine;
   late final AIFloorPlanOptimizer _aiOptimizer;
+  late final EditorUndoRedoManager _undoRedo;
+
   FloorPlan? _plan;
+  EditorState? _editorState;
   double _zoom = 1.0;
   bool _isGenerating = false;
   bool _isAIOptimized = false;
+  bool _isEditing = false;
   final TransformationController _transformationController = TransformationController();
 
   @override
@@ -32,6 +43,7 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     super.initState();
     _aiOptimizer = AIFloorPlanOptimizer();
     _ruleEngine = FloorPlanRuleEngine(aiOptimizer: _aiOptimizer);
+    _undoRedo = EditorUndoRedoManager();
     _initializeAI();
     _generatePlan();
   }
@@ -64,6 +76,54 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     }
 
     setState(() => _isGenerating = false);
+
+    // Создаём состояние редактора из плана
+    _editorState = _planToEditorState(_plan!);
+    _undoRedo.push(_editorState!);
+  }
+
+  /// Конвертировать FloorPlan в EditorState
+  EditorState _planToEditorState(FloorPlan plan) {
+    return EditorState(
+      rooms: plan.rooms.map((room) => RoomState(
+        id: room.type.toString(),
+        type: room.type.name,
+        x: room.x,
+        y: room.y,
+        width: room.width,
+        height: room.height,
+      )).toList(),
+      totalWidth: plan.totalWidth,
+      totalHeight: plan.totalHeight,
+    );
+  }
+
+  /// Конвертировать EditorState обратно в FloorPlan
+  FloorPlan _editorToPlan(EditorState editor) {
+    return FloorPlan(
+      rooms: editor.rooms.map((room) {
+        final roomType = RoomType.values.firstWhere(
+          (t) => t.name == room.type,
+          orElse: () => RoomType.hallway,
+        );
+        return Room(
+          type: roomType,
+          x: room.x,
+          y: room.y,
+          width: room.width,
+          height: room.height,
+        );
+      }).toList(),
+      totalWidth: editor.totalWidth,
+      totalHeight: editor.totalHeight,
+    );
+  }
+
+  void _onEditorChanged(EditorState newState) {
+    setState(() {
+      _editorState = newState;
+      _plan = _editorToPlan(newState);
+    });
   }
 
   /// Определить тип объекта из заявки
@@ -109,25 +169,45 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           ),
         ),
       ),
-      body: _buildBody(),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
+      body: Column(
         children: [
-          FloatingActionButton(
-            heroTag: 'zoom_in',
-            onPressed: () => setState(() => _zoom = (_zoom + 0.2).clamp(0.5, 5.0)),
-            backgroundColor: AppDesign.accentTeal,
-            child: const Icon(Icons.zoom_in, color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          FloatingActionButton(
-            heroTag: 'zoom_out',
-            onPressed: () => setState(() => _zoom = (_zoom - 0.2).clamp(0.5, 5.0)),
-            backgroundColor: AppDesign.accentTeal,
-            child: const Icon(Icons.zoom_out, color: Colors.white),
-          ),
+          // Тулбар редактора
+          if (_editorState != null)
+            EditorToolbar(
+              isEditing: _isEditing,
+              canUndo: _undoRedo.canUndo,
+              canRedo: _undoRedo.canRedo,
+              isValid: _validateEditor().isValid,
+              validation: _validateEditor(),
+              onToggleEdit: _toggleEditMode,
+              onUndo: _undo,
+              onRedo: _redo,
+              onAddRoom: _addRoom,
+              onReset: _resetPlan,
+            ),
+          Expanded(child: _buildBody()),
         ],
       ),
+      floatingActionButton: _isEditing
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FloatingActionButton(
+                  heroTag: 'zoom_in',
+                  onPressed: () => setState(() => _zoom = (_zoom + 0.2).clamp(0.5, 5.0)),
+                  backgroundColor: AppDesign.accentTeal,
+                  child: const Icon(Icons.zoom_in, color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton(
+                  heroTag: 'zoom_out',
+                  onPressed: () => setState(() => _zoom = (_zoom - 0.2).clamp(0.5, 5.0)),
+                  backgroundColor: AppDesign.accentTeal,
+                  child: const Icon(Icons.zoom_out, color: Colors.white),
+                ),
+              ],
+            ),
     );
   }
 
@@ -157,38 +237,44 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         _buildComplianceBar(),
 
         // Warnings
-        if (_plan!.allWarnings.isNotEmpty) _buildWarningsBanner(),
+        if (_plan!.allWarnings.isNotEmpty && !_isEditing) _buildWarningsBanner(),
 
-        // План с зумом
+        // План с зумом или редактор
         Expanded(
           child: Container(
             color: Colors.grey.shade50,
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              minScale: 0.5,
-              maxScale: 5.0,
-              constrained: false,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(40),
-                  child: CustomPaint(
-                    size: Size(
-                      _plan!.totalWidth * 50 * _zoom,
-                      _plan!.totalHeight * 50 * _zoom,
-                    ),
-                    painter: FloorPlanPainter(
-                      _plan!,
-                      50 * _zoom,
+            child: _isEditing && _editorState != null
+                ? FloorPlanEditor(
+                    state: _editorState!,
+                    onChanged: _onEditorChanged,
+                    isEditable: true,
+                  )
+                : InteractiveViewer(
+                    transformationController: _transformationController,
+                    minScale: 0.5,
+                    maxScale: 5.0,
+                    constrained: false,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: CustomPaint(
+                          size: Size(
+                            _plan!.totalWidth * 50 * _zoom,
+                            _plan!.totalHeight * 50 * _zoom,
+                          ),
+                          painter: FloorPlanPainter(
+                            _plan!,
+                            50 * _zoom,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            ),
           ),
         ),
 
         // Инфо панель
-        _buildInfoPanel(),
+        if (!_isEditing) _buildInfoPanel(),
       ],
     );
   }
@@ -335,6 +421,8 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     setState(() {
       _plan = optimizedPlan;
       _isAIOptimized = true;
+      _editorState = _planToEditorState(optimizedPlan);
+      _undoRedo.push(_editorState!);
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -345,6 +433,66 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
       ),
+    );
+  }
+
+  // ===== Редактор =====
+
+  ValidationResult _validateEditor() {
+    if (_editorState == null) return const ValidationResult(isValid: true);
+    return FloorPlanValidator.validate(_editorState!);
+  }
+
+  void _toggleEditMode() {
+    setState(() {
+      if (_isEditing) {
+        // Сохраняем изменения
+        _undoRedo.push(_editorState!);
+      }
+      _isEditing = !_isEditing;
+    });
+  }
+
+  void _undo() {
+    final previous = _undoRedo.undo(_editorState!);
+    if (previous != null) {
+      setState(() {
+        _editorState = previous;
+        _plan = _editorToPlan(previous);
+      });
+    }
+  }
+
+  void _redo() {
+    final next = _undoRedo.redo(_editorState!);
+    if (next != null) {
+      setState(() {
+        _editorState = next;
+        _plan = _editorToPlan(next);
+      });
+    }
+  }
+
+  Future<void> _addRoom() async {
+    if (_editorState == null) return;
+
+    final room = await showAddRoomDialog(context, _editorState!);
+    if (room == null || !mounted) return;
+
+    _undoRedo.push(_editorState!);
+    setState(() {
+      _editorState = _editorState!.copyWith(
+        rooms: [..._editorState!.rooms, room],
+      );
+      _plan = _editorToPlan(_editorState!);
+    });
+  }
+
+  void _resetPlan() {
+    _undoRedo.clear();
+    _generatePlan();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('План сброшен')),
     );
   }
 }
