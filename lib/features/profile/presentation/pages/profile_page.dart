@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../repositories/user_repository.dart';
+import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/user.dart';
 import '../../../../models/order.dart';
@@ -19,6 +21,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   User? _user;
   bool _isLoading = true;
+  final UserRepository _userRepository = UserRepositoryImpl();
 
   @override
   void initState() {
@@ -27,7 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUser() async {
-    final user = await DatabaseHelper().getCurrentUser();
+    final user = await _userRepository.getCurrentUser();
     if (mounted) {
       setState(() {
         _user = user;
@@ -75,7 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
         selectedWorkTypes: result,
         updatedAt: DateTime.now(),
       );
-      await DatabaseHelper().updateUser(updatedUser);
+      await _userRepository.updateUser(updatedUser);
       setState(() => _user = updatedUser);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

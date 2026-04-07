@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../database/database_helper.dart';
+import '../../../../repositories/order_repository.dart';
+import '../../../../repositories/impl/order_repository_impl.dart';
 import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
 import '../../notifications/services/scheduling_service.dart';
@@ -7,9 +9,11 @@ import 'calendar_event.dart';
 import 'calendar_state.dart';
 
 class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
-  final DatabaseHelper _db = DatabaseHelper();
+  final OrderRepository _repository;
 
-  CalendarBloc() : super(CalendarInitial()) {
+  CalendarBloc({OrderRepository? repository})
+    : _repository = repository ?? OrderRepositoryImpl(),
+      super(CalendarInitial()) {
     on<CalendarLoadOrders>(_onLoadOrders);
     on<CalendarSelectDay>(_onSelectDay);
     on<CalendarCreateOrder>(_onCreateOrder);
@@ -30,10 +34,9 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     CalendarSyncFromOrderBloc event,
     Emitter<CalendarState> emit,
   ) async {
-    // Тихая перезагрузка без изменения state на Loading
     try {
-      final orders = await _db.getAllOrders();
-      final ordersByDay = await _db.getAllCalendarOrders();
+      final orders = await _repository.getAllOrders();
+      final ordersByDay = await _repository.getAllCalendarOrders();
 
       // Сохраняем выбранный день
       DateTime selectedDay;
@@ -59,8 +62,9 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
           selectedDayOrders: dayOrders,
         ),
       );
-    } catch (_) {
-      // Тихо игнорируем ошибки синхронизации
+    } catch (e) {
+      // Логируем ошибку синхронизации
+      debugPrint('[CalendarBloc] Sync error: $e');
     }
   }
 
@@ -70,8 +74,8 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
   ) async {
     emit(CalendarLoading());
     try {
-      final orders = await _db.getAllOrders();
-      final ordersByDay = await _db.getAllCalendarOrders();
+      final orders = await _repository.getAllOrders();
+      final ordersByDay = await _repository.getAllCalendarOrders();
       final today = DateTime.now();
       final selectedKey = DateTime(today.year, today.month, today.day);
 
@@ -106,7 +110,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     Emitter<CalendarState> emit,
   ) async {
     try {
-      await _db.insertOrder(event.order);
+      await _repository.insertOrder(event.order);
 
       // Планируем уведомления
       if (event.order.appointmentDate != null) {
@@ -125,7 +129,7 @@ class CalendarBloc extends Bloc<CalendarEvent, CalendarState> {
     Emitter<CalendarState> emit,
   ) async {
     try {
-      await _db.updateOrder(event.order);
+      await _repository.updateOrder(event.order);
       add(CalendarLoadOrders());
     } catch (e) {
       emit(CalendarError('Ошибка обновления заявки: $e'));

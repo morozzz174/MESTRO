@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
-import '../database/database_helper.dart';
+import '../repositories/user_repository.dart';
+import '../repositories/impl/user_repository_impl.dart';
 import '../models/user.dart';
 import '../models/order.dart';
 import '../services/ucaller_service.dart';
@@ -12,9 +14,11 @@ import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/work_types/presentation/pages/work_type_selection_screen.dart';
 
-/// Конфигурация uCaller — замените на реальные данные при необходимости
-const _ucallerServiceId = 366080;
-const _ucallerSecretKey = '2Fgpaau5OeJE7tLJKdSVgLNIhLnvzGzM';
+/// Конфигурация uCaller — читается из .env
+final _ucallerServiceId = int.tryParse(
+  dotenv.env['UCALLER_SERVICE_ID'] ?? '',
+) ?? 0;
+final _ucallerSecretKey = dotenv.env['UCALLER_SECRET_KEY'] ?? '';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -441,6 +445,7 @@ class _ProfileStepState extends State<_ProfileStep> {
   bool _consentAccepted = false;
   bool _isLoading = false;
   List<String> _selectedWorkTypes = [];
+  final UserRepository _userRepository = UserRepositoryImpl();
 
   @override
   void dispose() {
@@ -633,7 +638,7 @@ class _ProfileStepState extends State<_ProfileStep> {
         updatedAt: DateTime.now(),
       );
 
-      await DatabaseHelper().insertUser(user);
+      await _userRepository.insertUser(user);
 
       if (!mounted) return;
       widget.onRegistered();

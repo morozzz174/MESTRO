@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'bloc/order_bloc.dart';
 import 'bloc/order_event.dart';
@@ -7,13 +8,15 @@ import 'bloc/checklist_bloc.dart';
 import 'features/calendar/bloc/calendar_bloc.dart';
 import 'features/calendar/bloc/calendar_event.dart';
 import 'features/notifications/services/notification_service.dart';
-import 'database/database_helper.dart';
+import 'repositories/user_repository.dart';
+import 'repositories/impl/user_repository_impl.dart';
 import 'screens/registration_screen.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'utils/app_design.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: '.env');
   await initializeDateFormatting('ru', null);
 
   // Инициализация уведомлений
@@ -238,6 +241,7 @@ class _AppEntryPoint extends StatefulWidget {
 class _AppEntryPointState extends State<_AppEntryPoint> {
   bool _isChecking = true;
   bool _isRegistered = false;
+  final UserRepository _userRepository = UserRepositoryImpl();
 
   @override
   void initState() {
@@ -246,7 +250,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
   }
 
   Future<void> _checkRegistration() async {
-    final registered = await DatabaseHelper().isUserRegistered();
+    final registered = await _userRepository.isUserRegistered();
     if (mounted) {
       setState(() {
         _isRegistered = registered;

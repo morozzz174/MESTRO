@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
+import '../../../../repositories/user_repository.dart';
+import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../utils/app_design.dart';
 import 'dashboard_page.dart';
 import '../../../appointments/presentation/pages/appointments_page.dart';
@@ -10,7 +12,6 @@ import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../calendar/presentation/dialogs/create_appointment_dialog.dart';
 import '../../../calendar/bloc/calendar_bloc.dart';
 import '../../../calendar/bloc/calendar_event.dart';
-import '../../../../database/database_helper.dart';
 import '../../../../models/order.dart';
 import '../../../../screens/checklist_screen.dart';
 
@@ -148,7 +149,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _createAppointment() async {
     // Получаем ниши пользователя
-    final user = await DatabaseHelper().getCurrentUser();
+    final user = await UserRepositoryImpl().getCurrentUser();
     if (!mounted) return;
     final availableWorkTypes = (user?.selectedWorkTypes ?? [])
         .map((type) => WorkType.values.where((wt) => wt.checklistFile == type))

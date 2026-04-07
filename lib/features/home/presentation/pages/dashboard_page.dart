@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
-import '../../../../database/database_helper.dart';
+import '../../../../repositories/user_repository.dart';
+import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../models/user.dart';
 import '../../../../utils/app_design.dart';
 import '../../../price_list/presentation/pages/price_list_screen.dart';
@@ -19,6 +20,7 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   User? _user;
+  final UserRepository _userRepository = UserRepositoryImpl();
 
   @override
   void initState() {
@@ -27,7 +29,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   Future<void> _loadUser() async {
-    final user = await DatabaseHelper().getCurrentUser();
+    final user = await _userRepository.getCurrentUser();
     if (mounted) {
       setState(() => _user = user);
     }
@@ -200,20 +202,6 @@ class _DashboardPageState extends State<DashboardPage> {
                   title: 'Прайс-лист',
                   subtitle: 'Управление ценами',
                   color: AppDesign.midBlueGray,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const PriceListScreen(),
-                      ),
-                    );
-                  },
-                ),
-                AppDesign.separator(),
-                _QuickActionTile(
-                  icon: Icons.price_change,
-                  title: 'Прайс-лист',
-                  subtitle: 'Управление цена',
-                  color: AppDesign.deepSteelBlue,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
