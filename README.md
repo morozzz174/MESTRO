@@ -1,71 +1,96 @@
-# Mestro — Приложение для мастеров-замерщиков
+# MESTRO — Мастер, Единый Стандарт Точности Расчёта Объекта
 
-Android-приложение для выездных специалистов (замерщики окон, дверей, кондиционеров, кухонь и т.д.).
+> *«Мастер, единый стандарт точности расчёта объекта»*
 
-## Возможности
+Мобильное приложение для выездных специалистов (замерщики, монтажники, строительные бригады). Автоматизирует запись клиентов, заполнение чек-листов, фотофиксацию с аннотациями и расчёт стоимости.
 
-- 📋 **Динамические чек-листы** с условной логикой (поля появляются/скрываются в зависимости от введённых данных)
-- 📷 **Фотофиксация с аннотациями** — рисование стрелок, кругов, текста поверх фото
-- 📍 **Геотеги** — автоматическая привязка координат к каждому фото
-- 💰 **Расчёт стоимости** — автоматический подсчёт на основе размеров и выбранных опций
-- 📄 **Генерация PDF** — коммерческое предложение с замерами, фото и ценой
+## 🎯 Возможности
+
+- 📋 **Динамические чек-листы** — поля появляются/скрываются в зависимости от ответов
+- 📷 **Фотофиксация с аннотациями** — стрелки, круги, текст поверх фото
+- 📍 **Геотеги** — координаты автоматически привязываются к каждому фото
+- 🎤 **Голосовой ввод** — надиктовка замеров с автозаполнением полей
+- 💰 **Расчёт стоимости** — авторасчёт по редактируемым прайс-листам
+- 📄 **PDF коммерческих предложений** — с кириллицей, фото и ценой
+- 📅 **Календарь замеров** — визуальный календарь с оптимизацией маршрутов
 - 📡 **Офлайн-режим** — все данные хранятся локально в SQLite
-- 🔄 **4 типа работ**: Окна, Двери, Кондиционеры, Кухни
+- 🔒 **Авторизация по телефону** — звонок от uCaller с кодом верификации
 
-## Архитектура
+## 📊 8 типов работ
+
+| # | Тип | Описание |
+|---|-----|----------|
+| 1 | 🪟 **Окна** | Ширина, высота, тип стеклопакета, откосы, подоконник |
+| 2 | 🚪 **Двери** | Полотно, коробка, замок, ручка, направление открывания |
+| 3 | ❄️ **Кондиционеры** | Тип монтажа, длина трубы, дренаж, кронштейны |
+| 4 | 🍳 **Кухни** | Погонный метр, столешница, техника, фартук |
+| 5 | 🔲 **Плиточные работы** | Площадь, способ укладки, тёплый пол |
+| 6 | 🪑 **Мебельные блоки** | Материал корпуса, фасады, выдвижные ящики |
+| 7 | 🔧 **Инженерные системы** | Котельная, отопление, вентиляция |
+| 8 | ⚡ **Электрика** | Розетки, освещение, трассы, щиток |
+
+## 🏗️ Архитектура
 
 ```
 lib/
-├── main.dart                      # Точка входа, инициализация BLoC
+├── main.dart                          # Точка входа, BLoC инициализация
 ├── models/
-│   ├── order.dart                 # Модели: Order, PhotoAnnotation, QuoteItem
-│   └── checklist_config.dart      # Модели: ChecklistField, ChecklistConfig
-├── database/
-│   └── database_helper.dart       # SQLite helper (sqflite)
+│   ├── order.dart                     # Заявка (Order, PhotoAnnotation)
+│   ├── user.dart                      # Пользователь
+│   ├── checklist_config.dart          # Конфигурация чек-листа
+│   └── price_item.dart                # Элемент прайс-листа
 ├── bloc/
-│   ├── order_bloc.dart            # BLoC для заявок
-│   ├── order_event.dart           # Events/States для OrderBloc
-│   ├── checklist_bloc.dart        # BLoC для чек-листов
-│   └── checklist_event.dart       # Events/States для ChecklistBloc
+│   ├── order_bloc.dart                # Управление заявками (CRUD)
+│   ├── checklist_bloc.dart            # Управление чек-листами
 ├── screens/
-│   ├── orders_screen.dart         # Экран списка заявок
-│   ├── work_type_screen.dart      # Экран выбора типа работ
-│   ├── checklist_screen.dart      # Экран динамического чек-листа
-│   └── photo_annotation_screen.dart # Экран аннотаций на фото
-├── utils/
-│   ├── checklist_loader.dart      # Загрузка JSON чек-листов
-│   ├── condition_evaluator.dart   # Проверка условий видимости
-│   ├── cost_calculator.dart       # Расчёт стоимости
-│   ├── pdf_generator.dart         # Генерация PDF
-│   └── location_helper.dart       # Геолокация
-└── widgets/                       # Переиспользуемые виджеты
+│   ├── registration_screen.dart       # Авторизация (uCaller)
+│   ├── checklist_screen.dart          # Экран замера
+│   ├── photo_annotation_screen.dart   # Аннотирование фото
+│   └── consent_screen.dart            # Согласие на ПДн
+├── database/
+│   └── database_helper.dart           # SQLite CRUD
+├── features/
+│   ├── home/                          # Дашборд + главная
+│   ├── appointments/                  # Список замеров
+│   ├── calendar/                      # Календарь замеров
+│   ├── price_list/                    # Управление прайсами
+│   ├── voice/                         # Голосовой ввод
+│   └── profile/                       # Профиль
+├── services/
+│   ├── ucaller_service.dart           # API ucaller.ru
+│   ├── price_list_service.dart        # Сервис прайс-листов
+│   └── voice_input_service.dart       # Голос → данные
+└── utils/
+    ├── cost_calculator.dart           # Калькулятор стоимости
+    ├── pdf_generator.dart             # Генерация PDF
+    └── checklist_loader.dart          # Загрузка JSON
 
-assets/checklists/
-├── windows.json                   # Чек-лист для окон
-├── doors.json                     # Чек-лист для дверей
-├── air_conditioners.json          # Чек-лист для кондиционеров
-└── kitchens.json                  # Чек-лист для кухонь
+assets/
+├── checklists/                        # 8 JSON-шаблонов
+├── prices/                            # 8 JSON-прайсов
+└── fonts/                             # Arial (кириллица для PDF)
 ```
 
-## Технологический стек
+## 🛠️ Технологический стек
 
-| Технология        | Назначение                        |
-|-------------------|-----------------------------------|
-| Flutter 3.38      | Фреймворк                         |
-| flutter_bloc      | State Management (BLoC pattern)   |
-| sqflite           | Локальная база данных             |
-| image_picker      | Съёмка камеры / галерея           |
-| geolocator        | Геолокация                        |
-| pdf + printing    | Генерация PDF                     |
-| share_plus        | Отправка PDF через мессенджеры    |
-| intl              | Форматирование дат                |
-| uuid              | Генерация ID                      |
+| Технология | Назначение |
+|------------|-----------|
+| **Flutter 3.x** | Кроссплатформенный фреймворк |
+| **flutter_bloc** | State Management (BLoC pattern) |
+| **sqflite** | Локальная база данных SQLite |
+| **image_picker** | Съёмка камеры / галерея |
+| **speech_to_text** | Голосовой ввод |
+| **geolocator** | Геолокация |
+| **pdf + printing** | Генерация PDF |
+| **share_plus** | Шеринг PDF |
+| **intl** | Форматирование дат |
+| **http** | API запросы (uCaller) |
 
-## Установка и запуск
+## 🚀 Быстрый старт
 
 ```bash
 # Переход в директорию проекта
-cd c:\mestro_2\metro_2
+cd metro_2
 
 # Установка зависимостей
 flutter pub get
@@ -77,20 +102,36 @@ flutter run
 flutter build apk --release
 ```
 
-## Сборка APK
+## 📱 Установка
 
-Для сборки релизного APK:
-
+### Android
 ```bash
-cd c:\mestro_2\metro_2
+# APK после сборки
 flutter build apk --release
+# Файл: build/app/outputs/flutter-apk/app-release.apk
 ```
 
-Готовый APK будет находиться в `build/app/outputs/flutter-apk/`.
+### iOS
+```bash
+# Требуется Mac + Xcode
+flutter build ios --release
+```
 
-## Структура чек-листов
+## 📊 База данных
 
-Каждый JSON-файл в `assets/checklists/` имеет формат:
+### Таблица `orders`
+- `id`, `client_name`, `address`, `date`, `status`, `work_type`
+- `checklist_data` (JSON), `estimated_cost`
+- `appointment_date`, `client_phone`, `notes`
+
+### Таблица `photo_annotations`
+- `id`, `order_id`, `file_path`, `annotated_path`
+- `latitude`, `longitude`, `timestamp`
+
+### Таблица `users`
+- `id`, `phone`, `full_name`, `consent_date`
+
+## 📋 Структура чек-листа
 
 ```json
 {
@@ -101,50 +142,33 @@ flutter build apk --release
       "id": "width",
       "type": "number",
       "label": "Ширина проёма (мм)",
-      "required": true,
-      "hint": "мм"
-    },
-    {
-      "id": "has_quarter",
-      "type": "boolean",
-      "label": "Есть четверть?"
+      "required": true
     },
     {
       "id": "quarter_depth",
       "type": "number",
       "label": "Глубина четверти (мм)",
-      "condition": {
-        "field": "has_quarter",
-        "operator": "equals",
-        "value": true
-      }
+      "condition": { "field": "has_quarter", "operator": "equals", "value": true }
     }
   ]
 }
 ```
 
-### Типы полей
-- `text` — текстовое поле
-- `number` — числовое поле
-- `select` — выпадающий список
-- `boolean` — переключатель (checkbox)
-- `date` — выбор даты
+## 📄 Документация
 
-### Условная логика
-Поле с `condition` отображается только если условие выполнено:
-- `field` — ID поля-триггера
-- `operator` — `equals`, `not_equals`, `greater_than`, `less_than`
-- `value` — значение для сравнения
+Полная документация проекта: [PROJECT_DOCS.md](PROJECT_DOCS.md)
 
-## Расчёт стоимости
+## 📈 Roadmap
 
-Формулы расчёта находятся в `lib/utils/cost_calculator.dart`. Для каждого типа работ задаётся своя логика:
+- [x] v1.0 — Базовый функционал, 8 типов работ, голосовой ввод, прайс-листы
+- [ ] v1.1 — Premium подписка (Google Play Billing + App Store IAP)
+- [ ] v1.2 — ИИ-подсказки (Gemini Flash API)
+- [ ] v2.0 — Mestro AI Server (анализ фото, Whisper, диагностика)
 
-- **Окна**: площадь × цена рамы + тип стеклопакета + фурнитура + подоконник + откосы + монтаж
-- **Двери**: полотно + коробка + замок + ручка + монтаж
-- **Кондиционеры**: тип монтажа + кронштейны + труба + дренаж
-- **Кухни**: погонный метр + столешница + установка техники + фартук
+## 📝 Лицензия
 
-## Лицензия
+Проект разработан для коммерческого использования. Все права защищены.
 
-Проект создан для демонстрации.
+---
+
+**MESTRO v1.0.0** — [github.com/morozzz174/MESTRO](https://github.com/morozzz174/MESTRO)
