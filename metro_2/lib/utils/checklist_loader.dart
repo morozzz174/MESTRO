@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import '../models/checklist_config.dart';
 
 class ChecklistLoader {
@@ -10,10 +11,29 @@ class ChecklistLoader {
         'assets/checklists/$workType.json',
       );
       final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      return ChecklistConfig.fromJson(json);
+      final config = ChecklistConfig.fromJson(json);
+
+      debugPrint(
+        '[ChecklistLoader] Loaded "$workType" with ${config.fields.length} fields',
+      );
+
+      if (config.fields.isEmpty) {
+        throw Exception(
+          'Чек-лист "$workType" не содержит полей. Проверьте файл assets/checklists/$workType.json',
+        );
+      }
+
+      return config;
+    } on FlutterError catch (e) {
+      debugPrint(
+        '[ChecklistLoader] File not found: assets/checklists/$workType.json',
+      );
+      throw Exception(
+        'Файл чек-листа не найден: assets/checklists/$workType.json. Проверьте что файл существует в assets.',
+      );
     } catch (e) {
-      // Если файл не найден, возвращаем пустой чек-лист
-      return ChecklistConfig(workType: workType, title: workType, fields: []);
+      debugPrint('[ChecklistLoader] Error loading checklist: $e');
+      rethrow;
     }
   }
 }

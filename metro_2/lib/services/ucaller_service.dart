@@ -1,9 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 /// Сервис для работы с API ucaller.ru
 class UCallerService {
-  static const String _baseUrl = 'https://api.ucaller.ru/v1.0';
+  static const String _baseUrl = 'https://api.ucaller.ru';
 
   /// ID сервиса из личного кабинета ucaller
   final int serviceId;
@@ -11,18 +12,12 @@ class UCallerService {
   /// Секретный ключ сервиса из личного кабинета ucaller
   final String secretKey;
 
-  UCallerService({
-    required this.serviceId,
-    required this.secretKey,
-  });
-
-  /// Формирует URL для запроса
-  String _buildUrl(String method) {
-    return '$_baseUrl/$method?serviceId=$serviceId&secretKey=$secretKey';
-  }
+  UCallerService({required this.serviceId, required this.secretKey});
 
   /// =====================
   /// InitCall — инициализация звонка
+  /// POST https://api.ucaller.ru/initCall
+  /// Аутентификация: JSON body с key + service_id
   /// =====================
   Future<ResponseInitCall> initCall({
     required String phone,
@@ -30,18 +25,21 @@ class UCallerService {
     String? client,
     String? unique,
   }) async {
-    // phone — номер без '+'
     final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
 
     final body = <String, dynamic>{
       'phone': int.parse(cleanPhone),
+      'key': secretKey,
+      'service_id': serviceId.toString(),
     };
 
     if (code != null) body['code'] = code;
     if (client != null) body['client'] = client;
     if (unique != null) body['unique'] = unique;
 
-    final url = _buildUrl('initCall');
+    final url = '$_baseUrl/initCall';
+    debugPrint('[uCaller] POST $url');
+    debugPrint('[uCaller] Body: ${jsonEncode(body)}');
 
     final response = await http.post(
       Uri.parse(url),
@@ -49,21 +47,34 @@ class UCallerService {
       body: jsonEncode(body),
     );
 
+    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
+
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return ResponseInitCall.fromJson(json);
   }
 
   /// =====================
   /// InitRepeat — бесплатный повтор звонка
+  /// POST https://api.ucaller.ru/initRepeat
   /// =====================
   Future<ResponseInitRepeat> initRepeat(int ucallerId) async {
-    final url = _buildUrl('initRepeat');
+    final body = {
+      'ucaller_id': ucallerId,
+      'key': secretKey,
+      'service_id': serviceId.toString(),
+    };
+
+    final url = '$_baseUrl/initRepeat';
+    debugPrint('[uCaller] POST $url');
+    debugPrint('[uCaller] Body: ${jsonEncode(body)}');
 
     final response = await http.post(
       Uri.parse(url),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'ucaller_id': ucallerId}),
+      body: jsonEncode(body),
     );
+
+    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return ResponseInitRepeat.fromJson(json);
@@ -71,13 +82,16 @@ class UCallerService {
 
   /// =====================
   /// GetInfo — проверка статуса звонка и кода
+  /// GET https://api.ucaller.ru/getInfo?key=X&service_id=Y&ucaller_id=Z
   /// =====================
   Future<ResponseInfo> getInfo(int ucallerId) async {
-    final url = _buildUrl('getInfo');
+    final url =
+        '$_baseUrl/getInfo?key=$secretKey&service_id=$serviceId&ucaller_id=$ucallerId';
+    debugPrint('[uCaller] GET $url');
 
-    final response = await http.get(
-      Uri.parse('$url&ucaller_id=$ucallerId'),
-    );
+    final response = await http.get(Uri.parse(url));
+
+    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return ResponseInfo.fromJson(json);
@@ -85,11 +99,15 @@ class UCallerService {
 
   /// =====================
   /// GetBalance — остаток на счёте
+  /// GET https://api.ucaller.ru/getBalance?key=X&service_id=Y
   /// =====================
   Future<ResponseBalance> getBalance() async {
-    final url = _buildUrl('getBalance');
+    final url = '$_baseUrl/getBalance?key=$secretKey&service_id=$serviceId';
+    debugPrint('[uCaller] GET $url');
 
     final response = await http.get(Uri.parse(url));
+
+    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     return ResponseBalance.fromJson(json);
@@ -183,6 +201,7 @@ class ResponseInfo {
   final bool status;
   final int? ucallerId;
   final int? initTime;
+
   /// Статус звонка: -1 — проверка, 0 — неудача, 1 — дозвон
   final int callStatus;
   final bool isRepeated;
@@ -192,6 +211,7 @@ class ResponseInfo {
   final String? unique;
   final String? client;
   final String? phone;
+
   /// Код верификации (приходит после дозвона)
   final int? code;
   final String? countryCode;
@@ -224,8 +244,8 @@ class ResponseInfo {
     final phoneInfoList = json['phone_info'] as List?;
     final phoneInfo = phoneInfoList != null
         ? phoneInfoList
-            .map((e) => PhoneInfo.fromJson(e as Map<String, dynamic>))
-            .toList()
+              .map((e) => PhoneInfo.fromJson(e as Map<String, dynamic>))
+              .toList()
         : <PhoneInfo>[];
 
     return ResponseInfo(
@@ -244,22 +264,19 @@ class ResponseInfo {
       repeatTimes: json['repeat_times'] != null
           ? (json['repeat_times'] as num).toInt()
           : 0,
-      repeatedUids: (json['repeated_ucaller_ids'] as List?)
+      repeatedUids:
+          (json['repeated_ucaller_ids'] as List?)
               ?.map((e) => int.tryParse(e.toString()) ?? 0)
               .toList() ??
           [],
       unique: json['unique']?.toString(),
       client: json['client'] as String?,
       phone: json['phone']?.toString(),
-      code: json['code'] != null
-          ? int.tryParse(json['code'].toString())
-          : null,
+      code: json['code'] != null ? int.tryParse(json['code'].toString()) : null,
       countryCode: json['country_code'] as String?,
       countryImage: json['country_image'] as String?,
       phoneInfo: phoneInfo,
-      cost: json['cost'] != null
-          ? (json['cost'] as num).toDouble()
-          : null,
+      cost: json['cost'] != null ? (json['cost'] as num).toDouble() : null,
       error: json['error'] as String?,
     );
   }
@@ -275,11 +292,7 @@ class PhoneInfo {
   final String? region;
   final String? mnp;
 
-  PhoneInfo({
-    this.operator,
-    this.region,
-    this.mnp,
-  });
+  PhoneInfo({this.operator, this.region, this.mnp});
 
   factory PhoneInfo.fromJson(Map<String, dynamic> json) {
     return PhoneInfo(
