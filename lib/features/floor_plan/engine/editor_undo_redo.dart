@@ -1,3 +1,5 @@
+import '../models/editor_state.dart';
+
 /// Менеджер Undo/Redo для редактора плана
 class EditorUndoRedoManager {
   final List<EditorState> _undoStack = [];
@@ -5,7 +7,7 @@ class EditorUndoRedoManager {
   final int _maxHistorySize;
 
   EditorUndoRedoManager({int maxHistorySize = 50})
-      : _maxHistorySize = maxHistorySize;
+    : _maxHistorySize = maxHistorySize;
 
   /// Сохранить текущее состояние (вызывать перед изменением)
   void push(EditorState state) {
@@ -16,26 +18,24 @@ class EditorUndoRedoManager {
     _redoStack.clear();
   }
 
-  /// Отменить действие
+  /// Откатить последнее изменение
   EditorState? undo(EditorState currentState) {
     if (_undoStack.isEmpty) return null;
-    _redoStack.add(currentState);
     final previous = _undoStack.removeLast();
+    _redoStack.add(currentState);
     return previous;
   }
 
-  /// Повторить отменённое действие
+  /// Вернуть отменённое изменение
   EditorState? redo(EditorState currentState) {
     if (_redoStack.isEmpty) return null;
-    _undoStack.add(currentState);
     final next = _redoStack.removeLast();
+    _undoStack.add(currentState);
     return next;
   }
 
   bool get canUndo => _undoStack.isNotEmpty;
   bool get canRedo => _redoStack.isNotEmpty;
-
-  /// Очистить историю
   void clear() {
     _undoStack.clear();
     _redoStack.clear();

@@ -4,6 +4,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/order.dart';
+import '../features/floor_plan/models/floor_plan_models.dart';
+import '../features/floor_plan/engine/floor_plan_rule_engine.dart';
 
 class PdfGenerator {
   /// Загрузить шрифт с поддержкой кириллицы из assets
@@ -161,6 +163,9 @@ class PdfGenerator {
               );
             }),
           ],
+
+          // Floor Plan — генерация плана помещения на основе замеров
+          ..._buildFloorPlanSection(order, smallStyle),
         ],
         footer: (context) => pw.Container(
           alignment: pw.Alignment.center,
@@ -512,5 +517,94 @@ class PdfGenerator {
     final file = File(filePath);
     await file.writeAsBytes(await pdf.save());
     return file;
+  }
+
+  /// Генерация секции Floor Plan для PDF (на основе данных замера)
+  static List<pw.Widget> _buildFloorPlanSection(
+    Order order,
+    pw.TextStyle smallStyle,
+  ) {
+    final cd = order.checklistData;
+
+    // Извлекаем размеры помещения из данных чек-листа
+    final width = (cd['width'] as num?)?.toDouble();
+    final height = (cd['height'] as num?)?.toDouble();
+    final floorLength = (cd['floor_length'] as num?)?.toDouble();
+    final floorWidth = (cd['floor_width'] as num?)?.toDouble();
+
+    // Если нет размеров — ничего не показываем
+    final planWidth = width ?? floorLength;
+    final planHeight = height ?? floorWidth;
+    if (planWidth == null || planHeight == null) return [];
+
+    // Генерируем план помещения через Rule Engine
+    final plan = FloorPlanRuleEngine.generateFromOrder(order);
+
+    return [
+      pw.SizedBox(height: 20),
+      pw.Text(
+        'План помещения',
+        style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+      ),
+      pw.SizedBox(height: 10),
+      pw.Container(
+        width: double.infinity,
+        padding: const pw.EdgeInsets.all(12),
+        decoration: pw.BoxDecoration(
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+        ),
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Размеры:', style: smallStyle),
+                pw.Text(
+                  '${planWidth.toStringAsFixed(0)} × ${planHeight.toStringAsFixed(0)} мм',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Тип помещения:', style: smallStyle),
+                pw.Text(plan.objectType.label),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text('Площадь:', style: smallStyle),
+                pw.Text(
+                  '${plan.totalArea.toStringAsFixed(1)} м²',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+              ],
+            ),
+            if (plan.rooms.isNotEmpty) ...[
+              pw.SizedBox(height: 8),
+              pw.Text('Комнаты:', style: smallStyle),
+              ...plan.rooms.map(
+                (room) => pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 12, top: 2),
+                  child: pw.Text(
+                    '• ${room.type.label} (${room.area.toStringAsFixed(1)} м²)',
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      pw.SizedBox(height: 10),
+    ];
   }
 }

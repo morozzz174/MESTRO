@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import '../models/editor_state.dart';
+
 /// Валидатор плана в реальном времени
 class FloorPlanValidator {
   /// Минимальные площади по СНиП (м²)
@@ -36,53 +39,25 @@ class FloorPlanValidator {
 
       // Проверка площади
       if (minArea != null && room.area < minArea) {
-        errors.add('$label: площадь ${room.area.toStringAsFixed(1)}м² < мин. ${minArea}м²');
+        errors.add(
+          '$label: площадь ${room.area.toStringAsFixed(1)}м² < мин. ${minArea}м²',
+        );
       }
 
-      // Проверка размеров
-      if (room.width < 1.5) {
-        errors.add('$label: ширина ${room.width.toStringAsFixed(1)}м < мин. 1.5м');
-      }
-      if (room.height < 1.5) {
-        errors.add('$label: высота ${room.height.toStringAsFixed(1)}м < мин. 1.5м');
-      }
-
-      // Предупреждения
-      if (room.type == 'kitchen' && room.doors.isEmpty) {
-        warnings.add('$label: нет двери');
-      }
-      if (room.type != 'bathroom' && room.type != 'toilet' && room.type != 'hallway') {
-        if (room.windows.isEmpty) {
-          warnings.add('$label: нет окна');
+      // Проверка на пересечение
+      for (final other in state.rooms) {
+        if (other.id != room.id && _intersects(room, other)) {
+          errors.add(
+            '$label: пересечение с ${roomLabels[other.type] ?? other.type}',
+          );
+          break;
         }
-      }
-
-      // Проверка выхода за границы
-      if (room.x < 0) {
-        errors.add('$label: выходит за левую границу');
-      }
-      if (room.y < 0) {
-        errors.add('$label: выходит за верхнюю границу');
-      }
-      if (room.x + room.width > state.totalWidth) {
-        warnings.add('$label: выходит за правую границу');
-      }
-      if (room.y + room.height > state.totalHeight) {
-        warnings.add('$label: выходит за нижнюю границу');
       }
     }
 
-    // Проверка пересечений комнат
-    for (int i = 0; i < state.rooms.length; i++) {
-      for (int j = i + 1; j < state.rooms.length; j++) {
-        final a = state.rooms[i];
-        final b = state.rooms[j];
-        if (_intersects(a, b)) {
-          final labelA = roomLabels[a.type] ?? a.type;
-          final labelB = roomLabels[b.type] ?? b.type;
-          errors.add('$labelA и $labelB: пересечение');
-        }
-      }
+    // Предупреждение о пустом плане
+    if (state.rooms.isEmpty) {
+      warnings.add('План пустой — добавьте комнаты');
     }
 
     return ValidationResult(
@@ -92,22 +67,55 @@ class FloorPlanValidator {
     );
   }
 
-  /// Рассчитать compliance score (0.0 - 1.0)
-  static double calculateCompliance(EditorState state) {
-    final result = validate(state);
-    if (result.isValid && result.warnings.isEmpty) return 1.0;
-
-    double score = 1.0;
-    score -= result.errors.length * 0.15;
-    score -= result.warnings.length * 0.05;
-    return score.clamp(0.0, 1.0);
-  }
-
   /// Проверка пересечения двух комнат
   static bool _intersects(RoomState a, RoomState b) {
-    return !(a.x + a.width <= b.x ||
-        b.x + b.width <= a.x ||
-        a.y + a.height <= b.y ||
-        b.y + b.height <= a.y);
+    return a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y;
   }
+
+  /// Рассчитать compliance score (0.0 - 1.0)
+  static double calculateCompliance(EditorState state) {
+    if (state.rooms.isEmpty) return 0.0;
+
+    int passedChecks = 0;
+    int totalChecks = 0;
+
+    for (final room in state.rooms) {
+      final minArea = minAreas[room.type];
+      if (minArea != null) {
+        totalChecks++;
+        if (room.area >= minArea) passedChecks++;
+      }
+    }
+
+    // Штраф за пересечения
+    int intersections = 0;
+    for (int i = 0; i < state.rooms.length; i++) {
+      for (int j = i + 1; j < state.rooms.length; j++) {
+        if (_intersects(state.rooms[i], state.rooms[j])) {
+          intersections++;
+          totalChecks++;
+        }
+      }
+    }
+
+    if (totalChecks == 0) return 1.0;
+    final score = math.max(0.0, (passedChecks - intersections) / totalChecks);
+    return score.clamp(0.0, 1.0);
+  }
+}
+
+/// Результат валидации
+class ValidationResult {
+  final bool isValid;
+  final List<String> errors;
+  final List<String> warnings;
+
+  const ValidationResult({
+    required this.isValid,
+    this.errors = const [],
+    this.warnings = const [],
+  });
 }
