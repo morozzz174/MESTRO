@@ -8,6 +8,10 @@ class User {
 
   /// Выбранные ниши мастера (тип работ)
   final List<String> selectedWorkTypes;
+
+  /// Путь к аватару пользователя
+  final String? avatarPath;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -18,6 +22,7 @@ class User {
     required this.consentDate,
     required this.consentVersion,
     this.selectedWorkTypes = const [],
+    this.avatarPath,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -32,6 +37,7 @@ class User {
     DateTime? consentDate,
     String? consentVersion,
     List<String>? selectedWorkTypes,
+    String? avatarPath,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -42,6 +48,7 @@ class User {
       consentDate: consentDate ?? this.consentDate,
       consentVersion: consentVersion ?? this.consentVersion,
       selectedWorkTypes: selectedWorkTypes ?? this.selectedWorkTypes,
+      avatarPath: avatarPath ?? this.avatarPath,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -55,6 +62,7 @@ class User {
       'consent_date': consentDate.toIso8601String(),
       'consent_version': consentVersion,
       'selected_work_types': selectedWorkTypes.join(','),
+      'avatar_path': avatarPath,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -73,6 +81,7 @@ class User {
       consentDate: DateTime.parse(map['consent_date'] as String),
       consentVersion: map['consent_version'] as String,
       selectedWorkTypes: selectedWorkTypes,
+      avatarPath: map['avatar_path'] as String?,
       createdAt: DateTime.parse(map['created_at'] as String),
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );

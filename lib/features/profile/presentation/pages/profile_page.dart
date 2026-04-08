@@ -1,7 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import '../../../../repositories/user_repository.dart';
-import '../../../../repositories/impl/user_repository_impl.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/user.dart';
 import '../../../../models/order.dart';
@@ -21,7 +23,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   User? _user;
   bool _isLoading = true;
-  final UserRepository _userRepository = UserRepositoryImpl();
+  // removed
 
   @override
   void initState() {
@@ -30,7 +32,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUser() async {
-    final user = await _userRepository.getCurrentUser();
+    final user = await DatabaseHelper().getCurrentUser();
     if (mounted) {
       setState(() {
         _user = user;
@@ -64,6 +66,55 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  /// Смена аватара пользователя
+  Future<void> _changeAvatar() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
+
+    if (pickedFile == null || !mounted) return;
+
+    try {
+      // Сохраняем аватар в директорию приложения
+      final appDir = await getApplicationDocumentsDirectory();
+      final avatarDir = Directory('${appDir.path}/avatars');
+      if (!await avatarDir.exists()) {
+        await avatarDir.create(recursive: true);
+      }
+
+      final fileName = '${_user!.id}_avatar.jpg';
+      final newAvatarPath = '${avatarDir.path}/$fileName';
+      await File(pickedFile.path).copy(newAvatarPath);
+
+      // Обновляем пользователя в БД
+      final updatedUser = _user!.copyWith(
+        avatarPath: newAvatarPath,
+        updatedAt: DateTime.now(),
+      );
+      await DatabaseHelper().updateUser(updatedUser);
+
+      if (mounted) {
+        setState(() => _user = updatedUser);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Фото обновлено'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _editWorkTypes() async {
     final result = await Navigator.of(context).push<List<String>>(
       MaterialPageRoute(
@@ -78,7 +129,7 @@ class _ProfilePageState extends State<ProfilePage> {
         selectedWorkTypes: result,
         updatedAt: DateTime.now(),
       );
-      await _userRepository.updateUser(updatedUser);
+      await DatabaseHelper().updateUser(updatedUser);
       setState(() => _user = updatedUser);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -154,22 +205,60 @@ class _ProfilePageState extends State<ProfilePage> {
             padding: const EdgeInsets.all(AppDesign.spacing24),
             child: Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: AppDesign.primaryButtonGradient,
-                    boxShadow: AppDesign.primaryButtonShadow,
+                GestureDetector(
+                  onTap: _changeAvatar,
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: AppDesign.primaryButtonGradient,
+                          boxShadow: AppDesign.primaryButtonShadow,
+                        ),
+                        padding: const EdgeInsets.all(3),
+                        child: CircleAvatar(
+                          radius: 48,
+                          backgroundColor: AppDesign.cardBackground,
+                          backgroundImage:
+                              _user!.avatarPath != null &&
+                                  File(_user!.avatarPath!).existsSync()
+                              ? FileImage(File(_user!.avatarPath!))
+                              : null,
+                          child:
+                              _user?.avatarPath == null ||
+                                  !File(_user!.avatarPath!).existsSync()
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 48,
+                                  color: AppDesign.deepSteelBlue,
+                                )
+                              : null,
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppDesign.accentTeal,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  padding: const EdgeInsets.all(3),
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundColor: AppDesign.cardBackground,
-                    child: const Icon(
-                      Icons.person,
-                      size: 48,
-                      color: AppDesign.deepSteelBlue,
-                    ),
-                  ),
+                ),
+                const SizedBox(height: AppDesign.spacing8),
+                Text(
+                  'Нажмите чтобы изменить фото',
+                  style: AppDesign.captionStyle,
                 ),
                 const SizedBox(height: AppDesign.spacing16),
                 Text(

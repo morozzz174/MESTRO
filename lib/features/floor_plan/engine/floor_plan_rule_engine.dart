@@ -1,5 +1,6 @@
 import '../models/floor_plan_models.dart';
 import 'ai_floor_plan_optimizer.dart';
+import '../../../models/order.dart';
 import '../../../services/app_logger.dart';
 
 /// Генератор планировки на основе правил СНиП
@@ -10,7 +11,7 @@ class FloorPlanRuleEngine {
   final AIFloorPlanOptimizer? _aiOptimizer;
 
   FloorPlanRuleEngine({AIFloorPlanOptimizer? aiOptimizer})
-      : _aiOptimizer = aiOptimizer;
+    : _aiOptimizer = aiOptimizer;
 
   /// Инициализация AI оптимизатора (опционально)
   Future<void> initializeAI() async {
@@ -19,6 +20,7 @@ class FloorPlanRuleEngine {
       AppLogger.info('FloorPlan', 'AI оптимизатор инициализирован');
     }
   }
+
   /// Дефолтные размеры комнат (м)
   static const Map<RoomType, _RoomDefaults> _defaultSizes = {
     RoomType.livingRoom: _RoomDefaults(width: 5.0, height: 3.5),
@@ -76,9 +78,15 @@ class FloorPlanRuleEngine {
     final heightM = heightMm / 1000;
     final totalArea = widthM * heightM;
 
-    AppLogger.info('FloorPlan', 'Генерация плана: ${widthM}x${heightM}м (${totalArea.toStringAsFixed(1)}м²), тип: ${objectType.label}');
+    AppLogger.info(
+      'FloorPlan',
+      'Генерация плана: ${widthM}x${heightM}м (${totalArea.toStringAsFixed(1)}м²), тип: ${objectType.label}',
+    );
 
-    final roomTypes = customRooms ?? _recommendedRooms[objectType] ?? _recommendedRooms[FloorPlanType.apartment]!;
+    final roomTypes =
+        customRooms ??
+        _recommendedRooms[objectType] ??
+        _recommendedRooms[FloorPlanType.apartment]!;
 
     // Масштабируем комнаты под общую площадь
     final scaleFactor = _calculateScaleFactor(roomTypes, totalArea);
@@ -106,10 +114,16 @@ class FloorPlanRuleEngine {
 
       // Проверяем, помещается ли комната по высоте
       if (currentY + roomHeight > heightM) {
-        AppLogger.warn('FloorPlan', 'Комната ${roomType.label} не помещается, уменьшаем');
+        AppLogger.warn(
+          'FloorPlan',
+          'Комната ${roomType.label} не помещается, уменьшаем',
+        );
         final remainingHeight = heightM - currentY;
         if (remainingHeight < roomType.minArea / roomWidth) {
-          AppLogger.warn('FloorPlan', '⚠️ ${roomType.label}: площадь ниже СНиП');
+          AppLogger.warn(
+            'FloorPlan',
+            '⚠️ ${roomType.label}: площадь ниже СНиП',
+          );
         }
       }
 
@@ -117,16 +131,19 @@ class FloorPlanRuleEngine {
       final doors = _placeDoors(roomType, i, roomTypes.length);
       final windows = _placeWindows(roomType, roomWidth, roomHeight);
 
-      rooms.add(Room(
-        type: roomType,
-        x: currentX,
-        y: currentY,
-        width: roomWidth,
-        height: roomHeight,
-        doors: doors,
-        windows: windows,
-        hasVentilation: roomType == RoomType.kitchen || roomType == RoomType.bathroom,
-      ));
+      rooms.add(
+        Room(
+          type: roomType,
+          x: currentX,
+          y: currentY,
+          width: roomWidth,
+          height: roomHeight,
+          doors: doors,
+          windows: windows,
+          hasVentilation:
+              roomType == RoomType.kitchen || roomType == RoomType.bathroom,
+        ),
+      );
 
       // Обновляем позицию
       currentX += roomWidth;
@@ -142,7 +159,10 @@ class FloorPlanRuleEngine {
       objectType: objectType,
     );
 
-    AppLogger.info('FloorPlan', 'План сгенерирован: ${rooms.length} комнат, compliance: ${plan.complianceScore.toStringAsFixed(2)}');
+    AppLogger.info(
+      'FloorPlan',
+      'План сгенерирован: ${rooms.length} комнат, compliance: ${plan.complianceScore.toStringAsFixed(2)}',
+    );
 
     return plan;
   }
@@ -182,86 +202,82 @@ class FloorPlanRuleEngine {
 
     // Входная дверь для первой комнаты (коридор/прихожая)
     if (index == 0 && type == RoomType.hallway) {
-      doors.add(const Door(
-        x: 0,
-        y: 1.0,
-        width: 0.9,
-        type: DoorType.entrance,
-      ));
+      doors.add(const Door(x: 0, y: 1.0, width: 0.9, type: DoorType.entrance));
     }
 
     // Межкомнатные двери
     if (index > 0 && type != RoomType.balcony) {
-      doors.add(Door(
-        x: 0,
-        y: type == RoomType.bathroom ? 0.8 : 1.0,
-        width: type == RoomType.bathroom ? 0.7 : 0.8,
-        type: DoorType.internal,
-      ));
+      doors.add(
+        Door(
+          x: 0,
+          y: type == RoomType.bathroom ? 0.8 : 1.0,
+          width: type == RoomType.bathroom ? 0.7 : 0.8,
+          type: DoorType.internal,
+        ),
+      );
     }
 
     // Дверь на балкон
     if (type == RoomType.balcony) {
-      doors.add(const Door(
-        x: 0,
-        y: 0.6,
-        width: 0.7,
-        type: DoorType.balcony,
-      ));
+      doors.add(const Door(x: 0, y: 0.6, width: 0.7, type: DoorType.balcony));
     }
 
     return doors;
   }
 
   /// Размещение окон
-  List<Window> _placeWindows(RoomType type, double roomWidth, double roomHeight) {
+  List<Window> _placeWindows(
+    RoomType type,
+    double roomWidth,
+    double roomHeight,
+  ) {
     final windows = <Window>[];
 
     // Не размещаем окна в санузлах (или маленькие)
     if (type == RoomType.bathroom || type == RoomType.toilet) {
       // Маленькое окно/форточка
-      windows.add(const Window(
-        x: 0.5,
-        y: 0,
-        width: 0.4,
-        sillHeight: 1.2,
-      ));
+      windows.add(const Window(x: 0.5, y: 0, width: 0.4, sillHeight: 1.2));
       return windows;
     }
 
     // Обычные окна для жилых комнат
-    if (type == RoomType.kitchen || type == RoomType.livingRoom || type == RoomType.bedroom || type == RoomType.office || type == RoomType.childrenRoom) {
+    if (type == RoomType.kitchen ||
+        type == RoomType.livingRoom ||
+        type == RoomType.bedroom ||
+        type == RoomType.office ||
+        type == RoomType.childrenRoom) {
       // Окно на верхней стене (y = 0)
       final windowWidth = roomWidth > 4 ? 1.5 : 1.2;
       final windowX = (roomWidth - windowWidth) / 2;
 
-      windows.add(Window(
-        x: windowX,
-        y: 0,
-        width: windowWidth,
-        sillHeight: 0.9,
-      ));
+      windows.add(
+        Window(x: windowX, y: 0, width: windowWidth, sillHeight: 0.9),
+      );
 
       // Второе окно для больших комнат
       if (roomWidth > 5) {
-        windows.add(Window(
-          x: roomWidth - windowWidth - 0.5,
-          y: 0,
-          width: windowWidth,
-          sillHeight: 0.9,
-        ));
+        windows.add(
+          Window(
+            x: roomWidth - windowWidth - 0.5,
+            y: 0,
+            width: windowWidth,
+            sillHeight: 0.9,
+          ),
+        );
       }
     }
 
     // Балконное остекление
     if (type == RoomType.balcony) {
-      windows.add(Window(
-        x: 0,
-        y: 0,
-        width: roomWidth,
-        sillHeight: 0,
-        type: WindowType.french,
-      ));
+      windows.add(
+        Window(
+          x: 0,
+          y: 0,
+          width: roomWidth,
+          sillHeight: 0,
+          type: WindowType.french,
+        ),
+      );
     }
 
     return windows;
@@ -272,13 +288,74 @@ class FloorPlanRuleEngine {
     if (_aiOptimizer != null && _aiOptimizer.isAvailable) {
       AppLogger.info('FloorPlan', 'Запуск AI оптимизации...');
       final optimized = _aiOptimizer.optimize(plan);
-      AppLogger.info('FloorPlan',
-          'AI оптимизация завершена, compliance: ${optimized.complianceScore.toStringAsFixed(2)}');
+      AppLogger.info(
+        'FloorPlan',
+        'AI оптимизация завершена, compliance: ${optimized.complianceScore.toStringAsFixed(2)}',
+      );
       return optimized;
     }
 
-    AppLogger.info('FloorPlan', 'Оптимизация: используется Rule Engine (AI недоступен)');
+    AppLogger.info(
+      'FloorPlan',
+      'Оптимизация: используется Rule Engine (AI недоступен)',
+    );
     return plan;
+  }
+
+  /// Генерация плана помещения из данных заявки (статический метод для PDF)
+  static FloorPlan generateFromOrder(Order order) {
+    final cd = order.checklistData;
+
+    // Извлекаем размеры (в мм, конвертируем в метры)
+    final widthMm = (cd['width'] as num?)?.toDouble();
+    final heightMm = (cd['height'] as num?)?.toDouble();
+    final floorLengthMm = (cd['floor_length'] as num?)?.toDouble();
+    final floorWidthMm = (cd['floor_width'] as num?)?.toDouble();
+
+    final planWidth = (widthMm ?? floorLengthMm ?? 5000) / 1000;
+    final planHeight = (heightMm ?? floorWidthMm ?? 4000) / 1000;
+
+    // Определяем тип помещения по workType
+    FloorPlanType type = FloorPlanType.apartment;
+    switch (order.workType) {
+      case WorkType.windows:
+      case WorkType.doors:
+        type = FloorPlanType.apartment;
+        break;
+      case WorkType.kitchens:
+        type = FloorPlanType.studio;
+        break;
+      case WorkType.tiles:
+        type = FloorPlanType.apartment;
+        break;
+      default:
+        type = FloorPlanType.apartment;
+    }
+
+    // Определяем рекомендуемые комнаты
+    final roomTypes = _recommendedRooms[type] ?? [RoomType.livingRoom];
+
+    // Создаём комнаты
+    final rooms = <Room>[];
+    for (final roomType in roomTypes) {
+      final defaults =
+          _defaultSizes[roomType] ?? const _RoomDefaults(width: 3, height: 3);
+      final room = Room(
+        type: roomType,
+        x: 0,
+        y: rooms.length * defaults.height,
+        width: defaults.width,
+        height: defaults.height,
+      );
+      rooms.add(room);
+    }
+
+    return FloorPlan(
+      rooms: rooms,
+      totalWidth: planWidth,
+      totalHeight: planHeight,
+      objectType: type,
+    );
   }
 }
 

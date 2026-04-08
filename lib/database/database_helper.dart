@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -77,6 +77,10 @@ class DatabaseHelper {
         'ALTER TABLE users ADD COLUMN selected_work_types TEXT DEFAULT ""',
       );
     }
+    if (oldVersion < 5) {
+      // Миграция v4 -> v5: добавляем аватар пользователя
+      await db.execute('ALTER TABLE users ADD COLUMN avatar_path TEXT');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -89,6 +93,7 @@ class DatabaseHelper {
         consent_date TEXT NOT NULL,
         consent_version TEXT NOT NULL,
         selected_work_types TEXT DEFAULT '',
+        avatar_path TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )

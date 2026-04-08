@@ -20,6 +20,7 @@ import '../features/checklists_list/presentation/widgets/checklist_client_info.d
 import '../features/checklists_list/presentation/widgets/checklist_field_widget.dart';
 import '../features/checklists_list/presentation/widgets/checklist_photos_section.dart';
 import '../features/checklists_list/presentation/managers/checklist_actions_manager.dart';
+import '../features/floor_plan/presentation/pages/floor_plan_page.dart';
 
 class ChecklistScreen extends StatefulWidget {
   final Order order;
@@ -73,6 +74,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       bottomNavigationBar: _BottomActions(
         onCalculate: _calculateCost,
         onGeneratePdf: _generatePdf,
+        onFloorPlan: _showFloorPlan,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _takePhoto,
@@ -401,6 +403,22 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     }
   }
 
+  /// Открыть Floor Plan редактор
+  Future<void> _showFloorPlan() async {
+    final state = context.read<ChecklistBloc>().state;
+    if (state is ChecklistLoaded) {
+      _order = _order.copyWith(
+        checklistData: state.formData,
+        updatedAt: DateTime.now(),
+      );
+    }
+    if (mounted) {
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => FloorPlanPage(order: _order)));
+    }
+  }
+
   Future<void> _calculateCost() async {
     final state = context.read<ChecklistBloc>().state;
     if (state is! ChecklistLoaded) return;
@@ -425,10 +443,12 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 class _BottomActions extends StatelessWidget {
   final VoidCallback onCalculate;
   final VoidCallback onGeneratePdf;
+  final VoidCallback onFloorPlan;
 
   const _BottomActions({
     required this.onCalculate,
     required this.onGeneratePdf,
+    required this.onFloorPlan,
   });
 
   @override
@@ -449,12 +469,20 @@ class _BottomActions extends StatelessWidget {
         children: [
           Expanded(
             child: OutlinedButton.icon(
-              onPressed: onCalculate,
-              icon: const Icon(Icons.calculate, size: 18),
-              label: const Text('Рассчитать'),
+              onPressed: onFloorPlan,
+              icon: const Icon(Icons.design_services, size: 18),
+              label: const Text('План'),
             ),
           ),
-          const SizedBox(width: AppDesign.spacing12),
+          const SizedBox(width: AppDesign.spacing8),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: onCalculate,
+              icon: const Icon(Icons.calculate, size: 18),
+              label: const Text('Расчёт'),
+            ),
+          ),
+          const SizedBox(width: AppDesign.spacing8),
           Expanded(
             child: ElevatedButton.icon(
               onPressed: onGeneratePdf,
