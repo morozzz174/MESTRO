@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../utils/app_design.dart';
-import '../models/floor_plan_models.dart';
+import '../../../../utils/app_design.dart';
+import '../../models/floor_plan_models.dart';
 
 /// CustomPainter для отрисовки плана помещения
 class FloorPlanPainter extends CustomPainter {

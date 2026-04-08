@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
-import '../../../utils/app_design.dart';
-import '../models/editor_state.dart';
-import '../engine/editor_undo_redo.dart';
-import '../engine/floor_plan_validator.dart';
+import '../../../../utils/app_design.dart';
+import '../../models/editor_state.dart';
+import '../../engine/editor_undo_redo.dart';
+import '../../engine/floor_plan_validator.dart';
 
 /// Панель инструментов редактора
 class EditorToolbar extends StatelessWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import '../models/editor_state.dart';
-import '../engine/floor_plan_validator.dart';
-import '../../../utils/app_design.dart';
+import '../../models/editor_state.dart';
+import '../../engine/floor_plan_validator.dart';
+import '../../../../utils/app_design.dart';
 
 /// Интерактивный редактор плана с drag & drop, resize
 class FloorPlanEditor extends StatefulWidget {
