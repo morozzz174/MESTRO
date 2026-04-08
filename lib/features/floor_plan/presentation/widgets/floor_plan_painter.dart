@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../../../utils/app_design.dart';
 import '../../models/floor_plan_models.dart';
+import '../../models/editor_state.dart';
 
 /// CustomPainter для отрисовки плана помещения
 class FloorPlanPainter extends CustomPainter {
   final FloorPlan plan;
   final double pixelsPerMeter;
+  final EditorState? editorState; // Для отрисовки дополнительных элементов
 
-  FloorPlanPainter(this.plan, this.pixelsPerMeter);
+  FloorPlanPainter(this.plan, this.pixelsPerMeter, {this.editorState});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -23,6 +25,11 @@ class FloorPlanPainter extends CustomPainter {
     // Комнаты
     for (final room in plan.rooms) {
       _drawRoom(canvas, room);
+    }
+
+    // Свободные элементы (из EditorState)
+    if (editorState != null) {
+      _drawFreeElements(canvas, editorState!);
     }
 
     // Размеры
@@ -229,6 +236,232 @@ class FloorPlanPainter extends CustomPainter {
     areaPainter.paint(canvas, Offset(areaX, areaY));
   }
 
+  /// Отрисовка свободных элементов (не привязанных к комнатам)
+  void _drawFreeElements(Canvas canvas, EditorState state) {
+    // Двери
+    for (final door in state.doors) {
+      _drawFreeDoor(canvas, door);
+    }
+
+    // Окна
+    for (final window in state.windows) {
+      _drawFreeWindow(canvas, window);
+    }
+
+    // Радиаторы
+    for (final radiator in state.radiators) {
+      _drawRadiator(canvas, radiator);
+    }
+
+    // Сантехника
+    for (final fixture in state.plumbingFixtures) {
+      _drawPlumbingFixture(canvas, fixture);
+    }
+
+    // Электрика
+    for (final point in state.electricalPoints) {
+      _drawElectricalPoint(canvas, point);
+    }
+  }
+
+  /// Свободная дверь
+  void _drawFreeDoor(Canvas canvas, DoorState door) {
+    final doorX = door.x * pixelsPerMeter;
+    final doorY = door.y * pixelsPerMeter;
+    final doorW = door.width * pixelsPerMeter;
+
+    final doorPaint = Paint()
+      ..color = door.type == 'entrance' ? AppDesign.deepSteelBlue : AppDesign.accentTeal
+      ..strokeWidth = 2;
+
+    // Линия двери
+    canvas.drawLine(
+      Offset(doorX, doorY),
+      Offset(doorX + doorW, doorY),
+      doorPaint,
+    );
+
+    // Иконка
+    final icon = door.type == 'entrance' ? '🚪' : '🚪';
+    _drawIcon(canvas, doorX + doorW / 2, doorY - 10, icon, 14);
+
+    // Подпись
+    _drawLabel(canvas, doorX, doorY + 15, _getDoorLabel(door.type), 9, doorPaint.color);
+  }
+
+  /// Свободное окно
+  void _drawFreeWindow(Canvas canvas, WindowState window) {
+    final windowX = window.x * pixelsPerMeter;
+    final windowY = window.y * pixelsPerMeter;
+    final windowW = window.width * pixelsPerMeter;
+
+    final windowPaint = Paint()
+      ..color = Colors.blue.shade300
+      ..strokeWidth = 2;
+
+    // Линия окна
+    canvas.drawLine(
+      Offset(windowX, windowY),
+      Offset(windowX + windowW, windowY),
+      windowPaint,
+    );
+
+    // Двойная линия
+    canvas.drawLine(
+      Offset(windowX, windowY + 3),
+      Offset(windowX + windowW, windowY + 3),
+      windowPaint..strokeWidth = 1,
+    );
+
+    // Иконка
+    _drawIcon(canvas, windowX + windowW / 2, windowY - 10, '🪟', 12);
+
+    // Подпись
+    _drawLabel(canvas, windowX, windowY + 15, 'Окно', 9, Colors.blue.shade300);
+  }
+
+  /// Радиатор
+  void _drawRadiator(Canvas canvas, RadiatorState radiator) {
+    final rx = radiator.x * pixelsPerMeter;
+    final ry = radiator.y * pixelsPerMeter;
+    final rw = radiator.length * pixelsPerMeter;
+    const rh = 10.0;
+
+    final radiatorPaint = Paint()
+      ..color = Colors.red.shade300
+      ..style = PaintingStyle.fill;
+
+    // Корпус радиатора
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(rx, ry - rh / 2, rw, rh),
+        const Radius.circular(2),
+      ),
+      radiatorPaint,
+    );
+
+    // Секции (линии)
+    final sectionPaint = Paint()
+      ..color = Colors.red.shade700
+      ..strokeWidth = 1;
+    final sectionWidth = 20.0;
+    for (double x = rx + sectionWidth; x < rx + rw; x += sectionWidth) {
+      canvas.drawLine(Offset(x, ry - rh / 2), Offset(x, ry + rh / 2), sectionPaint);
+    }
+
+    // Иконка
+    _drawIcon(canvas, rx + rw / 2, ry - 12, '🔥', 12);
+
+    // Подпись
+    _drawLabel(canvas, rx, ry + 12, 'Радиатор', 9, Colors.red.shade700);
+  }
+
+  /// Сантехнический прибор
+  void _drawPlumbingFixture(Canvas canvas, PlumbingFixtureState fixture) {
+    final fx = fixture.x * pixelsPerMeter;
+    final fy = fixture.y * pixelsPerMeter;
+
+    // Иконка
+    final icon = _getPlumbingIcon(fixture.type);
+    _drawIcon(canvas, fx + 10, fy + 10, icon, 20);
+
+    // Подпись
+    _drawLabel(canvas, fx - 10, fy + 25, _getPlumbingLabel(fixture.type), 9, Colors.teal.shade700);
+  }
+
+  /// Электрическая точка
+  void _drawElectricalPoint(Canvas canvas, ElectricalPointState point) {
+    final px = point.x * pixelsPerMeter;
+    final py = point.y * pixelsPerMeter;
+
+    // Кружок
+    final circlePaint = Paint()
+      ..color = Colors.amber.shade300
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(px + 6, py + 6), 6, circlePaint);
+
+    // Обводка
+    final borderPaint = Paint()
+      ..color = Colors.amber.shade700
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawCircle(Offset(px + 6, py + 6), 6, borderPaint);
+
+    // Иконка
+    final icon = _getElectricalIcon(point.type);
+    _drawIcon(canvas, px + 2, py + 2, icon, 10);
+
+    // Подпись
+    _drawLabel(canvas, px - 5, py + 16, _getElectricalLabel(point.type), 8, Colors.amber.shade700);
+  }
+
+  String _getDoorLabel(String type) {
+    switch (type) {
+      case 'entrance': return 'Вход';
+      case 'balcony': return 'Балкон';
+      default: return 'Дверь';
+    }
+  }
+
+  String _getPlumbingIcon(String type) {
+    switch (type) {
+      case 'sink': return '🚰';
+      case 'toilet': return '🚽';
+      case 'bathtub': return '🛁';
+      case 'shower': return '🚿';
+      case 'washingMachine': return '🧺';
+      default: return '🔧';
+    }
+  }
+
+  String _getPlumbingLabel(String type) {
+    switch (type) {
+      case 'sink': return 'Раковина';
+      case 'toilet': return 'Унитаз';
+      case 'bathtub': return 'Ванна';
+      case 'shower': return 'Душ';
+      case 'washingMachine': return 'Стиралка';
+      default: return type;
+    }
+  }
+
+  String _getElectricalIcon(String type) {
+    switch (type) {
+      case 'socket': return '🔌';
+      case 'switch': return '🔘';
+      case 'lightPoint': return '💡';
+      case 'internetSocket': return '🌐';
+      default: return '⚡';
+    }
+  }
+
+  String _getElectricalLabel(String type) {
+    switch (type) {
+      case 'socket': return 'Розетка';
+      case 'switch': return 'Выключатель';
+      case 'lightPoint': return 'Свет';
+      case 'internetSocket': return 'Интернет';
+      default: return type;
+    }
+  }
+
+  /// Подпись элемента
+  void _drawLabel(Canvas canvas, double x, double y, String text, double fontSize, Color color) {
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(x, y));
+  }
+
   /// Размеры плана
   void _drawDimensions(Canvas canvas, Size size) {
     final widthInPixels = plan.totalWidth * pixelsPerMeter;
@@ -357,6 +590,8 @@ class FloorPlanPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant FloorPlanPainter oldDelegate) {
-    return oldDelegate.plan != plan || oldDelegate.pixelsPerMeter != pixelsPerMeter;
+    return oldDelegate.plan != plan || 
+        oldDelegate.pixelsPerMeter != pixelsPerMeter ||
+        oldDelegate.editorState != editorState;
   }
 }

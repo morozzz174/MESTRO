@@ -48,8 +48,10 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
   Future<void> _toggleListening() async {
     if (_isListening) {
       // Остановить — финальный результат
+      print('[VoiceInputButton] Останавливаем запись');
       await _voiceService.stopListening();
       if (mounted && _currentText.isNotEmpty) {
+        print('[VoiceInputButton] Возвращаем результат: $_currentText');
         widget.onVoiceResult(_currentText);
       }
       setState(() {
@@ -58,6 +60,7 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
       });
     } else {
       // Начать распознавание
+      print('[VoiceInputButton] Начинаем запись');
       setState(() {
         _isListening = true;
         _currentText = '';
@@ -65,22 +68,27 @@ class _VoiceInputButtonState extends State<VoiceInputButton>
 
       _voiceService.onResult = (result) {
         if (mounted) {
+          print('[VoiceInputButton] Обновление текста: ${result.recognizedText}');
           setState(() => _currentText = result.recognizedText);
         }
       };
 
       final started = await _voiceService.startListening();
       if (!started && mounted) {
+        print('[VoiceInputButton] Не удалось начать запись');
         setState(() => _isListening = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Не удалось начать запись. Проверьте микрофон.',
+          const SnackBar(
+            content: Text(
+              'Не удалось начать запись. Проверьте микрофон и распознавание речи.',
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 4),
           ),
         );
+      } else if (started) {
+        print('[VoiceInputButton] Запись начата успешно');
       }
     }
   }
@@ -154,19 +162,30 @@ class _VoiceInputDialogState extends State<VoiceInputDialog>
   }
 
   Future<void> _startListening() async {
+    print('[VoiceInputDialog] Начинаем инициализацию...');
     final available = await _voiceService.initialize();
     if (!available) {
+      print('[VoiceInputDialog] Инициализация не удалась');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Распознавание речи недоступно')),
+          const SnackBar(
+            content: Text(
+              'Распознавание речи недоступно. '
+              'Проверьте наличие Google Speech Services на устройстве.',
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
         );
       }
       return;
     }
 
+    print('[VoiceInputDialog] Запускаем запись...');
     setState(() => _isListening = true);
 
     _voiceService.onResult = (result) {
+      print('[VoiceInputDialog] Получен результат: ${result.recognizedText}');
       if (mounted) {
         setState(() {
           _currentText = result.recognizedText;
@@ -175,7 +194,24 @@ class _VoiceInputDialogState extends State<VoiceInputDialog>
       }
     };
 
-    await _voiceService.startListening();
+    final started = await _voiceService.startListening();
+    if (!started && mounted) {
+      print('[VoiceInputDialog] Не удалось начать запись');
+      setState(() => _isListening = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Не удалось начать запись. '
+            'Проверьте разрешение на использование микрофона '
+            'и наличие распознавания речи на устройстве.',
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      print('[VoiceInputDialog] Запись начата успешно');
+    }
   }
 
   Future<void> _stopAndApply() async {

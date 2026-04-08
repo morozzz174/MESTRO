@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../utils/cost_calculator.dart';
+import '../../../../models/price_item.dart';
+import '../../../../services/price_list_service.dart';
 
 /// Экран выбора типа работ для редактирования прайса
 class PriceListScreen extends StatelessWidget {
@@ -82,7 +83,10 @@ class PriceListScreen extends StatelessWidget {
     );
 
     if (confirmed == true) {
-      CostCalculator.resetToDefaults();
+      final service = PriceListService();
+      for (final category in _priceCategories) {
+        await service.resetToDefault(category.workType);
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -111,7 +115,9 @@ class PriceEditScreen extends StatefulWidget {
 }
 
 class _PriceEditScreenState extends State<PriceEditScreen> {
-  late List<_PriceItemData> _items;
+  final PriceListService _priceService = PriceListService();
+  List<PriceItem> _items = [];
+  bool _isLoading = true;
   final _currencyFormat = NumberFormat.currency(
     locale: 'ru_RU',
     symbol: '₽',
@@ -124,158 +130,159 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
     _loadPrices();
   }
 
-  void _loadPrices() {
-    final prices = CostCalculator.getPricesForType(widget.workType);
-    final itemNames = _getItemNames(widget.workType);
-
-    _items = itemNames
-        .where((item) => prices.containsKey(item.id))
-        .map(
-          (item) => _PriceItemData(
-            id: item.id,
-            name: item.name,
-            unit: item.unit,
-            price: prices[item.id] ?? 0,
-            defaultPrice: item.defaultPrice,
-          ),
-        )
-        .toList();
+  Future<void> _loadPrices() async {
+    setState(() => _isLoading = true);
+    
+    final items = await _priceService.getPriceList(widget.workType);
+    
+    setState(() {
+      _items = items;
+      _isLoading = false;
+    });
   }
 
-  List<_PriceItemName> _getItemNames(String workType) {
-    switch (workType) {
-      case 'windows':
-        return const [
-          _PriceItemName('frame_per_m2', 'Рама (профиль)', 'м²', 3500),
-          _PriceItemName(
-            'glass_single',
-            'Однокамерный стеклопакет',
-            'м²',
-            1500,
+  Future<void> _updatePrice(String itemId, double newPrice) async {
+    await _priceService.updatePrice(widget.workType, itemId, newPrice);
+    await _loadPrices();
+  }
+
+  Future<void> _deleteItem(String itemId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Удалить позицию?'),
+        content: const Text('Эта позиция будет удалена из прайс-листа.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Отмена'),
           ),
-          _PriceItemName(
-            'glass_double',
-            'Двухкамерный стеклопакет',
-            'м²',
-            2500,
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Удалить'),
           ),
-          _PriceItemName('hardware', 'Фурнитура', 'компл.', 2000),
-          _PriceItemName('sill', 'Подоконник', 'м.п.', 800),
-          _PriceItemName('slope', 'Откосы', 'м.п.', 1200),
-          _PriceItemName('installation', 'Монтаж', 'м²', 2500),
-        ];
-      case 'doors':
-        return const [
-          _PriceItemName('door_leaf', 'Дверное полотно', 'шт', 8000),
-          _PriceItemName('door_frame', 'Дверная коробка', 'шт', 3000),
-          _PriceItemName('door_lock', 'Замок', 'шт', 2500),
-          _PriceItemName('door_handle', 'Ручка', 'шт', 800),
-          _PriceItemName('door_installation', 'Монтаж двери', 'шт', 5000),
-        ];
-      case 'air_conditioners':
-        return const [
-          _PriceItemName('ac_install_basic', 'Базовый монтаж', 'шт', 15000),
-          _PriceItemName('ac_install_complex', 'Сложный монтаж', 'шт', 25000),
-          _PriceItemName('ac_mount', 'Кронштейны', 'компл.', 3000),
-          _PriceItemName('ac_copper_pipe', 'Медная труба', 'м.п.', 800),
-          _PriceItemName('ac_drain', 'Дренаж', 'м.п.', 500),
-        ];
-      case 'kitchens':
-        return const [
-          _PriceItemName('kitchen_lm_meter', 'Кухня за п.м.', 'м.п.', 15000),
-          _PriceItemName('kitchen_countertop', 'Столешница', 'м.п.', 8000),
-          _PriceItemName(
-            'kitchen_appliance_install',
-            'Установка техники',
-            'шт',
-            3000,
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _priceService.deletePriceItem(widget.workType, itemId);
+      await _loadPrices();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Позиция удалена'),
+            backgroundColor: Colors.green,
           ),
-          _PriceItemName('kitchen_sink', 'Мойка', 'шт', 5000),
-          _PriceItemName('kitchen_backsplash', 'Фартук', 'м²', 2000),
-        ];
-      case 'tiles':
-        return const [
-          _PriceItemName('tile_per_m2', 'Плитка (материал)', 'м²', 800),
-          _PriceItemName('tile_install_simple', 'Укладка простая', 'м²', 1200),
-          _PriceItemName(
-            'tile_install_diagonal',
-            'Укладка диагональная',
-            'м²',
-            1600,
+        );
+      }
+    }
+  }
+
+  Future<void> _showAddItemDialog() async {
+    final nameController = TextEditingController();
+    final priceController = TextEditingController();
+    final unitController = TextEditingController();
+    final formController = TextEditingController();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Добавить позицию'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Название',
+                  hintText: 'Например: Монтаж двери',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Цена',
+                  hintText: '0',
+                  suffixText: '₽',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: unitController,
+                decoration: const InputDecoration(
+                  labelText: 'Единица измерения',
+                  hintText: 'шт, м², м.п., компл.',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: formController,
+                decoration: const InputDecoration(
+                  labelText: 'Формула (необязательно)',
+                  hintText: 'Например: (width/1000) * (height/1000)',
+                ),
+              ),
+            ],
           ),
-          _PriceItemName('tile_grout', 'Затирка', 'м²', 150),
-          _PriceItemName('tile_glue', 'Клей', 'м²', 200),
-          _PriceItemName('tile_warm_floor', 'Тёплый пол', 'м²', 800),
-        ];
-      case 'furniture':
-        return const [
-          _PriceItemName('ldsp_per_m2', 'Корпус ЛДСП', 'м²', 2500),
-          _PriceItemName('mdf_per_m2', 'Корпус МДФ', 'м²', 3500),
-          _PriceItemName('solid_per_m2', 'Корпус массив', 'м²', 6000),
-          _PriceItemName('facade_per_m2', 'Фасады', 'м²', 4000),
-          _PriceItemName('drawer_mechanism', 'Механизм выдвижной', 'шт', 1500),
-          _PriceItemName('furniture_assembly', 'Сборка', 'м.п.', 3000),
-        ];
-      case 'engineering':
-        return const [
-          _PriceItemName('boiler_gas', 'Газовый котёл', 'шт', 35000),
-          _PriceItemName('boiler_electric', 'Электрический котёл', 'шт', 20000),
-          _PriceItemName('radiator_section', 'Секция радиатора', 'шт', 5000),
-          _PriceItemName('pipe_pp_per_m', 'Труба ПП', 'м.п.', 200),
-          _PriceItemName('pipe_pex_per_m', 'Труба PEX', 'м.п.', 350),
-          _PriceItemName(
-            'warm_floor_water_per_m2',
-            'Водяной тёплый пол',
-            'м²',
-            1500,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Отмена'),
           ),
-          _PriceItemName(
-            'warm_floor_electric_per_m2',
-            'Электрический тёплый пол',
-            'м²',
-            2000,
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Добавить'),
           ),
-          _PriceItemName(
-            'sewage_pipe_per_m',
-            'Канализационная труба',
-            'м.п.',
-            500,
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final name = nameController.text.trim();
+      final price = double.tryParse(priceController.text);
+      final unit = unitController.text.trim();
+      final formula = formController.text.trim();
+
+      if (name.isEmpty || price == null || unit.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Заполните все обязательные поля'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      final newItem = PriceItem(
+        id: _priceService.generateItemId(name),
+        name: name,
+        unit: unit,
+        price: price,
+        formula: formula.isEmpty ? null : formula,
+      );
+
+      await _priceService.addPriceItem(widget.workType, newItem);
+      await _loadPrices();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Позиция добавлена'),
+            backgroundColor: Colors.green,
           ),
-          _PriceItemName(
-            'ventilation_install',
-            'Вентиляция (точка)',
-            'точка',
-            3000,
-          ),
-        ];
-      case 'electrical':
-        return const [
-          _PriceItemName('cable_vvg_per_m', 'Кабель ВВГнг', 'м.п.', 80),
-          _PriceItemName('cable_nym_per_m', 'Кабель NYM', 'м.п.', 100),
-          _PriceItemName('socket', 'Розетка', 'шт', 400),
-          _PriceItemName('switch', 'Выключатель', 'шт', 350),
-          _PriceItemName('light_point', 'Точка освещения', 'шт', 800),
-          _PriceItemName('panel_assembly', 'Сборка щитка', 'шт', 5000),
-          _PriceItemName(
-            'cable_routing_per_m',
-            'Прокладка кабеля',
-            'м.п.',
-            300,
-          ),
-          _PriceItemName(
-            'smart_home_point',
-            'Точка умного дома',
-            'точка',
-            3000,
-          ),
-        ];
-      default:
-        return [];
+        );
+      }
     }
   }
 
   double get _totalEstimated {
-    // Примерная сумма: берём все позиции как "1 единица"
     double total = 0;
     for (final item in _items) {
       total += item.price;
@@ -285,6 +292,15 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.workTypeName),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.workTypeName),
@@ -324,121 +340,183 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
                     color: Theme.of(context).colorScheme.onPrimaryContainer,
                   ),
                 ),
+                Text(
+                  'Позиций: ${_items.length}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimaryContainer.withOpacity(0.7),
+                  ),
+                ),
               ],
             ),
           ),
           // Список позиций
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _items.length,
-              itemBuilder: (context, index) {
-                final item = _items[index];
-                final isModified = item.price != item.defaultPrice;
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  color: isModified ? Colors.amber.withOpacity(0.08) : null,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
+            child: _items.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      item.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ),
-                                  if (isModified)
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.amber.shade200,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        'изменено',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.amber.shade900,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${_currencyFormat.format(item.price)} / ${item.unit}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
+                        Icon(
+                          Icons.playlist_add,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Нет позиций',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey.shade600,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 100,
-                          child: TextField(
-                            keyboardType: TextInputType.number,
-                            textAlign: TextAlign.right,
-                            decoration: InputDecoration(
-                              hintText: '0',
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 8,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            controller: TextEditingController(
-                              text: item.price.toInt().toString(),
-                            ),
-                            onSubmitted: (value) {
-                              final newPrice = double.tryParse(value);
-                              if (newPrice != null && newPrice >= 0) {
-                                setState(() {
-                                  item.price = newPrice;
-                                  CostCalculator.updatePrice(
-                                    widget.workType,
-                                    item.id,
-                                    newPrice,
-                                  );
-                                });
-                              }
-                            },
+                        const SizedBox(height: 8),
+                        Text(
+                          'Нажмите + чтобы добавить',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade500,
                           ),
                         ),
                       ],
                     ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) {
+                      final item = _items[index];
+
+                      return Dismissible(
+                        key: Key(item.id),
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 20),
+                          child: const Icon(
+                            Icons.delete,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                        direction: DismissDirection.endToStart,
+                        confirmDismiss: (direction) async {
+                          return await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Удалить позицию?'),
+                              content: Text('Удалить "${item.name}"?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: const Text('Отмена'),
+                                ),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: const Text('Удалить'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        onDismissed: (direction) async {
+                          await _deleteItem(item.id);
+                        },
+                        child: Card(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${_currencyFormat.format(item.price)} / ${item.unit}',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      if (item.formula != null &&
+                                          item.formula!.isNotEmpty)
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 4),
+                                          child: Text(
+                                            'Формула: ${item.formula}',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey.shade500,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 100,
+                                  child: TextField(
+                                    keyboardType: TextInputType.number,
+                                    textAlign: TextAlign.right,
+                                    decoration: InputDecoration(
+                                      hintText: '0',
+                                      isDense: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 8,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    controller: TextEditingController(
+                                      text: item.price.toInt().toString(),
+                                    ),
+                                    onSubmitted: (value) {
+                                      final newPrice = double.tryParse(value);
+                                      if (newPrice != null && newPrice >= 0) {
+                                        _updatePrice(item.id, newPrice);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddItemDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }
 
   Future<void> _resetPrices() async {
-    await showDialog<bool>(
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Сбросить цены?'),
@@ -460,11 +538,15 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
         ],
       ),
     );
+
+    if (confirmed == true) {
+      _doReset();
+    }
   }
 
   void _doReset() {
-    CostCalculator.resetToDefaults();
-    setState(() => _loadPrices());
+    _priceService.resetToDefault(widget.workType);
+    _loadPrices();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Цены сброшены'),
@@ -472,31 +554,6 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
       ),
     );
   }
-}
-
-class _PriceItemData {
-  final String id;
-  final String name;
-  final String unit;
-  double price;
-  final double defaultPrice;
-
-  _PriceItemData({
-    required this.id,
-    required this.name,
-    required this.unit,
-    required this.price,
-    required this.defaultPrice,
-  });
-}
-
-class _PriceItemName {
-  final String id;
-  final String name;
-  final String unit;
-  final double defaultPrice;
-
-  const _PriceItemName(this.id, this.name, this.unit, this.defaultPrice);
 }
 
 // ===== Категории для главного экрана =====

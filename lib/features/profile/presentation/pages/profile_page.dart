@@ -142,6 +142,55 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  /// Редактирование имени пользователя
+  Future<void> _editName() async {
+    final controller = TextEditingController(text: _user?.fullName ?? '');
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Изменить имя'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'ФИО',
+            hintText: 'Введите ваше имя',
+            border: OutlineInputBorder(),
+          ),
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(null),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text.trim()),
+            child: const Text('Сохранить'),
+          ),
+        ],
+      ),
+    );
+
+    if (newName != null && newName.isNotEmpty && mounted && _user != null) {
+      final updatedUser = _user!.copyWith(
+        fullName: newName,
+        updatedAt: DateTime.now(),
+      );
+      await DatabaseHelper().updateUser(updatedUser);
+      setState(() => _user = updatedUser);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Имя обновлено'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _logout() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -295,10 +344,16 @@ class _ProfilePageState extends State<ProfilePage> {
                   value: _user!.phone,
                 ),
                 AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.person_outline,
-                  label: 'ФИО',
-                  value: _user!.fullName ?? 'Не указано',
+                ListTile(
+                  leading: Icon(Icons.person_outline, size: 20, color: AppDesign.midBlueGray),
+                  title: Text('ФИО', style: AppDesign.captionStyle),
+                  subtitle: Text(_user!.fullName ?? 'Не указано'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.edit, size: 18),
+                    onPressed: _editName,
+                    tooltip: 'Изменить имя',
+                  ),
+                  onTap: _editName,
                 ),
                 AppDesign.separator(),
                 _InfoRow(

@@ -47,6 +47,8 @@ class Order {
   final DateTime? appointmentEnd; // Окончание замера
   final String? clientPhone; // Телефон клиента для SMS
   final String? notes; // Заметки к замеру
+  final Map<String, dynamic>? floorPlanData; // Данные плана помещения (JSON)
+  final double? paidAmount; // Оплаченная сумма
 
   Order({
     required this.id,
@@ -64,6 +66,8 @@ class Order {
     this.appointmentEnd,
     this.clientPhone,
     this.notes,
+    this.floorPlanData,
+    this.paidAmount,
   });
 
   Order copyWith({
@@ -82,6 +86,8 @@ class Order {
     DateTime? appointmentEnd,
     String? clientPhone,
     String? notes,
+    Map<String, dynamic>? floorPlanData,
+    double? paidAmount,
   }) {
     return Order(
       id: id ?? this.id,
@@ -99,6 +105,8 @@ class Order {
       appointmentEnd: appointmentEnd ?? this.appointmentEnd,
       clientPhone: clientPhone ?? this.clientPhone,
       notes: notes ?? this.notes,
+      floorPlanData: floorPlanData ?? this.floorPlanData,
+      paidAmount: paidAmount ?? this.paidAmount,
     );
   }
 
@@ -118,6 +126,8 @@ class Order {
       'appointment_end': appointmentEnd?.toIso8601String(),
       'client_phone': clientPhone,
       'notes': notes,
+      'floor_plan_data': floorPlanData != null ? jsonEncode(floorPlanData) : null,
+      'paid_amount': paidAmount,
     };
   }
 
@@ -155,6 +165,10 @@ class Order {
           : null,
       clientPhone: map['client_phone'] as String?,
       notes: map['notes'] as String?,
+      floorPlanData: map['floor_plan_data'] != null
+          ? _parseChecklistData(map['floor_plan_data'])
+          : null,
+      paidAmount: map['paid_amount'] as double?,
     );
   }
 

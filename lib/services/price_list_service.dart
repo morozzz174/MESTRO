@@ -1,9 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart';
 import '../models/price_item.dart';
+import '../database/database_helper.dart';
 
 /// Сервис управления прайс-листами
-/// Загружает дефолтные цены из assets, позволяет сохранять кастомные
+/// Загружает дефолтные цены из assets, позволяет сохранять кастомные в БД
 class PriceListService {
   static final PriceListService _instance = PriceListService._internal();
   factory PriceListService() => _instance;
@@ -11,6 +13,7 @@ class PriceListService {
 
   /// Кэш загруженных прайсов: work_type -> List<PriceItem>
   final Map<String, List<PriceItem>> _cache = {};
+  final Uuid _uuid = const Uuid();
 
   /// Загрузить прайс для типа работ
   Future<List<PriceItem>> getPriceList(String workType) async {
@@ -19,13 +22,66 @@ class PriceListService {
       return _cache[workType]!;
     }
 
+    // Пробуем загрузить из БД
+    final dbItems = await _loadFromDatabase(workType);
+    
+    if (dbItems.isNotEmpty) {
+      _cache[workType] = dbItems;
+      return dbItems;
+    }
+
     // Загружаем дефолтный прайс из assets
     final items = await _loadDefaultPrices(workType);
+
+    // Сохраняем в БД
+    await _saveToDatabase(workType, items);
 
     // Кэшируем
     _cache[workType] = items;
 
     return items;
+  }
+
+  /// Загрузить цены из БД
+  Future<List<PriceItem>> _loadFromDatabase(String workType) async {
+    try {
+      final db = DatabaseHelper();
+      final maps = await db.getPricesForWorkType(workType);
+      
+      if (maps.isEmpty) return [];
+      
+      return maps
+          .map((map) => PriceItem.fromMap(map))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Сохранить цены в БД
+  Future<void> _saveToDatabase(String workType, List<PriceItem> items) async {
+    try {
+      final db = DatabaseHelper();
+      final now = DateTime.now().toIso8601String();
+
+      for (final item in items) {
+        await db.upsertPriceItem({
+          'id': item.id,
+          'work_type': workType,
+          'item_id': item.id,
+          'name': item.name,
+          'unit': item.unit,
+          'price': item.price,
+          'formula': item.formula,
+          'multiply_by_count': item.multiplyByCount ? 1 : 0,
+          'is_custom': 0,
+          'created_at': now,
+          'updated_at': now,
+        });
+      }
+    } catch (e) {
+      // Ошибка сохранения в БД - не критично
+    }
   }
 
   /// Обновить цену в прайсе
@@ -34,17 +90,89 @@ class PriceListService {
     final index = items.indexWhere((item) => item.id == itemId);
     if (index != -1) {
       _cache[workType]![index] = items[index].copyWith(price: newPrice);
+      
+      // Обновляем в БД
+      try {
+        final db = DatabaseHelper();
+        await db.updatePriceItem(itemId, newPrice);
+      } catch (e) {
+        // Ошибка обновления в БД
+      }
     }
   }
 
   /// Обновить весь прайс-лист
   Future<void> updatePriceList(String workType, List<PriceItem> items) async {
     _cache[workType] = items;
+    
+    // Обновляем в БД
+    try {
+      final db = DatabaseHelper();
+      await db.deleteAllPricesForWorkType(workType);
+      await _saveToDatabase(workType, items);
+    } catch (e) {
+      // Ошибка сохранения в БД
+    }
+  }
+
+  /// Добавить новую позицию в прайс
+  Future<PriceItem> addPriceItem(String workType, PriceItem newItem) async {
+    final items = await getPriceList(workType);
+    items.add(newItem);
+    _cache[workType] = items;
+
+    // Сохраняем в БД
+    try {
+      final db = DatabaseHelper();
+      final now = DateTime.now().toIso8601String();
+      await db.upsertPriceItem({
+        'id': newItem.id,
+        'work_type': workType,
+        'item_id': newItem.id,
+        'name': newItem.name,
+        'unit': newItem.unit,
+        'price': newItem.price,
+        'formula': newItem.formula,
+        'multiply_by_count': newItem.multiplyByCount ? 1 : 0,
+        'is_custom': 1,
+        'created_at': now,
+        'updated_at': now,
+      });
+    } catch (e) {
+      // Ошибка сохранения в БД
+    }
+
+    return newItem;
+  }
+
+  /// Удалить позицию из прайса
+  Future<void> deletePriceItem(String workType, String itemId) async {
+    final items = await getPriceList(workType);
+    items.removeWhere((item) => item.id == itemId);
+    _cache[workType] = items;
+
+    // Удаляем из БД
+    try {
+      final db = DatabaseHelper();
+      await db.deletePriceItem(itemId);
+    } catch (e) {
+      // Ошибка удаления из БД
+    }
   }
 
   /// Сбросить прайс к дефолтному
   Future<void> resetToDefault(String workType) async {
     _cache.remove(workType);
+    
+    // Удаляем из БД пользовательские цены
+    try {
+      final db = DatabaseHelper();
+      await db.deleteAllPricesForWorkType(workType);
+    } catch (e) {
+      // Ошибка удаления из БД
+    }
+    
+    // Перезагружаем дефолтные
     await getPriceList(workType);
   }
 
@@ -56,6 +184,11 @@ class PriceListService {
       orElse: () => PriceItem(id: '', name: '', unit: '', price: 0),
     );
     return item.price;
+  }
+
+  /// Сгенерировать уникальный ID для новой позиции
+  String generateItemId(String baseName) {
+    return '${baseName.toLowerCase().replaceAll(' ', '_')}_${_uuid.v4().substring(0, 8)}';
   }
 
   /// Загрузить дефолтные цены из JSON-файлов

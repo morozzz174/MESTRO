@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -6,8 +7,11 @@ import '../../../../bloc/order_event.dart';
 import '../../../../repositories/user_repository.dart';
 import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../models/user.dart';
+import '../../../../models/order.dart';
 import '../../../../utils/app_design.dart';
 import '../../../price_list/presentation/pages/price_list_screen.dart';
+import 'orders_list_screen.dart';
+import 'statistics_screen.dart';
 
 class DashboardPage extends StatefulWidget {
   final ValueChanged<int> onNavigate;
@@ -35,6 +39,15 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
+  /// Открыть список заявок с фильтром
+  void _openOrdersList(OrderStatus? status) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OrdersListScreen(initialStatus: status),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('dd MMMM yyyy', 'ru');
@@ -58,20 +71,34 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: AppDesign.primaryButtonGradient,
-                          boxShadow: AppDesign.secondaryButtonShadow,
-                        ),
-                        padding: const EdgeInsets.all(2),
-                        child: CircleAvatar(
-                          radius: 28,
-                          backgroundColor: AppDesign.cardBackground,
-                          child: const Icon(
-                            Icons.person,
-                            size: 28,
-                            color: AppDesign.deepSteelBlue,
+                      InkWell(
+                        onTap: () {
+                          // Переход в профиль
+                          widget.onNavigate(3);
+                        },
+                        borderRadius: BorderRadius.circular(28),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppDesign.primaryButtonGradient,
+                            boxShadow: AppDesign.secondaryButtonShadow,
+                          ),
+                          padding: const EdgeInsets.all(2),
+                          child: CircleAvatar(
+                            radius: 28,
+                            backgroundColor: AppDesign.cardBackground,
+                            backgroundImage: _user?.avatarPath != null &&
+                                    File(_user!.avatarPath!).existsSync()
+                                ? FileImage(File(_user!.avatarPath!))
+                                : null,
+                            child: _user?.avatarPath == null ||
+                                    !File(_user!.avatarPath!).existsSync()
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 28,
+                                    color: AppDesign.deepSteelBlue,
+                                  )
+                                : null,
                           ),
                         ),
                       ),
@@ -132,7 +159,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
           const SizedBox(height: AppDesign.spacing16),
 
-          // Статистика
+          // Статистика — активные кнопки-фильтры
           BlocBuilder<OrderBloc, OrderState>(
             builder: (context, state) {
               int totalOrders = 0;
@@ -143,47 +170,61 @@ class _DashboardPageState extends State<DashboardPage> {
               if (state is OrderLoaded) {
                 totalOrders = state.orders.length;
                 newOrders = state.orders
-                    .where((o) => o.status.name == 'newOrder')
+                    .where((o) => o.status == OrderStatus.newOrder)
                     .length;
                 inProgress = state.orders
-                    .where((o) => o.status.name == 'inProgress')
+                    .where((o) => o.status == OrderStatus.inProgress)
                     .length;
                 completed = state.orders
-                    .where((o) => o.status.name == 'completed')
+                    .where((o) => o.status == OrderStatus.completed)
                     .length;
               }
 
-              return GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: AppDesign.spacing12,
-                mainAxisSpacing: AppDesign.spacing12,
-                childAspectRatio: 1.5,
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _StatCard(
-                    icon: Icons.assignment_outlined,
-                    label: 'Всего заявок',
-                    value: totalOrders.toString(),
-                    color: AppDesign.deepSteelBlue,
+                  Text(
+                    'Заявки',
+                    style: AppDesign.titleStyle.copyWith(fontSize: 18),
                   ),
-                  _StatCard(
-                    icon: Icons.fiber_new,
-                    label: 'Новые',
-                    value: newOrders.toString(),
-                    color: AppDesign.accentTeal,
-                  ),
-                  _StatCard(
-                    icon: Icons.pending,
-                    label: 'В работе',
-                    value: inProgress.toString(),
-                    color: AppDesign.warmTaupe,
-                  ),
-                  _StatCard(
-                    icon: Icons.check_circle_outline,
-                    label: 'Завершены',
-                    value: completed.toString(),
-                    color: AppDesign.statusCompleted,
+                  const SizedBox(height: AppDesign.spacing12),
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: AppDesign.spacing12,
+                    mainAxisSpacing: AppDesign.spacing12,
+                    childAspectRatio: 1.5,
+                    children: [
+                      _ActiveStatCard(
+                        icon: Icons.assignment_outlined,
+                        label: 'Всего заявок',
+                        value: totalOrders.toString(),
+                        color: AppDesign.deepSteelBlue,
+                        onTap: () => _openOrdersList(null),
+                      ),
+                      _ActiveStatCard(
+                        icon: Icons.fiber_new,
+                        label: 'Новые',
+                        value: newOrders.toString(),
+                        color: AppDesign.statusNew,
+                        onTap: () => _openOrdersList(OrderStatus.newOrder),
+                      ),
+                      _ActiveStatCard(
+                        icon: Icons.pending,
+                        label: 'В работе',
+                        value: inProgress.toString(),
+                        color: AppDesign.statusInProgress,
+                        onTap: () => _openOrdersList(OrderStatus.inProgress),
+                      ),
+                      _ActiveStatCard(
+                        icon: Icons.check_circle_outline,
+                        label: 'Завершены',
+                        value: completed.toString(),
+                        color: AppDesign.statusCompleted,
+                        onTap: () => _openOrdersList(OrderStatus.completed),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -252,6 +293,20 @@ class _DashboardPageState extends State<DashboardPage> {
                     );
                   },
                 ),
+                AppDesign.separator(),
+                _QuickActionTile(
+                  icon: Icons.bar_chart,
+                  title: 'Статистика',
+                  subtitle: 'Аналитика, финансы, оплаты',
+                  color: AppDesign.accentTeal,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const StatisticsScreen(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -261,45 +316,64 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _ActiveStatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
   final Color color;
+  final VoidCallback onTap;
 
-  const _StatCard({
+  const _ActiveStatCard({
     required this.icon,
     required this.label,
     required this.value,
     required this.color,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: AppDesign.cardDecoration,
-      child: Padding(
-        padding: const EdgeInsets.all(AppDesign.spacing16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            Column(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+        child: Container(
+          decoration: AppDesign.cardDecoration,
+          child: Padding(
+            padding: const EdgeInsets.all(AppDesign.spacing16),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(value, style: AppDesign.titleStyle.copyWith(fontSize: 24)),
-                Text(label, style: AppDesign.captionStyle),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+                      ),
+                      child: Icon(icon, color: color, size: 24),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: color.withOpacity(0.5),
+                      size: 20,
+                    ),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(value, style: AppDesign.titleStyle.copyWith(fontSize: 24)),
+                    Text(label, style: AppDesign.captionStyle),
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

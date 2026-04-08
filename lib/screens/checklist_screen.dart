@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../database/database_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
@@ -22,6 +23,7 @@ import '../features/checklists_list/presentation/widgets/checklist_photos_sectio
 import '../features/checklists_list/presentation/managers/checklist_actions_manager.dart';
 import '../features/floor_plan/presentation/pages/floor_plan_page.dart';
 import '../features/floor_plan/models/floor_plan_models.dart';
+import '../features/home/presentation/pages/order_payments_screen.dart';
 
 class ChecklistScreen extends StatefulWidget {
   final Order order;
@@ -76,6 +78,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         onCalculate: _calculateCost,
         onGeneratePdf: _generatePdf,
         onFloorPlan: _showFloorPlan,
+        onPayments: _showPayments,
+        estimatedCost: _order.estimatedCost,
+        paidAmount: _order.paidAmount,
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _takePhoto,
@@ -417,7 +422,43 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
       final updatedPlan = await Navigator.of(context).push<FloorPlan?>(
         MaterialPageRoute(builder: (_) => FloorPlanPage(order: _order)),
       );
-      // Можно сохранить план обратно в заказ если нужно
+      // После возврата обновляем order из БД (план уже сохранён)
+      final db = DatabaseHelper();
+      final updatedOrder = await db.getOrder(_order.id);
+      if (updatedOrder != null && mounted) {
+        setState(() => _order = updatedOrder);
+      }
+    }
+  }
+
+  /// Открыть экран платежей
+  Future<void> _showPayments() async {
+    // Сохраняем текущие данные чек-листа
+    final state = context.read<ChecklistBloc>().state;
+    if (state is ChecklistLoaded) {
+      _order = _order.copyWith(
+        checklistData: state.formData,
+        updatedAt: DateTime.now(),
+      );
+    }
+    
+    // Загружаем актуальный order из БД
+    final db = DatabaseHelper();
+    final updatedOrder = await db.getOrder(_order.id);
+    if (updatedOrder != null && mounted) {
+      setState(() => _order = updatedOrder);
+      
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => OrderPaymentsScreen(order: _order),
+        ),
+      );
+      
+      // После возврата обновляем order
+      final refreshedOrder = await db.getOrder(_order.id);
+      if (refreshedOrder != null && mounted) {
+        setState(() => _order = refreshedOrder);
+      }
     }
   }
 
@@ -446,15 +487,31 @@ class _BottomActions extends StatelessWidget {
   final VoidCallback onCalculate;
   final VoidCallback onGeneratePdf;
   final VoidCallback onFloorPlan;
+  final VoidCallback onPayments;
+  final double? estimatedCost;
+  final double? paidAmount;
 
   const _BottomActions({
     required this.onCalculate,
     required this.onGeneratePdf,
     required this.onFloorPlan,
+    required this.onPayments,
+    this.estimatedCost,
+    this.paidAmount,
   });
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'ru_RU',
+      symbol: '₽',
+      decimalDigits: 0,
+    );
+    
+    final estimated = estimatedCost ?? 0;
+    final paid = paidAmount ?? 0;
+    final hasPayments = paid > 0;
+
     return Container(
       padding: const EdgeInsets.all(AppDesign.spacing16),
       decoration: BoxDecoration(
@@ -467,31 +524,79 @@ class _BottomActions extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onFloorPlan,
-              icon: const Icon(Icons.design_services, size: 18),
-              label: const Text('План'),
+          // Финансовая сводка (если есть стоимость)
+          if (estimated > 0) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Стоимость: ${currencyFormat.format(estimated)}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (hasPayments)
+                  Text(
+                    'Оплачено: ${currencyFormat.format(paid)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green,
+                    ),
+                  ),
+              ],
             ),
-          ),
-          const SizedBox(width: AppDesign.spacing8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onCalculate,
-              icon: const Icon(Icons.calculate, size: 18),
-              label: const Text('Расчёт'),
-            ),
-          ),
-          const SizedBox(width: AppDesign.spacing8),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: onGeneratePdf,
-              icon: const Icon(Icons.picture_as_pdf, size: 18),
-              label: const Text('PDF'),
-              style: AppDesign.accentButtonStyle,
-            ),
+            const SizedBox(height: 8),
+          ],
+          // Кнопки
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onPayments,
+                  icon: Icon(
+                    hasPayments ? Icons.payment : Icons.payment_outlined,
+                    size: 18,
+                    color: hasPayments ? Colors.green : null,
+                  ),
+                  label: Text(
+                    hasPayments ? 'Оплаты' : 'Оплаты',
+                    style: hasPayments
+                        ? const TextStyle(color: Colors.green)
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppDesign.spacing8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onFloorPlan,
+                  icon: const Icon(Icons.design_services, size: 18),
+                  label: const Text('План'),
+                ),
+              ),
+              const SizedBox(width: AppDesign.spacing8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onCalculate,
+                  icon: const Icon(Icons.calculate, size: 18),
+                  label: const Text('Расчёт'),
+                ),
+              ),
+              const SizedBox(width: AppDesign.spacing8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: onGeneratePdf,
+                  icon: const Icon(Icons.picture_as_pdf, size: 18),
+                  label: const Text('PDF'),
+                  style: AppDesign.accentButtonStyle,
+                ),
+              ),
+            ],
           ),
         ],
       ),

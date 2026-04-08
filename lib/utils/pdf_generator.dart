@@ -416,40 +416,133 @@ class PdfGenerator {
       decimalDigits: 0,
     );
 
+    // Генерируем план из заказа
+    final plan = FloorPlanRuleEngine.generateFromOrder(order);
+
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         build: (context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Заголовок
-              pw.Text(
-                'План помещения',
-                style: pw.TextStyle(
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
-                  font: fontBold,
+          return [
+            // Заголовок
+            pw.Text(
+              'План помещения',
+              style: pw.TextStyle(
+                fontSize: 24,
+                fontWeight: pw.FontWeight.bold,
+                font: fontBold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Заявка: ${order.clientName}',
+              style: pw.TextStyle(fontSize: 14, font: font),
+            ),
+            pw.Text(
+              'Адрес: ${order.address}',
+              style: pw.TextStyle(fontSize: 12, font: font),
+            ),
+            pw.Text(
+              'Дата: ${DateFormat('dd.MM.yyyy', 'ru').format(order.date)}',
+              style: pw.TextStyle(fontSize: 12, font: font),
+            ),
+            pw.Divider(),
+
+            // Визуальный план помещения
+            pw.SizedBox(height: 16),
+            pw.Text(
+              'Планировка',
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+                font: fontBold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            
+            // Рисуем план помещения
+            _buildFloorPlanDrawing(plan, font, fontBold),
+            
+            pw.SizedBox(height: 16),
+            pw.Divider(),
+
+            // Параметры
+            pw.Text(
+              'Параметры замера:',
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+                font: fontBold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            ...order.checklistData.entries.map(
+              (e) => pw.Padding(
+                padding: const pw.EdgeInsets.only(bottom: 4),
+                child: pw.Row(
+                  children: [
+                    pw.SizedBox(
+                      width: 150,
+                      child: pw.Text(
+                        '${_fieldLabel(e.key, order.workType)}:',
+                        style: pw.TextStyle(fontSize: 12, font: fontBold),
+                      ),
+                    ),
+                    pw.Expanded(
+                      child: pw.Text(
+                        _formatFieldValue(e.key, e.value),
+                        style: pw.TextStyle(fontSize: 12, font: font),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              pw.SizedBox(height: 8),
-              pw.Text(
-                'Заявка: ${order.clientName}',
-                style: pw.TextStyle(fontSize: 14, font: font),
-              ),
-              pw.Text(
-                'Адрес: ${order.address}',
-                style: pw.TextStyle(fontSize: 12, font: font),
-              ),
-              pw.Text(
-                'Дата: ${DateFormat('dd.MM.yyyy', 'ru').format(order.date)}',
-                style: pw.TextStyle(fontSize: 12, font: font),
-              ),
-              pw.Divider(),
+            ),
 
-              // Параметры
+            pw.SizedBox(height: 16),
+            pw.Divider(),
+
+            // Информация о плане
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Информация о плане',
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+                font: fontBold,
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            _buildInfoRow(
+              'Общая площадь:',
+              '${plan.totalArea.toStringAsFixed(1)} м²',
+              pw.TextStyle(fontSize: 12, font: fontBold),
+              pw.TextStyle(fontSize: 12, font: font),
+            ),
+            _buildInfoRow(
+              'Жилая площадь:',
+              '${plan.livingArea.toStringAsFixed(1)} м²',
+              pw.TextStyle(fontSize: 12, font: fontBold),
+              pw.TextStyle(fontSize: 12, font: font),
+            ),
+            _buildInfoRow(
+              'Количество комнат:',
+              '${plan.roomCount}',
+              pw.TextStyle(fontSize: 12, font: fontBold),
+              pw.TextStyle(fontSize: 12, font: font),
+            ),
+            _buildInfoRow(
+              'Тип помещения:',
+              plan.objectType.label,
+              pw.TextStyle(fontSize: 12, font: fontBold),
+              pw.TextStyle(fontSize: 12, font: font),
+            ),
+
+            // Список комнат
+            if (plan.rooms.isNotEmpty) ...[
+              pw.SizedBox(height: 16),
               pw.Text(
-                'Параметры замера:',
+                'Комнаты:',
                 style: pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
@@ -457,57 +550,80 @@ class PdfGenerator {
                 ),
               ),
               pw.SizedBox(height: 8),
-              ...order.checklistData.entries.map(
-                (e) => pw.Padding(
-                  padding: const pw.EdgeInsets.only(bottom: 4),
-                  child: pw.Row(
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey),
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
                     children: [
-                      pw.SizedBox(
-                        width: 150,
-                        child: pw.Text(
-                          '${_fieldLabel(e.key, order.workType)}:',
-                          style: pw.TextStyle(fontSize: 12, font: fontBold),
-                        ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('Комната', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
                       ),
-                      pw.Expanded(
-                        child: pw.Text(
-                          _formatFieldValue(e.key, e.value),
-                          style: pw.TextStyle(fontSize: 12, font: font),
-                        ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('Площадь', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('Двери', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('Окна', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
                       ),
                     ],
                   ),
-                ),
+                  ...plan.rooms.map((room) => pw.TableRow(
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('${room.type.icon} ${room.type.label}', style: pw.TextStyle(fontSize: 10, font: font)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('${room.area.toStringAsFixed(1)} м²', style: pw.TextStyle(fontSize: 10, font: font)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('${room.doors.length}', style: pw.TextStyle(fontSize: 10, font: font)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(4),
+                        child: pw.Text('${room.windows.length}', style: pw.TextStyle(fontSize: 10, font: font)),
+                      ),
+                    ],
+                  )),
+                ],
               ),
+            ],
 
+            // Стоимость
+            if (order.estimatedCost != null) ...[
               pw.SizedBox(height: 16),
               pw.Divider(),
-
-              // Стоимость
-              if (order.estimatedCost != null) ...[
-                pw.SizedBox(height: 16),
-                pw.Text(
-                  'Итого: ${currencyFormat.format(order.estimatedCost)}',
-                  style: pw.TextStyle(
-                    fontSize: 18,
-                    fontWeight: pw.FontWeight.bold,
-                    font: fontBold,
-                    color: PdfColors.green800,
-                  ),
-                ),
-              ],
-
-              pw.Spacer(),
+              pw.SizedBox(height: 8),
               pw.Text(
-                'Сформировано в Mestro • ${DateFormat('dd.MM.yyyy HH:mm', 'ru').format(DateTime.now())}',
+                'Итого: ${currencyFormat.format(order.estimatedCost)}',
                 style: pw.TextStyle(
-                  fontSize: 8,
-                  color: PdfColors.grey,
-                  font: font,
+                  fontSize: 18,
+                  fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
+                  color: PdfColors.green800,
                 ),
               ),
             ],
-          );
+
+            pw.Spacer(),
+            pw.Text(
+              'Сформировано в Mestro • ${DateFormat('dd.MM.yyyy HH:mm', 'ru').format(DateTime.now())}',
+              style: pw.TextStyle(
+                fontSize: 8,
+                color: PdfColors.grey,
+                font: font,
+              ),
+            ),
+          ];
         },
       ),
     );
@@ -517,6 +633,144 @@ class PdfGenerator {
     final file = File(filePath);
     await file.writeAsBytes(await pdf.save());
     return file;
+  }
+
+  /// Построить визуальный план помещения для PDF
+  static pw.Widget _buildFloorPlanDrawing(
+    FloorPlan plan,
+    pw.Font font,
+    pw.Font fontBold,
+  ) {
+    // Масштаб: 1 метр = 50 пикселей
+    const pixelsPerMeter = 50.0;
+    final planWidth = plan.totalWidth * pixelsPerMeter;
+    final planHeight = plan.totalHeight * pixelsPerMeter;
+
+    // Рисуем план как SVG
+    final svgContent = _generateFloorPlanSVG(plan, pixelsPerMeter);
+
+    return pw.Container(
+      width: planWidth,
+      height: planHeight,
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey800, width: 2),
+        color: PdfColors.grey50,
+      ),
+      child: pw.SvgImage(svg: svgContent),
+    );
+  }
+
+  /// Генерировать SVG плана помещения
+  static String _generateFloorPlanSVG(FloorPlan plan, double pixelsPerMeter) {
+    final width = plan.totalWidth * pixelsPerMeter;
+    final height = plan.totalHeight * pixelsPerMeter;
+
+    final buffer = StringBuffer();
+    buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
+    buffer.writeln('<svg xmlns="http://www.w3.org/2000/svg" width="$width" height="$height">');
+
+    // Фон
+    buffer.writeln('<rect width="$width" height="$height" fill="#f5f5f5"/>');
+
+    // Сетка (1 клетка = 1 метр)
+    buffer.writeln('<g stroke="#e0e0e0" stroke-width="0.5">');
+    for (double x = 0; x <= plan.totalWidth; x += 1) {
+      final px = x * pixelsPerMeter;
+      buffer.writeln('<line x1="$px" y1="0" x2="$px" y2="$height"/>');
+    }
+    for (double y = 0; y <= plan.totalHeight; y += 1) {
+      final py = y * pixelsPerMeter;
+      buffer.writeln('<line x1="0" y1="$py" x2="$width" y2="$py"/>');
+    }
+    buffer.writeln('</g>');
+
+    // Комнаты
+    for (final room in plan.rooms) {
+      final x = room.x * pixelsPerMeter;
+      final y = room.y * pixelsPerMeter;
+      final w = room.width * pixelsPerMeter;
+      final h = room.height * pixelsPerMeter;
+
+      // Цвет комнаты в зависимости от типа
+      String fillColor = '#e3f2fd'; // default
+      switch (room.type) {
+        case RoomType.kitchen: fillColor = '#fff3e0'; break;
+        case RoomType.livingRoom: fillColor = '#e8f5e9'; break;
+        case RoomType.bedroom: fillColor = '#fce4ec'; break;
+        case RoomType.bathroom: fillColor = '#e0f7fa'; break;
+        case RoomType.toilet: fillColor = '#f3e5f5'; break;
+        case RoomType.hallway: fillColor = '#fff9c4'; break;
+        case RoomType.balcony: fillColor = '#e8eaf6'; break;
+        case RoomType.storage: fillColor = '#efebe9'; break;
+        case RoomType.office: fillColor = '#e0f2f1'; break;
+        case RoomType.childrenRoom: fillColor = '#fff3e0'; break;
+      }
+
+      // Комната
+      buffer.writeln(
+        '<rect x="$x" y="$y" width="$w" height="$h" fill="$fillColor" stroke="#1976d2" stroke-width="2"/>',
+      );
+
+      // Двери
+      for (final door in room.doors) {
+        final dx = (room.x + door.x) * pixelsPerMeter;
+        final dy = (room.y + door.y) * pixelsPerMeter;
+        final dw = door.width * pixelsPerMeter;
+
+        buffer.writeln(
+          '<line x1="$dx" y1="$dy" x2="${dx + dw}" y2="$dy" stroke="#795548" stroke-width="3"/>',
+        );
+        // Дуга открывания
+        buffer.writeln(
+          '<path d="M $dx $dy Q ${dx + dw/2} ${dy - dw/2} ${dx + dw} $dy" fill="none" stroke="#795548" stroke-width="1" stroke-dasharray="3,3"/>',
+        );
+      }
+
+      // Окна
+      for (final window in room.windows) {
+        final wx = (room.x + window.x) * pixelsPerMeter;
+        final wy = (room.y + window.y) * pixelsPerMeter;
+        final ww = window.width * pixelsPerMeter;
+
+        buffer.writeln(
+          '<rect x="$wx" y="${wy - 3}" width="$ww" height="6" fill="#4fc3f7" stroke="#0288d1" stroke-width="1.5"/>',
+        );
+      }
+
+      // Название комнаты
+      final centerX = x + w / 2;
+      final centerY = y + h / 2;
+      buffer.writeln(
+        '<text x="$centerX" y="$centerY" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#333">${room.type.icon} ${room.type.label}</text>',
+      );
+
+      // Площадь
+      buffer.writeln(
+        '<text x="$centerX" y="${centerY + 15}" text-anchor="middle" font-size="10" fill="#666">${room.area.toStringAsFixed(1)} м²</text>',
+      );
+    }
+
+    // Размерные линии (верхняя и правая)
+    // Верхняя размерная линия
+    final dimY = -10;
+    buffer.writeln(
+      '<line x1="0" y1="$dimY" x2="$width" y2="$dimY" stroke="#333" stroke-width="1"/>',
+    );
+    buffer.writeln(
+      '<text x="${width / 2}" y="${dimY - 5}" text-anchor="middle" font-size="10" fill="#333">${plan.totalWidth.toStringAsFixed(1)} м</text>',
+    );
+
+    // Правая размерная линия
+    final dimX = width + 10;
+    buffer.writeln(
+      '<line x1="$dimX" y1="0" x2="$dimX" y2="$height" stroke="#333" stroke-width="1"/>',
+    );
+    buffer.writeln(
+      '<text x="${dimX + 5}" y="${height / 2}" text-anchor="middle" font-size="10" fill="#333" transform="rotate(90, $dimX, ${height / 2})">${plan.totalHeight.toStringAsFixed(1)} м</text>',
+    );
+
+    buffer.writeln('</svg>');
+    return buffer.toString();
   }
 
   /// Генерация секции Floor Plan для PDF (на основе данных замера)

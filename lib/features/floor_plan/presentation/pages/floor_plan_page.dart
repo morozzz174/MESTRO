@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
+import 'dart:convert';
 import '../../../../models/order.dart';
+import '../../../../database/database_helper.dart';
 import '../../../../utils/app_design.dart';
 import '../../../../utils/pdf_generator.dart';
 import '../../models/floor_plan_models.dart';
@@ -45,7 +47,8 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     _ruleEngine = FloorPlanRuleEngine(aiOptimizer: _aiOptimizer);
     _undoRedo = EditorUndoRedoManager();
     _initializeAI();
-    _generatePlan();
+    // Загружаем сохранённый план или генерируем новый
+    _loadPlanFromOrder();
   }
 
   Future<void> _initializeAI() async {
@@ -57,8 +60,43 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     setState(() => _isGenerating = true);
 
     final checklistData = widget.order.checklistData;
-    final widthMm = (checklistData['width'] as num?)?.toDouble() ?? 0;
-    final heightMm = (checklistData['height'] as num?)?.toDouble() ?? 0;
+    
+    // Пробуем извлечь размеры из разных полей чек-листа
+    double widthMm = 0;
+    double heightMm = 0;
+    
+    // Для окон и дверей
+    widthMm = (checklistData['width'] as num?)?.toDouble() ?? 0;
+    heightMm = (checklistData['height'] as num?)?.toDouble() ?? 0;
+    
+    // Для плитки и мебели (пол)
+    if (widthMm == 0 || heightMm == 0) {
+      final floorLength = (checklistData['floor_length'] as num?)?.toDouble() ?? 0;
+      final floorWidth = (checklistData['floor_width'] as num?)?.toDouble() ?? 0;
+      if (floorLength > 0 && floorWidth > 0) {
+        widthMm = floorLength;
+        heightMm = floorWidth;
+      }
+    }
+    
+    // Для кухни
+    if (widthMm == 0 || heightMm == 0) {
+      final kitchenLength = (checklistData['kitchen_length'] as num?)?.toDouble() ?? 0;
+      if (kitchenLength > 0) {
+        widthMm = kitchenLength;
+        heightMm = 3000; // Дефолтная ширина кухни
+      }
+    }
+    
+    // Для плитки
+    if (widthMm == 0 || heightMm == 0) {
+      final wallLength = (checklistData['wall_length'] as num?)?.toDouble() ?? 0;
+      final wallHeight = (checklistData['wall_height'] as num?)?.toDouble() ?? 0;
+      if (wallLength > 0 && wallHeight > 0) {
+        widthMm = wallLength;
+        heightMm = wallHeight;
+      }
+    }
 
     if (widthMm == 0 || heightMm == 0) {
       // Если данных нет, используем дефолтные размеры
@@ -82,23 +120,52 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     _undoRedo.push(_editorState!);
   }
 
-  /// Конвертировать FloorPlan в EditorState
+  /// Конвертировать FloorPlan в EditorState (сохраняет все данные)
   EditorState _planToEditorState(FloorPlan plan) {
-    return EditorState(
-      rooms: plan.rooms.map((room) => RoomState(
-        id: room.type.toString(),
+    final rooms = <RoomState>[];
+    
+    for (final room in plan.rooms) {
+      // Генерируем уникальный ID для комнаты
+      final roomId = const Uuid().v4();
+      
+      // Конвертируем двери
+      final doors = room.doors.map((door) => DoorState(
+        id: const Uuid().v4(),
+        x: door.x,
+        y: door.y,
+        width: door.width,
+        type: door.type.name,
+      )).toList();
+      
+      // Конвертируем окна
+      final windows = room.windows.map((window) => WindowState(
+        id: const Uuid().v4(),
+        x: window.x,
+        y: window.y,
+        width: window.width,
+        type: window.type.name,
+      )).toList();
+      
+      rooms.add(RoomState(
+        id: roomId,
         type: room.type.name,
         x: room.x,
         y: room.y,
         width: room.width,
         height: room.height,
-      )).toList(),
+        doors: doors,
+        windows: windows,
+      ));
+    }
+    
+    return EditorState(
+      rooms: rooms,
       totalWidth: plan.totalWidth,
       totalHeight: plan.totalHeight,
     );
   }
 
-  /// Конвертировать EditorState обратно в FloorPlan
+  /// Конвертировать EditorState обратно в FloorPlan (восстанавливает все данные)
   FloorPlan _editorToPlan(EditorState editor) {
     return FloorPlan(
       rooms: editor.rooms.map((room) {
@@ -106,12 +173,46 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           (t) => t.name == room.type,
           orElse: () => RoomType.hallway,
         );
+        
+        // Восстанавливаем двери
+        final doors = room.doors.map((door) {
+          final doorType = DoorType.values.firstWhere(
+            (t) => t.name == door.type,
+            orElse: () => DoorType.internal,
+          );
+          return Door(
+            x: door.x,
+            y: door.y,
+            width: door.width,
+            type: doorType,
+          );
+        }).toList();
+        
+        // Восстанавливаем окна
+        final windows = room.windows.map((window) {
+          final windowType = WindowType.values.firstWhere(
+            (t) => t.name == window.type,
+            orElse: () => WindowType.standard,
+          );
+          return Window(
+            x: window.x,
+            y: window.y,
+            width: window.width,
+            type: windowType,
+          );
+        }).toList();
+        
         return Room(
           type: roomType,
           x: room.x,
           y: room.y,
           width: room.width,
           height: room.height,
+          doors: doors,
+          windows: windows,
+          hasVentilation: roomType == RoomType.kitchen || 
+                         roomType == RoomType.bathroom ||
+                         windows.isNotEmpty,
         );
       }).toList(),
       totalWidth: editor.totalWidth,
@@ -124,6 +225,251 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       _editorState = newState;
       _plan = _editorToPlan(newState);
     });
+    // Автосохранение при каждом изменении
+    _savePlanToOrder();
+  }
+
+  /// Сохранить план в Order (в БД)
+  Future<void> _savePlanToOrder() async {
+    if (_plan == null) return;
+    
+    try {
+      // Сериализуем план в JSON
+      final planJson = _planToJson(_plan!);
+      
+      // Обновляем Order
+      final updatedOrder = widget.order.copyWith(
+        floorPlanData: planJson,
+        updatedAt: DateTime.now(),
+      );
+      
+      // Сохраняем в БД
+      final db = DatabaseHelper();
+      await db.updateOrder(updatedOrder);
+      
+      print('[FloorPlan] План сохранён в Order ${updatedOrder.id}');
+    } catch (e) {
+      print('[FloorPlan] Ошибка сохранения плана: $e');
+    }
+  }
+
+  /// Конвертировать FloorPlan в JSON для сохранения
+  Map<String, dynamic> _planToJson(FloorPlan plan) {
+    final json = {
+      'totalWidth': plan.totalWidth,
+      'totalHeight': plan.totalHeight,
+      'objectType': plan.objectType.name,
+      'rooms': plan.rooms.map((room) => {
+        'type': room.type.name,
+        'x': room.x,
+        'y': room.y,
+        'width': room.width,
+        'height': room.height,
+        'hasVentilation': room.hasVentilation,
+        'hasBalconyAccess': room.hasBalconyAccess,
+        'doors': room.doors.map((door) => {
+          'x': door.x,
+          'y': door.y,
+          'width': door.width,
+          'type': door.type.name,
+          'clockwise': door.clockwise,
+        }).toList(),
+        'windows': room.windows.map((window) => {
+          'x': window.x,
+          'y': window.y,
+          'width': window.width,
+          'type': window.type.name,
+          'sillHeight': window.sillHeight,
+        }).toList(),
+      }).toList(),
+    };
+
+    // Добавляем свободные элементы из EditorState
+    if (_editorState != null) {
+      json['freeDoors'] = _editorState!.doors.map((door) => {
+        'id': door.id,
+        'x': door.x,
+        'y': door.y,
+        'width': door.width,
+        'type': door.type,
+        'rotation': door.rotation,
+      }).toList();
+
+      json['freeWindows'] = _editorState!.windows.map((window) => {
+        'id': window.id,
+        'x': window.x,
+        'y': window.y,
+        'width': window.width,
+        'type': window.type,
+        'rotation': window.rotation,
+      }).toList();
+
+      json['radiators'] = _editorState!.radiators.map((radiator) => {
+        'id': radiator.id,
+        'x': radiator.x,
+        'y': radiator.y,
+        'length': radiator.length,
+        'type': radiator.type,
+      }).toList();
+
+      json['plumbingFixtures'] = _editorState!.plumbingFixtures.map((fixture) => {
+        'id': fixture.id,
+        'x': fixture.x,
+        'y': fixture.y,
+        'type': fixture.type,
+        'rotation': fixture.rotation,
+      }).toList();
+
+      json['electricalPoints'] = _editorState!.electricalPoints.map((point) => {
+        'id': point.id,
+        'x': point.x,
+        'y': point.y,
+        'type': point.type,
+        'height': point.height,
+      }).toList();
+    }
+
+    return json;
+  }
+
+  /// Загрузить FloorPlan из JSON
+  FloorPlan? _planFromJson(Map<String, dynamic> json) {
+    try {
+      final rooms = (json['rooms'] as List).map((roomJson) {
+        final roomType = RoomType.values.firstWhere(
+          (t) => t.name == roomJson['type'],
+          orElse: () => RoomType.hallway,
+        );
+        
+        final doors = (roomJson['doors'] as List?)?.map((doorJson) {
+          final doorType = DoorType.values.firstWhere(
+            (t) => t.name == doorJson['type'],
+            orElse: () => DoorType.internal,
+          );
+          return Door(
+            x: doorJson['x'].toDouble(),
+            y: doorJson['y'].toDouble(),
+            width: doorJson['width'].toDouble(),
+            type: doorType,
+            clockwise: doorJson['clockwise'] ?? true,
+          );
+        }).toList() ?? [];
+        
+        final windows = (roomJson['windows'] as List?)?.map((windowJson) {
+          final windowType = WindowType.values.firstWhere(
+            (t) => t.name == windowJson['type'],
+            orElse: () => WindowType.standard,
+          );
+          return Window(
+            x: windowJson['x'].toDouble(),
+            y: windowJson['y'].toDouble(),
+            width: windowJson['width'].toDouble(),
+            type: windowType,
+            sillHeight: windowJson['sillHeight']?.toDouble() ?? 0.9,
+          );
+        }).toList() ?? [];
+        
+        return Room(
+          type: roomType,
+          x: roomJson['x'].toDouble(),
+          y: roomJson['y'].toDouble(),
+          width: roomJson['width'].toDouble(),
+          height: roomJson['height'].toDouble(),
+          doors: doors,
+          windows: windows,
+          hasVentilation: roomJson['hasVentilation'] ?? true,
+          hasBalconyAccess: roomJson['hasBalconyAccess'] ?? false,
+        );
+      }).toList();
+      
+      final objectType = FloorPlanType.values.firstWhere(
+        (t) => t.name == json['objectType'],
+        orElse: () => FloorPlanType.apartment,
+      );
+      
+      return FloorPlan(
+        rooms: rooms.cast<Room>(),
+        totalWidth: json['totalWidth'].toDouble(),
+        totalHeight: json['totalHeight'].toDouble(),
+        objectType: objectType,
+      );
+    } catch (e) {
+      print('[FloorPlan] Ошибка загрузки плана из JSON: $e');
+      return null;
+    }
+  }
+
+  /// Загрузить сохранённый план из Order
+  void _loadPlanFromOrder() {
+    if (widget.order.floorPlanData != null) {
+      final savedPlan = _planFromJson(widget.order.floorPlanData!);
+      if (savedPlan != null) {
+        final editorState = _planToEditorState(savedPlan);
+        
+        // Загружаем свободные элементы из JSON
+        final freeDoors = (widget.order.floorPlanData!['freeDoors'] as List?)?.map((doorJson) => DoorState(
+          id: doorJson['id'] ?? const Uuid().v4(),
+          x: doorJson['x'].toDouble(),
+          y: doorJson['y'].toDouble(),
+          width: doorJson['width'].toDouble(),
+          type: doorJson['type'] ?? 'internal',
+          rotation: doorJson['rotation']?.toDouble() ?? 0,
+        )).toList() ?? [];
+
+        final freeWindows = (widget.order.floorPlanData!['freeWindows'] as List?)?.map((windowJson) => WindowState(
+          id: windowJson['id'] ?? const Uuid().v4(),
+          x: windowJson['x'].toDouble(),
+          y: windowJson['y'].toDouble(),
+          width: windowJson['width'].toDouble(),
+          type: windowJson['type'] ?? 'standard',
+          rotation: windowJson['rotation']?.toDouble() ?? 0,
+        )).toList() ?? [];
+
+        final radiators = (widget.order.floorPlanData!['radiators'] as List?)?.map((radJson) => RadiatorState(
+          id: radJson['id'] ?? const Uuid().v4(),
+          x: radJson['x'].toDouble(),
+          y: radJson['y'].toDouble(),
+          length: radJson['length'].toDouble() ?? 1.0,
+          type: radJson['type'] ?? 'panel',
+        )).toList() ?? [];
+
+        final plumbingFixtures = (widget.order.floorPlanData!['plumbingFixtures'] as List?)?.map((fixJson) => PlumbingFixtureState(
+          id: fixJson['id'] ?? const Uuid().v4(),
+          x: fixJson['x'].toDouble(),
+          y: fixJson['y'].toDouble(),
+          type: fixJson['type'] ?? 'sink',
+          rotation: fixJson['rotation']?.toDouble() ?? 0,
+        )).toList() ?? [];
+
+        final electricalPoints = (widget.order.floorPlanData!['electricalPoints'] as List?)?.map((pointJson) => ElectricalPointState(
+          id: pointJson['id'] ?? const Uuid().v4(),
+          x: pointJson['x'].toDouble(),
+          y: pointJson['y'].toDouble(),
+          type: pointJson['type'] ?? 'socket',
+          height: pointJson['height']?.toDouble() ?? 0.3,
+        )).toList() ?? [];
+
+        // Обновляем EditorState свободными элементами
+        final fullEditorState = editorState.copyWith(
+          doors: freeDoors,
+          windows: freeWindows,
+          radiators: radiators,
+          plumbingFixtures: plumbingFixtures,
+          electricalPoints: electricalPoints,
+        );
+
+        setState(() {
+          _plan = savedPlan;
+          _editorState = fullEditorState;
+          _undoRedo.push(_editorState!);
+        });
+        print('[FloorPlan] Загружен сохранённый план из Order');
+        return;
+      }
+    }
+
+    // Если сохранённого плана нет - генерируем новый
+    _generatePlan();
   }
 
   /// Определить тип объекта из заявки
@@ -137,7 +483,13 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        // Автосохранение при выходе
+        await _savePlanToOrder();
+        return true;
+      },
+      child: Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
         child: Container(
@@ -183,6 +535,11 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
               onUndo: _undo,
               onRedo: _redo,
               onAddRoom: _addRoom,
+              onAddDoor: _addDoor,
+              onAddWindow: _addWindow,
+              onAddRadiator: _addRadiator,
+              onAddPlumbing: _addPlumbing,
+              onAddElectrical: _addElectrical,
               onReset: _resetPlan,
             ),
           Expanded(child: _buildBody()),
@@ -208,6 +565,7 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                 ),
               ],
             ),
+    ),
     );
   }
 
@@ -265,6 +623,7 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                           painter: FloorPlanPainter(
                             _plan!,
                             50 * _zoom,
+                            editorState: _editorState,
                           ),
                         ),
                       ),
@@ -486,10 +845,133 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       );
       _plan = _editorToPlan(_editorState!);
     });
+    _savePlanToOrder();
+  }
+
+  Future<void> _addDoor() async {
+    if (_editorState == null) return;
+
+    final door = await showAddDoorDialog(context);
+    if (door == null || !mounted) return;
+
+    _undoRedo.push(_editorState!);
+    setState(() {
+      _editorState = _editorState!.copyWith(
+        doors: [..._editorState!.doors, door],
+      );
+      _plan = _editorToPlan(_editorState!);
+    });
+    _savePlanToOrder();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Дверь добавлена'),
+          backgroundColor: Colors.brown,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addWindow() async {
+    if (_editorState == null) return;
+
+    final window = await showAddWindowDialog(context);
+    if (window == null || !mounted) return;
+
+    _undoRedo.push(_editorState!);
+    setState(() {
+      _editorState = _editorState!.copyWith(
+        windows: [..._editorState!.windows, window],
+      );
+      _plan = _editorToPlan(_editorState!);
+    });
+    _savePlanToOrder();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Окно добавлено'),
+          backgroundColor: Colors.cyan,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addRadiator() async {
+    if (_editorState == null) return;
+
+    final radiator = await showAddRadiatorDialog(context);
+    if (radiator == null || !mounted) return;
+
+    _undoRedo.push(_editorState!);
+    setState(() {
+      _editorState = _editorState!.copyWith(
+        radiators: [..._editorState!.radiators, radiator],
+      );
+      _plan = _editorToPlan(_editorState!);
+    });
+    _savePlanToOrder();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Радиатор добавлен'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addPlumbing() async {
+    if (_editorState == null) return;
+
+    final fixture = await showAddPlumbingDialog(context);
+    if (fixture == null || !mounted) return;
+
+    _undoRedo.push(_editorState!);
+    setState(() {
+      _editorState = _editorState!.copyWith(
+        plumbingFixtures: [..._editorState!.plumbingFixtures, fixture],
+      );
+      _plan = _editorToPlan(_editorState!);
+    });
+    _savePlanToOrder();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Сантехника добавлена'),
+          backgroundColor: Colors.teal,
+        ),
+      );
+    }
+  }
+
+  Future<void> _addElectrical() async {
+    if (_editorState == null) return;
+
+    final point = await showAddElectricalDialog(context);
+    if (point == null || !mounted) return;
+
+    _undoRedo.push(_editorState!);
+    setState(() {
+      _editorState = _editorState!.copyWith(
+        electricalPoints: [..._editorState!.electricalPoints, point],
+      );
+      _plan = _editorToPlan(_editorState!);
+    });
+    _savePlanToOrder();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Электрика добавлена'),
+          backgroundColor: Colors.amber.shade700,
+        ),
+      );
+    }
   }
 
   void _resetPlan() {
     _undoRedo.clear();
+    // Очищаем сохранённый план из Order
+    _savePlanToOrder(); // сохраняем пустой/сброшенный
     _generatePlan();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('План сброшен')),

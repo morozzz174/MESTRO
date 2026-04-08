@@ -30,17 +30,26 @@ class VoiceInputService {
 
   /// Инициализация сервиса
   Future<bool> initialize() async {
-    final available = await _speech.initialize(
-      onError: (error) {
-        _isListening = false;
-      },
-      onStatus: (status) {
-        if (status == 'done' || status == 'notListening') {
+    try {
+      print('[VoiceInput] Инициализация SpeechToText...');
+      final available = await _speech.initialize(
+        onError: (error) {
+          print('[VoiceInput] onError: ${error.errorMsg}');
           _isListening = false;
-        }
-      },
-    );
-    return available;
+        },
+        onStatus: (status) {
+          print('[VoiceInput] onStatus: $status');
+          if (status == 'done' || status == 'notListening') {
+            _isListening = false;
+          }
+        },
+      );
+      print('[VoiceInput] SpeechToText available: $available');
+      return available;
+    } catch (e) {
+      print('[VoiceInput] Ошибка инициализации: $e');
+      return false;
+    }
   }
 
   /// Запрос разрешения на запись микрофона
@@ -51,41 +60,66 @@ class VoiceInputService {
 
   /// Начать распознавание речи
   Future<bool> startListening({String? localeId}) async {
-    if (_isListening) return false;
-
-    final hasPermission = await _requestMicPermission();
-    if (!hasPermission) return false;
-
-    if (!_speech.isAvailable) {
-      final available = await initialize();
-      if (!available) return false;
+    if (_isListening) {
+      print('[VoiceInput] Уже слушается, игнорируем');
+      return false;
     }
 
-    _currentText = '';
+    try {
+      // Запрашиваем разрешение
+      final hasPermission = await _requestMicPermission();
+      if (!hasPermission) {
+        print('[VoiceInput] Разрешение на микрофон отклонено');
+        return false;
+      }
 
-    final started = await _speech.listen(
-      onResult: (result) {
-        _currentText = result.recognizedWords;
-        onResult?.call(
-          VoiceInputResult(
-            recognizedText: _currentText,
-            isFinal: result.finalResult,
-            confidence: result.confidence,
-          ),
-        );
-      },
-      localeId: localeId ?? 'ru_RU',
-      listenFor: const Duration(minutes: 2),
-      pauseFor: const Duration(seconds: 3),
-      partialResults: true,
-      cancelOnError: true,
-      listenMode: ListenMode.dictation,
-    );
+      // Инициализируем если нужно
+      if (!_speech.isAvailable) {
+        print('[VoiceInput] Speech не доступен, инициализируем...');
+        final available = await initialize();
+        if (!available) {
+          print('[VoiceInput] Инициализация не удалась');
+          return false;
+        }
+      }
 
-    if (started) {
-      _isListening = true;
+      _currentText = '';
+
+      print('[VoiceInput] Начинаем запись...');
+      
+      final started = await _speech.listen(
+        onResult: (result) {
+          print('[VoiceInput] onResult: final=${result.finalResult}, text="${result.recognizedWords}"');
+          _currentText = result.recognizedWords;
+          onResult?.call(
+            VoiceInputResult(
+              recognizedText: _currentText,
+              isFinal: result.finalResult,
+              confidence: result.confidence,
+            ),
+          );
+        },
+        localeId: localeId ?? 'ru_RU',
+        listenFor: const Duration(minutes: 2),
+        pauseFor: const Duration(seconds: 5),
+        partialResults: true,
+        cancelOnError: false,
+        listenMode: ListenMode.dictation,
+      );
+
+      if (started) {
+        _isListening = true;
+        print('[VoiceInput] Запись начата успешно');
+      } else {
+        print('[VoiceInput] Не удалось начать запись');
+      }
+      
+      return started;
+    } catch (e) {
+      print('[VoiceInput] Ошибка при начале записи: $e');
+      _isListening = false;
+      return false;
     }
-    return started;
   }
 
   /// Остановить распознавание

@@ -22,7 +22,7 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 5,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -80,6 +80,53 @@ class DatabaseHelper {
     if (oldVersion < 5) {
       // Миграция v4 -> v5: добавляем аватар пользователя
       await db.execute('ALTER TABLE users ADD COLUMN avatar_path TEXT');
+    }
+    if (oldVersion < 6) {
+      // Миграция v5 -> v6: добавляем таблицу пользовательских цен
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS custom_prices (
+          id TEXT PRIMARY KEY,
+          work_type TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          unit TEXT NOT NULL,
+          price REAL NOT NULL,
+          formula TEXT,
+          multiply_by_count INTEGER DEFAULT 0,
+          is_custom INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (work_type) REFERENCES work_types (type) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_price_work_type ON custom_prices (work_type)',
+      );
+      await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_price_unique ON custom_prices (work_type, item_id)',
+      );
+    }
+    if (oldVersion < 7) {
+      // Миграция v6 -> v7: добавляем колонку floor_plan_data в orders
+      await db.execute('ALTER TABLE orders ADD COLUMN floor_plan_data TEXT');
+    }
+    if (oldVersion < 8) {
+      // Миграция v7 -> v8: добавляем paid_amount и таблицу платежей
+      await db.execute('ALTER TABLE orders ADD COLUMN paid_amount REAL DEFAULT 0');
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS payments (
+          id TEXT PRIMARY KEY,
+          order_id TEXT NOT NULL,
+          amount REAL NOT NULL,
+          payment_date TEXT NOT NULL,
+          description TEXT,
+          created_at TEXT NOT NULL,
+          FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_payment_order ON payments (order_id)',
+      );
     }
   }
 
@@ -160,6 +207,45 @@ class DatabaseHelper {
     );
     await db.execute(
       'CREATE INDEX idx_notif_scheduled ON notifications (scheduled_at)',
+    );
+
+    // Таблица пользовательских цен
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS custom_prices (
+        id TEXT PRIMARY KEY,
+        work_type TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        unit TEXT NOT NULL,
+        price REAL NOT NULL,
+        formula TEXT,
+        multiply_by_count INTEGER DEFAULT 0,
+        is_custom INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_price_work_type ON custom_prices (work_type)',
+    );
+    await db.execute(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_price_unique ON custom_prices (work_type, item_id)',
+    );
+
+    // Таблица платежей
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS payments (
+        id TEXT PRIMARY KEY,
+        order_id TEXT NOT NULL,
+        amount REAL NOT NULL,
+        payment_date TEXT NOT NULL,
+        description TEXT,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_payment_order ON payments (order_id)',
     );
   }
 
@@ -421,5 +507,201 @@ class DatabaseHelper {
       whereArgs: [orderId],
       orderBy: 'scheduled_at DESC',
     );
+  }
+
+  // ===== CRUD для пользовательских цен =====
+
+  /// Получить все цены для типа работ
+  Future<List<Map<String, dynamic>>> getPricesForWorkType(
+    String workType,
+  ) async {
+    final db = await database;
+    return db.query(
+      'custom_prices',
+      where: 'work_type = ?',
+      whereArgs: [workType],
+      orderBy: 'created_at ASC',
+    );
+  }
+
+  /// Получить конкретную позицию прайса
+  Future<Map<String, dynamic>?> getPriceItem(String id) async {
+    final db = await database;
+    final maps = await db.query('custom_prices', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+    return maps.first;
+  }
+
+  /// Вставить или обновить позицию прайса
+  Future<void> upsertPriceItem(Map<String, dynamic> priceData) async {
+    final db = await database;
+    await db.insert(
+      'custom_prices',
+      priceData,
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Обновить цену конкретной позиции
+  Future<void> updatePriceItem(String id, double newPrice) async {
+    final db = await database;
+    await db.update(
+      'custom_prices',
+      {
+        'price': newPrice,
+        'updated_at': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Удалить позицию прайса
+  Future<void> deletePriceItem(String id) async {
+    final db = await database;
+    await db.delete('custom_prices', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Удалить все цены для типа работ
+  Future<void> deleteAllPricesForWorkType(String workType) async {
+    final db = await database;
+    await db.delete('custom_prices', where: 'work_type = ?', whereArgs: [workType]);
+  }
+
+  /// Инициализировать цены по умолчанию для типа работ
+  Future<void> initDefaultPrices(
+    String workType,
+    List<Map<String, dynamic>> items,
+  ) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+
+    for (final item in items) {
+      await db.insert('custom_prices', {
+        'id': item['id'],
+        'work_type': workType,
+        'item_id': item['id'],
+        'name': item['name'],
+        'unit': item['unit'],
+        'price': item['price'],
+        'formula': item['formula'],
+        'multiply_by_count': item['multiply_by_count'] ?? 0,
+        'is_custom': 0,
+        'created_at': now,
+        'updated_at': now,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    }
+  }
+
+  /// Проверить, есть ли уже цены для типа работ
+  Future<bool> hasPricesForWorkType(String workType) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM custom_prices WHERE work_type = ?',
+      [workType],
+    );
+    return (result.first['count'] as int) > 0;
+  }
+
+  // ===== CRUD для платежей =====
+
+  /// Получить все платежи для заявки
+  Future<List<Map<String, dynamic>>> getPaymentsForOrder(
+    String orderId,
+  ) async {
+    final db = await database;
+    return db.query(
+      'payments',
+      where: 'order_id = ?',
+      whereArgs: [orderId],
+      orderBy: 'payment_date DESC',
+    );
+  }
+
+  /// Добавить платёж
+  Future<void> insertPayment(Map<String, dynamic> paymentData) async {
+    final db = await database;
+    await db.insert('payments', paymentData);
+
+    // Обновляем общую оплаченную сумму в orders
+    final orderId = paymentData['order_id'] as String;
+    final totalPaid = await _calculateTotalPaid(orderId);
+    await db.update(
+      'orders',
+      {'paid_amount': totalPaid},
+      where: 'id = ?',
+      whereArgs: [orderId],
+    );
+  }
+
+  /// Удалить платёж
+  Future<void> deletePayment(String id, String orderId) async {
+    final db = await database;
+    await db.delete('payments', where: 'id = ?', whereArgs: [id]);
+
+    // Пересчитываем общую сумму
+    final totalPaid = await _calculateTotalPaid(orderId);
+    await db.update(
+      'orders',
+      {'paid_amount': totalPaid},
+      where: 'id = ?',
+      whereArgs: [orderId],
+    );
+  }
+
+  /// Получить общую оплаченную сумму для заявки
+  Future<double> _calculateTotalPaid(String orderId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM payments WHERE order_id = ?',
+      [orderId],
+    );
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  /// Получить общую статистику по платежам
+  Future<Map<String, dynamic>> getPaymentStatistics() async {
+    final db = await database;
+
+    // Общая сумма всех платежей
+    final totalResult = await db.rawQuery(
+      'SELECT SUM(amount) as total FROM payments',
+    );
+    final totalPaid = (totalResult.first['total'] as num?)?.toDouble() ?? 0.0;
+
+    // Сумма по месяцам (текущий год)
+    final monthlyResult = await db.rawQuery(
+      '''
+      SELECT 
+        strftime('%m', payment_date) as month,
+        SUM(amount) as month_total
+      FROM payments
+      WHERE strftime('%Y', payment_date) = strftime('%Y', 'now')
+      GROUP BY month
+      ORDER BY month
+    ''',
+    );
+
+    final monthlyPayments = <Map<String, dynamic>>[];
+    for (final row in monthlyResult) {
+      monthlyPayments.add({
+        'month': int.parse(row['month'] as String),
+        'amount': (row['month_total'] as num).toDouble(),
+      });
+    }
+
+    // Средний чек
+    final countResult = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM payments',
+    );
+    final paymentCount = countResult.first['count'] as int;
+    final avgPayment = paymentCount > 0 ? totalPaid / paymentCount : 0.0;
+
+    return {
+      'totalPaid': totalPaid,
+      'paymentCount': paymentCount,
+      'avgPayment': avgPayment,
+      'monthlyPayments': monthlyPayments,
+    };
   }
 }
