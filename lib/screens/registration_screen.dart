@@ -14,11 +14,11 @@ import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/work_types/presentation/pages/work_type_selection_screen.dart';
 
-/// Конфигурация uCaller — читается из .env
-final _ucallerServiceId = int.tryParse(
-  dotenv.env['UCALLER_SERVICE_ID'] ?? '',
-) ?? 0;
-final _ucallerSecretKey = dotenv.env['UCALLER_SECRET_KEY'] ?? '';
+/// Конфигурация uCaller — читается из .env с fallback на значения по умолчанию
+final _ucallerServiceId =
+    int.tryParse(dotenv.env['UCALLER_SERVICE_ID'] ?? '366080') ?? 366080;
+final _ucallerSecretKey =
+    dotenv.env['UCALLER_SECRET_KEY'] ?? '2Fgpaau5OeJE7tLJKdSVgLNIhLnvzGzM';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});

@@ -1,6 +1,6 @@
-import '../database/database_helper.dart';
-import '../models/user.dart';
-import '../repositories/user_repository.dart';
+import '../../database/database_helper.dart';
+import '../../models/user.dart';
+import '../user_repository.dart';
 
 /// Реализация UserRepository на основе DatabaseHelper
 class UserRepositoryImpl implements UserRepository {

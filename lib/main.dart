@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'bloc/order_bloc.dart';
 import 'bloc/order_event.dart';
@@ -13,9 +14,8 @@ import 'features/home/presentation/pages/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await initializeDateFormatting('ru', null);
-
-  // Инициализация уведомлений
   await NotificationService().initialize();
 
   runApp(const MestroApp());
@@ -97,9 +97,7 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_isRegistered) {

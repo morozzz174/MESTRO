@@ -16,7 +16,15 @@ class ChecklistBloc extends Bloc<ChecklistEvent, ChecklistState> {
     emit(ChecklistLoading());
     try {
       final config = await ChecklistLoader.load(event.workType);
-      emit(ChecklistLoaded(config: config));
+      // Загружаем чек-лист и инициализируем formData из существующих данных
+      emit(
+        ChecklistLoaded(
+          config: config,
+          formData: event.initialData.isEmpty
+              ? const {}
+              : Map<String, dynamic>.from(event.initialData),
+        ),
+      );
     } catch (e) {
       emit(ChecklistError('Ошибка загрузки чек-листа: $e'));
     }

@@ -1,6 +1,6 @@
-import '../database/database_helper.dart';
-import '../models/order.dart';
-import '../repositories/order_repository.dart';
+import '../../database/database_helper.dart';
+import '../../models/order.dart';
+import '../order_repository.dart';
 
 /// Реализация OrderRepository на основе DatabaseHelper
 class OrderRepositoryImpl implements OrderRepository {
@@ -22,10 +22,12 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<void> deleteOrder(String id) => _db.deleteOrder(id);
 
   @override
-  Future<List<Order>> getOrdersByDate(DateTime date) => _db.getOrdersByDate(date);
+  Future<List<Order>> getOrdersByDate(DateTime date) =>
+      _db.getOrdersByDate(date);
 
   @override
-  Future<Map<DateTime, List<Order>>> getAllCalendarOrders() => _db.getAllCalendarOrders();
+  Future<Map<DateTime, List<Order>>> getAllCalendarOrders() =>
+      _db.getAllCalendarOrders();
 
   @override
   Future<List<Order>> getFutureAppointments() => _db.getFutureAppointments();
@@ -34,7 +36,8 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<List<Order>> getPastAppointments() => _db.getPastAppointments();
 
   @override
-  Future<List<PhotoAnnotation>> getPhotosForOrder(String orderId) => _db.getPhotosForOrder(orderId);
+  Future<List<PhotoAnnotation>> getPhotosForOrder(String orderId) =>
+      _db.getPhotosForOrder(orderId);
 
   @override
   Future<void> insertPhoto(PhotoAnnotation photo) => _db.insertPhoto(photo);

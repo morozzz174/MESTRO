@@ -11,10 +11,12 @@ abstract class ChecklistEvent extends Equatable {
 
 class LoadChecklist extends ChecklistEvent {
   final String workType;
-  const LoadChecklist(this.workType);
+  final Map<String, dynamic> initialData;
+
+  const LoadChecklist(this.workType, {this.initialData = const {}});
 
   @override
-  List<Object?> get props => [workType];
+  List<Object?> get props => [workType, initialData];
 }
 
 class UpdateField extends ChecklistEvent {

@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../bloc/order_bloc.dart';
 import '../../../../bloc/order_event.dart';
 import '../../../../bloc/checklist_bloc.dart';
+import '../../../../bloc/checklist_event.dart';
 import '../../../../models/order.dart';
 import '../../../../models/checklist_config.dart';
 import '../../../../utils/app_design.dart';
@@ -17,10 +18,7 @@ class ChecklistActionsManager {
   final BuildContext context;
   Order order;
 
-  ChecklistActionsManager({
-    required this.context,
-    required this.order,
-  });
+  ChecklistActionsManager({required this.context, required this.order});
 
   /// Валидация и сохранение заявки
   Future<bool> saveOrder() async {
@@ -31,9 +29,7 @@ class ChecklistActionsManager {
         state.formData,
       );
       if (errors.isNotEmpty) {
-        _showErrorSnackBar(
-          'Заполните обязательные поля: ${errors.join(', ')}',
-        );
+        _showErrorSnackBar('Заполните обязательные поля: ${errors.join(', ')}');
         return false;
       }
 
@@ -133,15 +129,15 @@ class ChecklistActionsManager {
 
   void _showSuccessSnackBar(String message) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Заявка сохранена')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Заявка сохранена')));
   }
 
   void _showInfoSnackBar(String message) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

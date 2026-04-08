@@ -55,6 +55,7 @@ class ChecklistPhotosSection extends StatelessWidget {
                       clientName: '',
                       address: '',
                       date: DateTime.now(),
+                      workType: WorkType.windows,
                       createdAt: DateTime.now(),
                       updatedAt: DateTime.now(),
                     ),

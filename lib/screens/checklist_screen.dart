@@ -39,12 +39,13 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   void initState() {
     super.initState();
     _order = widget.order;
-    _actionsManager = ChecklistActionsManager(
-      context: context,
-      order: _order,
-    );
+    _actionsManager = ChecklistActionsManager(context: context, order: _order);
+    // Загружаем чек-лист и передаём существующие данные для восстановления
     context.read<ChecklistBloc>().add(
-      LoadChecklist(_order.workType.checklistFile),
+      LoadChecklist(
+        _order.workType.checklistFile,
+        initialData: _order.checklistData,
+      ),
     );
   }
 

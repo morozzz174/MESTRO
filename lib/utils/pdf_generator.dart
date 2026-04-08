@@ -166,7 +166,7 @@ class PdfGenerator {
           alignment: pw.Alignment.center,
           child: pw.Text(
             'Сформировано в приложении Mestro • ${DateFormat('dd.MM.yyyy').format(DateTime.now())}',
-            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey),
+            style: pw.TextStyle(fontSize: 8, color: PdfColors.grey, font: font),
           ),
         ),
       ),
@@ -266,6 +266,11 @@ class PdfGenerator {
         'has_underfloor_heating': 'Тёплый пол',
         'heating_area': 'Площадь тёплого пола',
         'tile_type': 'Тип плитки',
+        'tile_material': 'Материал плитки',
+        'tile_length': 'Длина плитки',
+        'tile_width': 'Ширина плитки',
+        'tile_thickness': 'Толщина плитки',
+        'reserve_coefficient': 'Коэффициент запаса',
       },
       'furniture': {
         ...commonLabels,
@@ -328,5 +333,120 @@ class PdfGenerator {
     if (glassTypes.containsKey(stringVal)) return glassTypes[stringVal]!;
 
     return stringVal;
+  }
+
+  /// Генерация PDF плана помещения (для Floor Plan)
+  static Future<File> generateFloorPlanPdf(Order order) async {
+    final font = await _loadFont('arial.ttf');
+    final fontBold = await _loadFont('arial_bold.ttf');
+    final pdf = pw.Document();
+
+    final currencyFormat = NumberFormat.currency(
+      locale: 'ru_RU',
+      symbol: '₽',
+      decimalDigits: 0,
+    );
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Заголовок
+              pw.Text(
+                'План помещения',
+                style: pw.TextStyle(
+                  fontSize: 24,
+                  fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Text(
+                'Заявка: ${order.clientName}',
+                style: pw.TextStyle(fontSize: 14, font: font),
+              ),
+              pw.Text(
+                'Адрес: ${order.address}',
+                style: pw.TextStyle(fontSize: 12, font: font),
+              ),
+              pw.Text(
+                'Дата: ${DateFormat('dd.MM.yyyy', 'ru').format(order.date)}',
+                style: pw.TextStyle(fontSize: 12, font: font),
+              ),
+              pw.Divider(),
+
+              // Параметры
+              pw.Text(
+                'Параметры замера:',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              ...order.checklistData.entries.map(
+                (e) => pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 4),
+                  child: pw.Row(
+                    children: [
+                      pw.SizedBox(
+                        width: 150,
+                        child: pw.Text(
+                          '${_fieldLabel(e.key, order.workType)}:',
+                          style: pw.TextStyle(fontSize: 12, font: fontBold),
+                        ),
+                      ),
+                      pw.Expanded(
+                        child: pw.Text(
+                          _formatFieldValue(e.key, e.value),
+                          style: pw.TextStyle(fontSize: 12, font: font),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              pw.SizedBox(height: 16),
+              pw.Divider(),
+
+              // Стоимость
+              if (order.estimatedCost != null) ...[
+                pw.SizedBox(height: 16),
+                pw.Text(
+                  'Итого: ${currencyFormat.format(order.estimatedCost)}',
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
+                    color: PdfColors.green800,
+                  ),
+                ),
+              ],
+
+              pw.Spacer(),
+              pw.Text(
+                'Сформировано в Mestro • ${DateFormat('dd.MM.yyyy HH:mm', 'ru').format(DateTime.now())}',
+                style: pw.TextStyle(
+                  fontSize: 8,
+                  color: PdfColors.grey,
+                  font: font,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final tempDir = Directory.systemTemp;
+    final filePath = '${tempDir.path}/floor_plan_${order.id}.pdf';
+    final file = File(filePath);
+    await file.writeAsBytes(await pdf.save());
+    return file;
   }
 }

@@ -77,16 +77,41 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       const SizedBox(width: AppDesign.spacing16),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _user?.fullName ?? 'Пользователь',
-                              style: AppDesign.titleStyle,
+                        child: InkWell(
+                          onTap: () {
+                            // Переход в профиль
+                            widget.onNavigate(3);
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        _user?.fullName ?? 'Пользователь',
+                                        style: AppDesign.titleStyle,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: AppDesign.midBlueGray.withOpacity(
+                                        0.6,
+                                      ),
+                                      size: 18,
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: AppDesign.spacing4),
+                                Text(today, style: AppDesign.captionStyle),
+                              ],
                             ),
-                            const SizedBox(height: AppDesign.spacing4),
-                            Text(today, style: AppDesign.captionStyle),
-                          ],
+                          ),
                         ),
                       ),
                     ],
