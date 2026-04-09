@@ -2,16 +2,16 @@ import 'package:equatable/equatable.dart';
 
 /// Тип помещения
 enum RoomType {
-  kitchen('Кухня', minArea: 8.0, icon: '🍳'),
-  livingRoom('Гостиная', minArea: 16.0, icon: '🛋️'),
-  bedroom('Спальня', minArea: 12.0, icon: '🛏️'),
-  bathroom('Ванная', minArea: 3.5, icon: '🚿'),
-  toilet('Туалет', minArea: 1.2, icon: '🚽'),
-  hallway('Коридор', minArea: 0, icon: '🚶'),
-  balcony('Балкон/Лоджия', minArea: 0, icon: '🌿'),
-  storage('Кладовая', minArea: 2.0, icon: '📦'),
-  office('Кабинет', minArea: 9.0, icon: '💼'),
-  childrenRoom('Детская', minArea: 12.0, icon: '🧸');
+  kitchen('Кухня', minArea: 8.0, icon: 'КУХ'),
+  livingRoom('Гостиная', minArea: 16.0, icon: 'ГОСТ'),
+  bedroom('Спальня', minArea: 12.0, icon: 'СПАЛ'),
+  bathroom('Ванная', minArea: 3.5, icon: 'ВАН'),
+  toilet('Туалет', minArea: 1.2, icon: 'ТУАЛ'),
+  hallway('Коридор', minArea: 0, icon: 'КОР'),
+  balcony('Балкон/Лоджия', minArea: 0, icon: 'БАЛК'),
+  storage('Кладовая', minArea: 2.0, icon: 'КЛАД'),
+  office('Кабинет', minArea: 9.0, icon: 'КАБ'),
+  childrenRoom('Детская', minArea: 12.0, icon: 'ДЕТ');
 
   final String label;
   final double minArea; // минимальная площадь по СНиП (м²)
@@ -132,7 +132,11 @@ class Room extends Equatable {
   bool get hasNaturalLight => windows.isNotEmpty;
 
   /// Соответствует ли СНиП по освещению
-  bool get isLightCompliant => hasNaturalLight || type == RoomType.bathroom || type == RoomType.toilet || type == RoomType.storage;
+  bool get isLightCompliant =>
+      hasNaturalLight ||
+      type == RoomType.bathroom ||
+      type == RoomType.toilet ||
+      type == RoomType.storage;
 
   /// Общий compliance score (0.0 - 1.0)
   double get complianceScore {
@@ -147,7 +151,9 @@ class Room extends Equatable {
   List<String> get warnings {
     final result = <String>[];
     if (!isAreaCompliant) {
-      result.add('${type.label}: площадь ${area.toStringAsFixed(1)}м² < мин. ${type.minArea}м²');
+      result.add(
+        '${type.label}: площадь ${area.toStringAsFixed(1)}м² < мин. ${type.minArea}м²',
+      );
     }
     if (!isLightCompliant) {
       result.add('${type.label}: нет естественного освещения');
@@ -186,7 +192,17 @@ class Room extends Equatable {
   }
 
   @override
-  List<Object?> get props => [type, x, y, width, height, doors, windows, hasBalconyAccess, hasVentilation];
+  List<Object?> get props => [
+    type,
+    x,
+    y,
+    width,
+    height,
+    doors,
+    windows,
+    hasBalconyAccess,
+    hasVentilation,
+  ];
 }
 
 /// План помещения
@@ -211,13 +227,19 @@ class FloorPlan extends Equatable {
 
   /// Жилая площадь (м²)
   double get livingArea => rooms
-      .where((r) => r.type == RoomType.bedroom || r.type == RoomType.livingRoom || r.type == RoomType.childrenRoom)
+      .where(
+        (r) =>
+            r.type == RoomType.bedroom ||
+            r.type == RoomType.livingRoom ||
+            r.type == RoomType.childrenRoom,
+      )
       .fold(0.0, (sum, r) => sum + r.area);
 
   /// Общий compliance score
   double get complianceScore {
     if (rooms.isEmpty) return 0.0;
-    return rooms.map((r) => r.complianceScore).reduce((a, b) => a + b) / rooms.length;
+    return rooms.map((r) => r.complianceScore).reduce((a, b) => a + b) /
+        rooms.length;
   }
 
   /// Все предупреждения
@@ -225,16 +247,19 @@ class FloorPlan extends Equatable {
 
   /// Количество комнат (без коридоров, санузлов, балконов)
   int get roomCount => rooms
-      .where((r) =>
-          r.type == RoomType.bedroom ||
-          r.type == RoomType.livingRoom ||
-          r.type == RoomType.kitchen ||
-          r.type == RoomType.childrenRoom ||
-          r.type == RoomType.office)
+      .where(
+        (r) =>
+            r.type == RoomType.bedroom ||
+            r.type == RoomType.livingRoom ||
+            r.type == RoomType.kitchen ||
+            r.type == RoomType.childrenRoom ||
+            r.type == RoomType.office,
+      )
       .length;
 
   /// Комнаты по типу
-  List<Room> roomsByType(RoomType type) => rooms.where((r) => r.type == type).toList();
+  List<Room> roomsByType(RoomType type) =>
+      rooms.where((r) => r.type == type).toList();
 
   /// Проверка что план валиден
   bool get isValid => allWarnings.isEmpty;

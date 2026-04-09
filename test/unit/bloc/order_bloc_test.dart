@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:metro_2/bloc/order_bloc.dart';
 import 'package:metro_2/bloc/order_event.dart';
 import 'package:metro_2/models/order.dart';
-import '../mocks/mock_order_repository.dart';
+import '../../mocks/mock_order_repository.dart';
 
 void main() {
   group('OrderBloc', () {
@@ -69,10 +69,7 @@ void main() {
         orderBloc.add(LoadOrders());
         await Future<void>.delayed(Duration.zero);
 
-        expect(expectedStates, [
-          isA<OrderLoading>(),
-          isA<OrderError>(),
-        ]);
+        expect(expectedStates, [isA<OrderLoading>(), isA<OrderError>()]);
       });
     });
 
@@ -147,6 +144,7 @@ void main() {
           clientName: 'Test',
           address: 'Test',
           date: DateTime.now(),
+          workType: WorkType.windows,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
@@ -175,10 +173,7 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         final loadedState = expectedStates.last as OrderLoaded;
-        expect(
-          loadedState.orders.any((o) => o.id == testOrder.id),
-          isFalse,
-        );
+        expect(loadedState.orders.any((o) => o.id == testOrder.id), isFalse);
       });
 
       test('should handle delete failure with rollback', () async {
@@ -195,10 +190,7 @@ void main() {
         orderBloc.add(DeleteOrder(testOrder.id));
         await Future<void>.delayed(Duration.zero);
 
-        expect(
-          expectedStates.any((s) => s is OrderError),
-          isTrue,
-        );
+        expect(expectedStates.any((s) => s is OrderError), isTrue);
       });
     });
 
@@ -243,9 +235,7 @@ void main() {
       });
 
       test('should update photo optimistically', () async {
-        final updatedPhoto = testPhoto.copyWith(
-          checklistFieldId: 'width',
-        );
+        final updatedPhoto = testPhoto.copyWith(checklistFieldId: 'width');
         final orderWithPhotos = testOrder.copyWith(photos: [testPhoto]);
         mockRepo.insertOrder(orderWithPhotos);
         mockRepo.insertPhoto(testPhoto);
@@ -263,10 +253,7 @@ void main() {
         final order = loadedState.orders.firstWhere(
           (o) => o.id == testOrder.id,
         );
-        expect(
-          order.photos.first.checklistFieldId,
-          'width',
-        );
+        expect(order.photos.first.checklistFieldId, 'width');
       });
     });
 

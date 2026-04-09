@@ -18,7 +18,89 @@ void main() async {
   await initializeDateFormatting('ru', null);
   await NotificationService().initialize();
 
+  // Принудительная проверка/восстановление таблиц БД
+  await _ensureDatabaseTables();
+
   runApp(const MestroApp());
+}
+
+/// Проверяет и восстанавливает критичные таблицы
+Future<void> _ensureDatabaseTables() async {
+  try {
+    final db = await DatabaseHelper().database;
+    // Проверяем custom_prices
+    final customPricesExists = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='custom_prices'",
+    );
+    if (customPricesExists.isEmpty) {
+      await db.execute('DROP TABLE IF EXISTS custom_prices');
+      await db.execute('''
+        CREATE TABLE custom_prices (
+          id TEXT PRIMARY KEY,
+          work_type TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          unit TEXT NOT NULL,
+          price REAL NOT NULL,
+          formula TEXT,
+          multiply_by_count INTEGER DEFAULT 0,
+          is_custom INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+      await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_price_work_type ON custom_prices (work_type)',
+      );
+      await db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_price_unique ON custom_prices (work_type, item_id)',
+      );
+    }
+    // Проверяем photo_annotations
+    final photoExists = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='photo_annotations'",
+    );
+    if (photoExists.isEmpty) {
+      await db.execute('DROP TABLE IF EXISTS photo_annotations');
+      await db.execute('''
+        CREATE TABLE photo_annotations (
+          id TEXT PRIMARY KEY,
+          order_id TEXT NOT NULL,
+          file_path TEXT NOT NULL,
+          annotated_path TEXT,
+          checklist_field_id TEXT,
+          latitude REAL,
+          longitude REAL,
+          timestamp TEXT NOT NULL
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_photo_order ON photo_annotations (order_id)',
+      );
+    }
+    // Проверяем payments
+    final paymentsExists = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='payments'",
+    );
+    if (paymentsExists.isEmpty) {
+      await db.execute('DROP TABLE IF EXISTS payments');
+      await db.execute('''
+        CREATE TABLE payments (
+          id TEXT PRIMARY KEY,
+          order_id TEXT NOT NULL,
+          amount REAL NOT NULL,
+          payment_date TEXT NOT NULL,
+          description TEXT,
+          created_at TEXT NOT NULL
+        )
+      ''');
+      await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_payment_order ON payments (order_id)',
+      );
+    }
+  } catch (e) {
+    // Ошибка проверки — не критично
+  }
 }
 
 class MestroApp extends StatelessWidget {

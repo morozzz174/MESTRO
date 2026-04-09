@@ -8,9 +8,7 @@ mixin ChecklistVoiceInputMixin {
   Order _applyVoiceInputToOrder(Order order, String text) {
     if (text.isNotEmpty) {
       final currentNotes = order.notes ?? '';
-      final newNotes = currentNotes.isEmpty
-          ? text
-          : '$currentNotes; $text';
+      final newNotes = currentNotes.isEmpty ? text : '$currentNotes; $text';
       return order.copyWith(notes: newNotes);
     }
     return order;
@@ -33,7 +31,7 @@ mixin ChecklistVoiceInputMixin {
       onFieldUpdate('window_count', data.windowCount.toString());
     }
     if (data.windowType != null) {
-      onFieldUpdate('window_type', data.windowType);
+      onFieldUpdate('window_type', data.windowType!);
     }
     if (data.hasSill) {
       onFieldUpdate('has_sill', 'true');
