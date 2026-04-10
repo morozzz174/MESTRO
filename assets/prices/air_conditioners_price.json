@@ -2,40 +2,18 @@
   "work_type": "air_conditioners",
   "title": "Прайс-лист: Кондиционеры",
   "items": [
-    {
-      "id": "ac_install_basic",
-      "name": "Базовый монтаж кондиционера",
-      "unit": "шт",
-      "price": 15000,
-      "formula": "1"
-    },
-    {
-      "id": "ac_install_complex",
-      "name": "Сложный монтаж кондиционера",
-      "unit": "шт",
-      "price": 25000,
-      "formula": "1"
-    },
-    {
-      "id": "ac_mount",
-      "name": "Кронштейны",
-      "unit": "компл.",
-      "price": 3000,
-      "formula": "1"
-    },
-    {
-      "id": "ac_copper_pipe",
-      "name": "Медная труба",
-      "unit": "м.п.",
-      "price": 800,
-      "formula": "pipe_length"
-    },
-    {
-      "id": "ac_drain",
-      "name": "Дренаж",
-      "unit": "м.п.",
-      "price": 500,
-      "formula": "drain_length"
-    }
+    { "id": "ac_install_basic", "name": "Базовый монтаж", "unit": "фикс.", "price": 15000, "formula": "1" },
+    { "id": "ac_install_complex", "name": "Сложный монтаж", "unit": "фикс.", "price": 25000, "formula": "1" },
+    { "id": "ac_mount", "name": "Кронштейны", "unit": "компл.", "price": 3000, "formula": "1" },
+    { "id": "ac_copper_pipe", "name": "Медная труба за м.п.", "unit": "м.п.", "price": 800, "formula": "pipe_length" },
+    { "id": "ac_drain", "name": "Дренаж за м.п.", "unit": "м.п.", "price": 500, "formula": "drain_length" },
+    { "id": "ac_drain_pump", "name": "Дренажный насос", "unit": "шт.", "price": 5000, "formula": "1" },
+    { "id": "ac_wifi", "name": "Wi-Fi модуль", "unit": "шт.", "price": 3000, "formula": "1" },
+    { "id": "ac_route_chase", "name": "Штроба за м.п.", "unit": "м.п.", "price": 1200, "formula": "pipe_length" },
+    { "id": "ac_route_box", "name": "Короб за м.п.", "unit": "м.п.", "price": 400, "formula": "pipe_length" },
+    { "id": "ac_alpine", "name": "Промышленный альпин", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "ac_scaffolding", "name": "Леса", "unit": "фикс.", "price": 3000, "formula": "1" },
+    { "id": "ac_power_cable", "name": "Кабель питания за м.п.", "unit": "м.п.", "price": 800, "formula": "10" },
+    { "id": "ac_wall_drill", "name": "Бурение стены (бетон/кирпич)", "unit": "фикс.", "price": 2000, "formula": "1" }
   ]
 }

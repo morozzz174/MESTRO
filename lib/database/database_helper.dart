@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/order.dart';
 import '../models/user.dart';
+import '../services/app_logger.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -112,7 +113,9 @@ class DatabaseHelper {
     }
     if (oldVersion < 8) {
       // Миграция v7 -> v8: добавляем paid_amount и таблицу платежей
-      await db.execute('ALTER TABLE orders ADD COLUMN paid_amount REAL DEFAULT 0');
+      await db.execute(
+        'ALTER TABLE orders ADD COLUMN paid_amount REAL DEFAULT 0',
+      );
       await db.execute('''
         CREATE TABLE IF NOT EXISTS payments (
           id TEXT PRIMARY KEY,
@@ -254,12 +257,29 @@ class DatabaseHelper {
   Future<List<Order>> getAllOrders() async {
     final db = await database;
     final maps = await db.query('orders', orderBy: 'created_at DESC');
+    AppLogger.info(
+      'DatabaseHelper',
+      'getAllOrders: найдено ${maps.length} записей в orders',
+    );
     final orders = <Order>[];
     for (final map in maps) {
-      final order = Order.fromMap(map);
-      final photos = await getPhotosForOrder(order.id);
-      orders.add(order.copyWith(photos: photos));
+      try {
+        final order = Order.fromMap(map);
+        final photos = await getPhotosForOrder(order.id);
+        orders.add(order.copyWith(photos: photos));
+      } catch (e, st) {
+        AppLogger.error(
+          'DatabaseHelper',
+          'Ошибка парсинга заявки: ${map['id']}',
+          e,
+          st,
+        );
+      }
     }
+    AppLogger.info(
+      'DatabaseHelper',
+      'getAllOrders: распарсено ${orders.length} заявок',
+    );
     return orders;
   }
 
@@ -273,18 +293,50 @@ class DatabaseHelper {
   }
 
   Future<void> insertOrder(Order order) async {
-    final db = await database;
-    await db.insert('orders', order.toMap());
+    try {
+      final db = await database;
+      final map = order.toMap();
+      AppLogger.info('DatabaseHelper', 'Вставка заявки: ${order.clientName}');
+      AppLogger.debug('DatabaseHelper', '  ID: ${order.id}');
+      AppLogger.debug('DatabaseHelper', '  Map keys: ${map.keys.join(', ')}');
+      final id = await db.insert('orders', map);
+      AppLogger.success('DatabaseHelper', 'Заявка вставлена: rowId=$id');
+    } catch (e, st) {
+      AppLogger.error(
+        'DatabaseHelper',
+        'ОШИБКА при вставке заявки: ${order.clientName}',
+        e,
+        st,
+      );
+      rethrow;
+    }
   }
 
   Future<void> updateOrder(Order order) async {
-    final db = await database;
-    await db.update(
-      'orders',
-      order.toMap(),
-      where: 'id = ?',
-      whereArgs: [order.id],
-    );
+    try {
+      final db = await database;
+      final map = order.toMap();
+      AppLogger.info('DatabaseHelper', 'Обновление заявки: ${order.id}');
+      AppLogger.debug('DatabaseHelper', '  Map keys: ${map.keys.join(', ')}');
+      final count = await db.update(
+        'orders',
+        map,
+        where: 'id = ?',
+        whereArgs: [order.id],
+      );
+      AppLogger.success(
+        'DatabaseHelper',
+        'Заявка обновлена: обновлено строк=$count',
+      );
+    } catch (e, st) {
+      AppLogger.error(
+        'DatabaseHelper',
+        'ОШИБКА при обновлении заявки: ${order.id}',
+        e,
+        st,
+      );
+      rethrow;
+    }
   }
 
   Future<void> deleteOrder(String id) async {
@@ -312,17 +364,24 @@ class DatabaseHelper {
 
   Future<void> insertPhoto(PhotoAnnotation photo) async {
     final db = await database;
+    AppLogger.info(
+      'DatabaseHelper',
+      'Вставка фото для заявки: ${photo.orderId}',
+    );
     await db.insert('photo_annotations', photo.toMap());
+    AppLogger.success('DatabaseHelper', 'Фото вставлено: ${photo.id}');
   }
 
   Future<void> updatePhoto(PhotoAnnotation photo) async {
     final db = await database;
+    AppLogger.info('DatabaseHelper', 'Обновление фото: ${photo.id}');
     await db.update(
       'photo_annotations',
       photo.toMap(),
       where: 'id = ?',
       whereArgs: [photo.id],
     );
+    AppLogger.success('DatabaseHelper', 'Фото обновлено: ${photo.id}');
   }
 
   Future<void> deletePhoto(String id) async {
@@ -527,7 +586,11 @@ class DatabaseHelper {
   /// Получить конкретную позицию прайса
   Future<Map<String, dynamic>?> getPriceItem(String id) async {
     final db = await database;
-    final maps = await db.query('custom_prices', where: 'id = ?', whereArgs: [id]);
+    final maps = await db.query(
+      'custom_prices',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
     if (maps.isEmpty) return null;
     return maps.first;
   }
@@ -547,10 +610,7 @@ class DatabaseHelper {
     final db = await database;
     await db.update(
       'custom_prices',
-      {
-        'price': newPrice,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
+      {'price': newPrice, 'updated_at': DateTime.now().toIso8601String()},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -565,7 +625,11 @@ class DatabaseHelper {
   /// Удалить все цены для типа работ
   Future<void> deleteAllPricesForWorkType(String workType) async {
     final db = await database;
-    await db.delete('custom_prices', where: 'work_type = ?', whereArgs: [workType]);
+    await db.delete(
+      'custom_prices',
+      where: 'work_type = ?',
+      whereArgs: [workType],
+    );
   }
 
   /// Инициализировать цены по умолчанию для типа работ
@@ -606,9 +670,7 @@ class DatabaseHelper {
   // ===== CRUD для платежей =====
 
   /// Получить все платежи для заявки
-  Future<List<Map<String, dynamic>>> getPaymentsForOrder(
-    String orderId,
-  ) async {
+  Future<List<Map<String, dynamic>>> getPaymentsForOrder(String orderId) async {
     final db = await database;
     return db.query(
       'payments',
@@ -670,8 +732,7 @@ class DatabaseHelper {
     final totalPaid = (totalResult.first['total'] as num?)?.toDouble() ?? 0.0;
 
     // Сумма по месяцам (текущий год)
-    final monthlyResult = await db.rawQuery(
-      '''
+    final monthlyResult = await db.rawQuery('''
       SELECT 
         strftime('%m', payment_date) as month,
         SUM(amount) as month_total
@@ -679,8 +740,7 @@ class DatabaseHelper {
       WHERE strftime('%Y', payment_date) = strftime('%Y', 'now')
       GROUP BY month
       ORDER BY month
-    ''',
-    );
+    ''');
 
     final monthlyPayments = <Map<String, dynamic>>[];
     for (final row in monthlyResult) {

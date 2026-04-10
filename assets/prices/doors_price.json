@@ -2,40 +2,21 @@
   "work_type": "doors",
   "title": "Прайс-лист: Двери",
   "items": [
-    {
-      "id": "door_leaf",
-      "name": "Дверное полотно",
-      "unit": "шт",
-      "price": 8000,
-      "formula": "1"
-    },
-    {
-      "id": "door_frame",
-      "name": "Дверная коробка",
-      "unit": "шт",
-      "price": 3000,
-      "formula": "1"
-    },
-    {
-      "id": "door_lock",
-      "name": "Замок",
-      "unit": "шт",
-      "price": 2500,
-      "formula": "1"
-    },
-    {
-      "id": "door_handle",
-      "name": "Ручка",
-      "unit": "шт",
-      "price": 800,
-      "formula": "1"
-    },
-    {
-      "id": "door_installation",
-      "name": "Монтаж двери",
-      "unit": "шт",
-      "price": 5000,
-      "formula": "1"
-    }
+    { "id": "door_entrance", "name": "Входная дверь комплект", "unit": "компл.", "price": 15000, "formula": "1" },
+    { "id": "door_interior", "name": "Межкомнатная дверь комплект", "unit": "компл.", "price": 8000, "formula": "1" },
+    { "id": "door_technical", "name": "Техническая дверь комплект", "unit": "компл.", "price": 5000, "formula": "1" },
+    { "id": "door_frame", "name": "Коробка", "unit": "компл.", "price": 3000, "formula": "1" },
+    { "id": "lock_cylinder", "name": "Замок цилиндровый", "unit": "шт.", "price": 2500, "formula": "1" },
+    { "id": "lock_mortise", "name": "Замок сувальдный", "unit": "шт.", "price": 3500, "formula": "1" },
+    { "id": "lock_electronic", "name": "Замок электронный", "unit": "шт.", "price": 8000, "formula": "1" },
+    { "id": "door_handle", "name": "Ручка", "unit": "шт.", "price": 800, "formula": "1" },
+    { "id": "door_installation", "name": "Монтаж двери", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "door_floor_leveling", "name": "Подгонка по перепаду пола (>5мм)", "unit": "фикс.", "price": 2000, "formula": "1" },
+    { "id": "door_geometry_correction", "name": "Наценка за неровный проём (>10мм)", "unit": "фикс.", "price": 1500, "formula": "1" },
+    { "id": "threshold", "name": "Порог", "unit": "шт.", "price": 1500, "formula": "1" },
+    { "id": "peephole", "name": "Глазок", "unit": "шт.", "price": 500, "formula": "1" },
+    { "id": "finish_veneer", "name": "Доплата за отделку шпоном", "unit": "фикс.", "price": 3000, "formula": "1" },
+    { "id": "finish_eco", "name": "Доплата за отделку экошпоном", "unit": "фикс.", "price": 1500, "formula": "1" },
+    { "id": "finish_solid", "name": "Доплата за отделку массивом", "unit": "фикс.", "price": 8000, "formula": "1" }
   ]
 }

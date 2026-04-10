@@ -2,40 +2,23 @@
   "work_type": "kitchens",
   "title": "Прайс-лист: Кухни",
   "items": [
-    {
-      "id": "kitchen_lm_meter",
-      "name": "Кухня за погонный метр",
-      "unit": "м.п.",
-      "price": 15000,
-      "formula": "kitchen_length / 1000"
-    },
-    {
-      "id": "kitchen_countertop",
-      "name": "Столешница",
-      "unit": "м.п.",
-      "price": 8000,
-      "formula": "kitchen_length / 1000"
-    },
-    {
-      "id": "kitchen_appliance_install",
-      "name": "Установка техники",
-      "unit": "шт",
-      "price": 3000,
-      "formula": "appliance_count"
-    },
-    {
-      "id": "kitchen_sink",
-      "name": "Мойка",
-      "unit": "шт",
-      "price": 5000,
-      "formula": "1"
-    },
-    {
-      "id": "kitchen_backsplash",
-      "name": "Фартук",
-      "unit": "м²",
-      "price": 2000,
-      "formula": "(backsplash_length / 1000) * 0.6"
-    }
+    { "id": "kitchen_lm_meter", "name": "Базовая кухня за пог.м", "unit": "м.п.", "price": 15000, "formula": "kitchen_length / 1000" },
+    { "id": "kitchen_corner", "name": "Угловой модуль (доплата)", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "kitchen_island", "name": "Островной модуль", "unit": "фикс.", "price": 20000, "formula": "1" },
+    { "id": "countertop_ldsp", "name": "Столешница ЛДСП за м.п.", "unit": "м.п.", "price": 8000, "formula": "kitchen_length / 1000" },
+    { "id": "countertop_mdf", "name": "Столешница МДФ за м.п.", "unit": "м.п.", "price": 12000, "formula": "kitchen_length / 1000" },
+    { "id": "countertop_artificial_stone", "name": "Столешница иск. камень за м.п.", "unit": "м.п.", "price": 25000, "formula": "kitchen_length / 1000" },
+    { "id": "countertop_natural_stone", "name": "Столешница натур. камень за м.п.", "unit": "м.п.", "price": 50000, "formula": "kitchen_length / 1000" },
+    { "id": "facade_enamel", "name": "Доплата за фасады эмаль за м.п.", "unit": "м.п.", "price": 5000, "formula": "kitchen_length / 1000" },
+    { "id": "facade_solid", "name": "Доплата за фасады массив за м.п.", "unit": "м.п.", "price": 12000, "formula": "kitchen_length / 1000" },
+    { "id": "facade_veneer", "name": "Доплата за фасады шпон за м.п.", "unit": "м.п.", "price": 8000, "formula": "kitchen_length / 1000" },
+    { "id": "facade_plastic", "name": "Доплата за фасады пластик за м.п.", "unit": "м.п.", "price": 4000, "formula": "kitchen_length / 1000" },
+    { "id": "kitchen_appliance_install", "name": "Установка техники за шт.", "unit": "шт.", "price": 3000, "formula": "appliance_count" },
+    { "id": "kitchen_sink", "name": "Мойка", "unit": "шт.", "price": 5000, "formula": "1" },
+    { "id": "sink_undermount", "name": "Доплата за подстольную мойку", "unit": "фикс.", "price": 3000, "formula": "1" },
+    { "id": "backsplash_tile", "name": "Фартук плитка за м²", "unit": "м²", "price": 2000, "formula": "(backsplash_length / 1000) * 0.6" },
+    { "id": "backsplash_glass", "name": "Фартук стекло за м²", "unit": "м²", "price": 4000, "formula": "(backsplash_length / 1000) * 0.6" },
+    { "id": "backsplash_mdf", "name": "Фартук МДФ за м²", "unit": "м²", "price": 1500, "formula": "(backsplash_length / 1000) * 0.6" },
+    { "id": "backsplash_mosaic", "name": "Фартук мозаика за м²", "unit": "м²", "price": 5000, "formula": "(backsplash_length / 1000) * 0.6" }
   ]
 }

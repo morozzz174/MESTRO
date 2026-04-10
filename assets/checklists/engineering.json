@@ -22,6 +22,73 @@
       "hint": "мм"
     },
     {
+      "id": "wall_material",
+      "type": "select",
+      "label": "Материал наружных стен",
+      "options": ["Кирпич", "Газобетон", "Пенобетон", "Дерево", "Каркас", "Панель"]
+    },
+    {
+      "id": "wall_thickness_external",
+      "type": "number",
+      "label": "Толщина наружных стен (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "has_insulation",
+      "type": "boolean",
+      "label": "Есть утепление наружных стен?"
+    },
+    {
+      "id": "insulation_type",
+      "type": "select",
+      "label": "Тип утеплителя",
+      "options": ["Минвата", "Пенополистирол", "Эковата", "Пенополиуретан"],
+      "condition": {
+        "field": "has_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "insulation_thickness",
+      "type": "number",
+      "label": "Толщина утеплителя (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "window_type",
+      "type": "select",
+      "label": "Тип остекления",
+      "options": ["Однокамерный стеклопакет", "Двухкамерный стеклопакет", "Трёхкамерный стеклопакет", "Деревянные двойные", "Деревянные одинаные"]
+    },
+    {
+      "id": "floor_type",
+      "type": "select",
+      "label": "Тип пола по грунту/перекрытию",
+      "options": ["По грунту", "По перекрытию (подвал)", "По перекрытию (1 этаж)", "По перекрытию (2+ этаж)"]
+    },
+    {
+      "id": "has_floor_insulation",
+      "type": "boolean",
+      "label": "Есть утепление пола?"
+    },
+    {
+      "id": "floor_insulation_thickness",
+      "type": "number",
+      "label": "Толщина утепления пола (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_floor_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
       "id": "boiler_type",
       "type": "select",
       "label": "Тип котла",

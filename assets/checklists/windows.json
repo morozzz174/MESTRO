@@ -10,10 +10,64 @@
       "hint": "мм"
     },
     {
+      "id": "width_top",
+      "type": "number",
+      "label": "Ширина — верх (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "width_middle",
+      "type": "number",
+      "label": "Ширина — середина (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "width_bottom",
+      "type": "number",
+      "label": "Ширина — низ (мм)",
+      "hint": "мм"
+    },
+    {
       "id": "height",
       "type": "number",
       "label": "Высота проёма (мм)",
       "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "height_left",
+      "type": "number",
+      "label": "Высота — лево (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "height_middle",
+      "type": "number",
+      "label": "Высота — центр (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "height_right",
+      "type": "number",
+      "label": "Высота — право (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "diagonal_1",
+      "type": "number",
+      "label": "Диагональ 1 (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "diagonal_2",
+      "type": "number",
+      "label": "Диагональ 2 (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "opening_depth",
+      "type": "number",
+      "label": "Глубина проёма (мм)",
       "hint": "мм"
     },
     {
@@ -81,6 +135,22 @@
       "hint": "мм",
       "condition": {
         "field": "has_sill",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_drip_cap",
+      "type": "boolean",
+      "label": "Нужен отлив?"
+    },
+    {
+      "id": "drip_cap_width",
+      "type": "number",
+      "label": "Ширина отлива (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_drip_cap",
         "operator": "equals",
         "value": true
       }

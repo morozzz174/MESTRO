@@ -2,47 +2,24 @@
   "work_type": "tiles",
   "title": "Прайс-лист: Плиточные работы",
   "items": [
-    {
-      "id": "tile_per_m2",
-      "name": "Плитка (материал)",
-      "unit": "м²",
-      "price": 800,
-      "formula": "tile_area"
-    },
-    {
-      "id": "tile_install_simple",
-      "name": "Укладка простая",
-      "unit": "м²",
-      "price": 1200,
-      "formula": "tile_area"
-    },
-    {
-      "id": "tile_install_diagonal",
-      "name": "Укладка диагональная",
-      "unit": "м²",
-      "price": 1600,
-      "formula": "tile_area"
-    },
-    {
-      "id": "tile_grout",
-      "name": "Затирка",
-      "unit": "м²",
-      "price": 150,
-      "formula": "tile_area"
-    },
-    {
-      "id": "tile_glue",
-      "name": "Клей",
-      "unit": "м²",
-      "price": 200,
-      "formula": "tile_area"
-    },
-    {
-      "id": "tile_warm_floor",
-      "name": "Тёплый пол",
-      "unit": "м²",
-      "price": 800,
-      "formula": "heating_area"
-    }
+    { "id": "tile_material_ceramic", "name": "Плитка керамика за м²", "unit": "м²", "price": 800, "formula": "area" },
+    { "id": "tile_material_porcelain", "name": "Плитка керамогранит за м²", "unit": "м²", "price": 1500, "formula": "area" },
+    { "id": "tile_material_mosaic", "name": "Плитка мозаика за м²", "unit": "м²", "price": 3000, "formula": "area" },
+    { "id": "tile_material_stone", "name": "Плитка натур. камень за м²", "unit": "м²", "price": 5000, "formula": "area" },
+    { "id": "tile_material_clinker", "name": "Плитка клинкер за м²", "unit": "м²", "price": 2000, "formula": "area" },
+    { "id": "tile_glue_standard", "name": "Клей стандартный за м²", "unit": "м²", "price": 200, "formula": "area" },
+    { "id": "tile_glue_porcelain", "name": "Клей для керамогранита за м²", "unit": "м²", "price": 350, "formula": "area" },
+    { "id": "tile_glue_mosaic", "name": "Клей для мозаики за м²", "unit": "м²", "price": 500, "formula": "area" },
+    { "id": "tile_install_simple", "name": "Укладка прямая за м²", "unit": "м²", "price": 1200, "formula": "area" },
+    { "id": "tile_install_diagonal", "name": "Укладка диагональная за м²", "unit": "м²", "price": 1600, "formula": "area" },
+    { "id": "tile_install_offset", "name": "Укладка со смещением за м²", "unit": "м²", "price": 1400, "formula": "area" },
+    { "id": "tile_install_modular", "name": "Укладка модульная за м²", "unit": "м²", "price": 1800, "formula": "area" },
+    { "id": "tile_install_pattern", "name": "Укладка узор за м²", "unit": "м²", "price": 2200, "formula": "area" },
+    { "id": "tile_grout", "name": "Затирка за м²", "unit": "м²", "price": 150, "formula": "area" },
+    { "id": "tile_leveling", "name": "Выравнивание основания за м²", "unit": "м²", "price": 500, "formula": "area" },
+    { "id": "tile_warm_floor", "name": "Тёплый пол за м²", "unit": "м²", "price": 800, "formula": "heating_area" },
+    { "id": "socket_cutout", "name": "Вырез под розетку за шт.", "unit": "шт.", "price": 500, "formula": "sockets_count" },
+    { "id": "decorative_insert", "name": "Декоративная вставка за шт.", "unit": "шт.", "price": 1500, "formula": "decorative_inserts_count" },
+    { "id": "reserve_surcharge", "name": "Запас материала (множитель)", "unit": "%", "price": 0, "formula": "reserve_coefficient" }
   ]
 }

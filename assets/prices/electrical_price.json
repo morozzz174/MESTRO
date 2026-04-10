@@ -2,61 +2,26 @@
   "work_type": "electrical",
   "title": "Прайс-лист: Электрика",
   "items": [
-    {
-      "id": "cable_vvg_per_m",
-      "name": "Кабель ВВГнг",
-      "unit": "м.п.",
-      "price": 80,
-      "formula": "cable_length"
-    },
-    {
-      "id": "cable_nym_per_m",
-      "name": "Кабель NYM",
-      "unit": "м.п.",
-      "price": 100,
-      "formula": "cable_length"
-    },
-    {
-      "id": "socket",
-      "name": "Розетка",
-      "unit": "шт",
-      "price": 400,
-      "formula": "sockets_count"
-    },
-    {
-      "id": "switch",
-      "name": "Выключатель",
-      "unit": "шт",
-      "price": 350,
-      "formula": "switches_count"
-    },
-    {
-      "id": "light_point",
-      "name": "Точка освещения",
-      "unit": "шт",
-      "price": 800,
-      "formula": "lighting_count"
-    },
-    {
-      "id": "panel_assembly",
-      "name": "Сборка щитка",
-      "unit": "шт",
-      "price": 5000,
-      "formula": "1"
-    },
-    {
-      "id": "cable_routing_per_m",
-      "name": "Прокладка кабеля",
-      "unit": "м.п.",
-      "price": 300,
-      "formula": "wall_routes_length + floor_routes_length + ceiling_routes_length"
-    },
-    {
-      "id": "smart_home_point",
-      "name": "Точка умного дома",
-      "unit": "точка",
-      "price": 3000,
-      "formula": "smart_home_points_count"
-    }
+    { "id": "cable_vvg_per_m", "name": "Кабель ВВГнг за м", "unit": "м", "price": 80, "formula": "wall_routes_length + floor_routes_length + ceiling_routes_length" },
+    { "id": "cable_nym_per_m", "name": "Кабель NYM за м", "unit": "м", "price": 100, "formula": "wall_routes_length + floor_routes_length + ceiling_routes_length" },
+    { "id": "socket", "name": "Розетка за шт.", "unit": "шт.", "price": 400, "formula": "sockets_count" },
+    { "id": "socket_waterproof", "name": "Влагозащищённая розетка за шт.", "unit": "шт.", "price": 600, "formula": "sockets_count" },
+    { "id": "switch", "name": "Выключатель за шт.", "unit": "шт.", "price": 350, "formula": "sockets_count" },
+    { "id": "switch_pass", "name": "Проходной выключатель за шт.", "unit": "шт.", "price": 800, "formula": "lighting_count" },
+    { "id": "switch_dimmer", "name": "Диммер за шт.", "unit": "шт.", "price": 1500, "formula": "lighting_count" },
+    { "id": "light_point", "name": "Точка освещения за шт.", "unit": "шт.", "price": 800, "formula": "lighting_count" },
+    { "id": "panel_assembly", "name": "Сборка щитка", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "panel_3phase", "name": "Доплата за 3-фазный щит 380В", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "cable_routing_per_m", "name": "Прокладка кабеля за м", "unit": "м", "price": 300, "formula": "wall_routes_length + floor_routes_length + ceiling_routes_length" },
+    { "id": "cable_concealed", "name": "Скрытая прокладка (доплата за м)", "unit": "м", "price": 200, "formula": "wall_routes_length + floor_routes_length + ceiling_routes_length" },
+    { "id": "circuit_breaker", "name": "Автомат за шт.", "unit": "шт.", "price": 500, "formula": "circuits_count" },
+    { "id": "rcd_single", "name": "УЗО за шт.", "unit": "шт.", "price": 2000, "formula": "1" },
+    { "id": "rcd_leakage_10", "name": "Доплата за УЗО ток утечки 10мА", "unit": "фикс.", "price": 500, "formula": "1" },
+    { "id": "rcd_leakage_100", "name": "Доплата за УЗО ток утечки 100мА", "unit": "фикс.", "price": 1000, "formula": "1" },
+    { "id": "lightning_protection", "name": "Молниезащита", "unit": "фикс.", "price": 15000, "formula": "1" },
+    { "id": "grounding_circuit", "name": "Контур заземления", "unit": "фикс.", "price": 10000, "formula": "1" },
+    { "id": "internet_socket", "name": "Розетка интернет/ТВ за шт.", "unit": "шт.", "price": 800, "formula": "internet_tv_sockets_count" },
+    { "id": "cctv_point", "name": "Точка видеонаблюдения", "unit": "точка", "price": 5000, "formula": "1" },
+    { "id": "smart_home_point", "name": "Точка умного дома", "unit": "точка", "price": 3000, "formula": "1" }
   ]
 }

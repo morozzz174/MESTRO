@@ -17,11 +17,101 @@
       "hint": "мм"
     },
     {
+      "id": "wall_length_top",
+      "type": "number",
+      "label": "Длина стены на уровне потолка (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "wall_length_middle",
+      "type": "number",
+      "label": "Длина стены на середине высоты (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "wall_length_bottom",
+      "type": "number",
+      "label": "Длина стены на уровне пола (мм)",
+      "hint": "мм"
+    },
+    {
       "id": "ceiling_height",
       "type": "number",
       "label": "Высота от пола до потолка (мм)",
       "required": true,
       "hint": "мм"
+    },
+    {
+      "id": "ceiling_height_left",
+      "type": "number",
+      "label": "Высота потолка — лево (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "ceiling_height_middle",
+      "type": "number",
+      "label": "Высота потолка — центр (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "ceiling_height_right",
+      "type": "number",
+      "label": "Высота потолка — право (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "wall_curvature",
+      "type": "number",
+      "label": "Кривизна стены (макс. зазор от правила, мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "has_niches",
+      "type": "boolean",
+      "label": "Есть ниши или выступы?"
+    },
+    {
+      "id": "niche_width",
+      "type": "number",
+      "label": "Ширина ниши (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_niches",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "niche_height",
+      "type": "number",
+      "label": "Высота ниши (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_niches",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "niche_depth",
+      "type": "number",
+      "label": "Глубина ниши (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_niches",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "niche_position",
+      "type": "text",
+      "label": "Расположение ниши (расстояние от угла, мм)",
+      "condition": {
+        "field": "has_niches",
+        "operator": "equals",
+        "value": true
+      }
     },
     {
       "id": "has_baseboards",

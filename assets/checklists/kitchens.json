@@ -10,6 +10,24 @@
       "hint": "мм"
     },
     {
+      "id": "kitchen_length_150",
+      "type": "number",
+      "label": "Длина на высоте 150 мм от пола (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "kitchen_length_850",
+      "type": "number",
+      "label": "Длина на высоте 850 мм от пола (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "kitchen_length_2000",
+      "type": "number",
+      "label": "Длина на высоте 2000 мм от пола (мм)",
+      "hint": "мм"
+    },
+    {
       "id": "kitchen_type",
       "type": "select",
       "label": "Тип планировки",
@@ -94,6 +112,94 @@
       "type": "select",
       "label": "Тип мойки",
       "options": ["врезная", "подстольная", "накладная"]
+    },
+    {
+      "id": "distance_corner_to_window",
+      "type": "number",
+      "label": "Расстояние от угла до окна (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "distance_corner_to_door",
+      "type": "number",
+      "label": "Расстояние от угла до двери (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "sill_height_from_floor",
+      "type": "number",
+      "label": "Высота подоконника от пола (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "sill_projection",
+      "type": "number",
+      "label": "Выступ подоконника от стены (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "has_gas_pipe",
+      "type": "boolean",
+      "label": "Есть газовая труба?"
+    },
+    {
+      "id": "gas_pipe_position",
+      "type": "text",
+      "label": "Расположение газовой трубы (от угла, мм)",
+      "hint": "от угла / высота от пола",
+      "condition": {
+        "field": "has_gas_pipe",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_water_supply",
+      "type": "boolean",
+      "label": "Есть водопроводные трубы?"
+    },
+    {
+      "id": "water_pipe_position",
+      "type": "text",
+      "label": "Расположение водопроводных труб",
+      "hint": "от угла / высота от пола",
+      "condition": {
+        "field": "has_water_supply",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_sewage_outlet",
+      "type": "boolean",
+      "label": "Есть канализационный вывод?"
+    },
+    {
+      "id": "sewage_outlet_position",
+      "type": "text",
+      "label": "Расположение канализации",
+      "hint": "от угла / высота от пола",
+      "condition": {
+        "field": "has_sewage_outlet",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_ventilation_duct",
+      "type": "boolean",
+      "label": "Есть вентканал?"
+    },
+    {
+      "id": "ventilation_position",
+      "type": "text",
+      "label": "Расположение вентканала",
+      "hint": "от угла / высота от пола",
+      "condition": {
+        "field": "has_ventilation_duct",
+        "operator": "equals",
+        "value": true
+      }
     },
     {
       "id": "notes",

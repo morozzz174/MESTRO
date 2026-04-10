@@ -1,3 +1,5 @@
+import '../services/app_logger.dart';
+
 /// Элемент прайс-листа — одна позиция расценки
 class PriceItem {
   /// Уникальный ID позиции (например: frame_per_m2, socket, tile_per_m2)
@@ -59,13 +61,52 @@ class PriceItem {
   }
 
   factory PriceItem.fromMap(Map<String, dynamic> map) {
+    final itemId = map['item_id'] as String?;
+    final name = map['name'] as String?;
+    final unit = map['unit'] as String?;
+    final priceVal = map['price'];
+    final formula = map['formula'] as String?;
+    final multiplyRaw = map['multiply_by_count'];
+
+    // Если обязательные поля отсутствуют — бросаем AssertionError для отлова
+    if (itemId == null || itemId.isEmpty) {
+      throw FormatException('PriceItem: missing item_id');
+    }
+    if (name == null || name.isEmpty) {
+      throw FormatException('PriceItem: missing name for id=$itemId');
+    }
+    if (unit == null || unit.isEmpty) {
+      throw FormatException('PriceItem: missing unit for id=$itemId');
+    }
+    if (priceVal == null) {
+      throw FormatException('PriceItem: missing price for id=$itemId');
+    }
+
+    double price;
+    if (priceVal is num) {
+      price = priceVal.toDouble();
+    } else if (priceVal is String) {
+      price = double.tryParse(priceVal) ?? 0;
+    } else {
+      price = 0;
+    }
+
+    int multiplyByCount = 0;
+    if (multiplyRaw is int) {
+      multiplyByCount = multiplyRaw;
+    } else if (multiplyRaw is num) {
+      multiplyByCount = multiplyRaw.toInt();
+    } else if (multiplyRaw is String) {
+      multiplyByCount = int.tryParse(multiplyRaw) ?? 0;
+    }
+
     return PriceItem(
-      id: map['item_id'] as String,
-      name: map['name'] as String,
-      unit: map['unit'] as String,
-      price: (map['price'] as num).toDouble(),
-      formula: map['formula'] as String?,
-      multiplyByCount: (map['multiply_by_count'] as int?) == 1,
+      id: itemId,
+      name: name,
+      unit: unit,
+      price: price,
+      formula: (formula != null && formula.isNotEmpty) ? formula : null,
+      multiplyByCount: multiplyByCount == 1,
     );
   }
 

@@ -6,6 +6,8 @@ import '../database/database_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
 import '../bloc/checklist_bloc.dart';
@@ -38,6 +40,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   late Order _order;
   final _formKey = GlobalKey<FormState>();
   late ChecklistActionsManager _actionsManager;
+  final _photosSectionKey = GlobalKey<ChecklistPhotosSectionState>();
 
   @override
   void initState() {
@@ -51,6 +54,11 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         initialData: _order.checklistData,
       ),
     );
+  }
+
+  /// Перезагрузить фото после добавления/удаления
+  void _refreshPhotos() {
+    _photosSectionKey.currentState?.loadPhotos();
   }
 
   @override
@@ -150,6 +158,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
           // Фото заявки
           ChecklistPhotosSection(
+            key: _photosSectionKey,
             orderId: _order.id,
             onTakePhoto: _takePhoto,
             onViewPhoto: _viewPhoto,
@@ -182,6 +191,17 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
     if (pickedFile == null || !mounted) return;
 
+    // Копируем файл в постоянную директорию приложения
+    final appDir = await getApplicationDocumentsDirectory();
+    final photosDir = Directory('${appDir.path}/photos');
+    if (!await photosDir.exists()) {
+      await photosDir.create(recursive: true);
+    }
+
+    final fileName = '${const Uuid().v4()}.jpg';
+    final permanentPath = '${photosDir.path}/$fileName';
+    final savedImage = await File(pickedFile.path).copy(permanentPath);
+
     final position = await LocationHelper.getCurrentPosition();
     if (!mounted) return;
 
@@ -194,8 +214,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     final photo = PhotoAnnotation(
       id: const Uuid().v4(),
       orderId: _order.id,
-      filePath: pickedFile.path,
-      annotatedPath: pickedFile.path,
+      filePath: savedImage.path,
+      annotatedPath: savedImage.path,
       checklistFieldId: fieldId,
       latitude: position?.latitude,
       longitude: position?.longitude,
@@ -204,6 +224,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
     if (!mounted) return;
     context.read<OrderBloc>().add(AddPhoto(_order.id, photo));
+    // Обновляем список фото из БД
+    Future.delayed(const Duration(milliseconds: 300), _refreshPhotos);
   }
 
   Future<String?> _showFieldSelector(List<ChecklistField> fields) async {
@@ -394,6 +416,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
 
     if (confirmed == true && mounted) {
       context.read<OrderBloc>().add(DeletePhoto(photo.id));
+      // Обновляем список фото из БД
+      Future.delayed(const Duration(milliseconds: 300), _refreshPhotos);
     }
   }
 
@@ -441,19 +465,17 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         updatedAt: DateTime.now(),
       );
     }
-    
+
     // Загружаем актуальный order из БД
     final db = DatabaseHelper();
     final updatedOrder = await db.getOrder(_order.id);
     if (updatedOrder != null && mounted) {
       setState(() => _order = updatedOrder);
-      
+
       await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => OrderPaymentsScreen(order: _order),
-        ),
+        MaterialPageRoute(builder: (_) => OrderPaymentsScreen(order: _order)),
       );
-      
+
       // После возврата обновляем order
       final refreshedOrder = await db.getOrder(_order.id);
       if (refreshedOrder != null && mounted) {
@@ -507,7 +529,7 @@ class _BottomActions extends StatelessWidget {
       symbol: '₽',
       decimalDigits: 0,
     );
-    
+
     final estimated = estimatedCost ?? 0;
     final paid = paidAmount ?? 0;
     final hasPayments = paid > 0;
@@ -552,7 +574,7 @@ class _BottomActions extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
-          // Кнопки
+          // Кнопки — 2 строки по 2
           Row(
             children: [
               Expanded(
@@ -579,7 +601,11 @@ class _BottomActions extends StatelessWidget {
                   label: const Text('План'),
                 ),
               ),
-              const SizedBox(width: AppDesign.spacing8),
+            ],
+          ),
+          const SizedBox(height: AppDesign.spacing8),
+          Row(
+            children: [
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onCalculate,

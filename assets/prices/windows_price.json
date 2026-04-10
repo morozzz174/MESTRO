@@ -2,54 +2,20 @@
   "work_type": "windows",
   "title": "Прайс-лист: Окна",
   "items": [
-    {
-      "id": "frame_per_m2",
-      "name": "Рама (профиль) за м²",
-      "unit": "м²",
-      "price": 3500,
-      "formula": "(width / 1000) * (height / 1000)"
-    },
-    {
-      "id": "glass_single",
-      "name": "Однокамерный стеклопакет за м²",
-      "unit": "м²",
-      "price": 1500,
-      "formula": "(width / 1000) * (height / 1000)"
-    },
-    {
-      "id": "glass_double",
-      "name": "Двухкамерный стеклопакет за м²",
-      "unit": "м²",
-      "price": 2500,
-      "formula": "(width / 1000) * (height / 1000)"
-    },
-    {
-      "id": "hardware",
-      "name": "Фурнитура",
-      "unit": "компл.",
-      "price": 2000,
-      "formula": "1"
-    },
-    {
-      "id": "sill",
-      "name": "Подоконник",
-      "unit": "м.п.",
-      "price": 800,
-      "formula": "(width / 1000)"
-    },
-    {
-      "id": "slope",
-      "name": "Откосы",
-      "unit": "м.п.",
-      "price": 1200,
-      "formula": "2 * (width / 1000) + (height / 1000)"
-    },
-    {
-      "id": "installation",
-      "name": "Монтаж",
-      "unit": "м²",
-      "price": 2500,
-      "formula": "(width / 1000) * (height / 1000)"
-    }
+    { "id": "frame_per_m2", "name": "Рама (профиль) за м²", "unit": "м²", "price": 3500, "formula": "(width / 1000) * (height / 1000)" },
+    { "id": "glass_single", "name": "Однокамерный стеклопакет за м²", "unit": "м²", "price": 1500, "formula": "(width / 1000) * (height / 1000)" },
+    { "id": "glass_double", "name": "Двухкамерный стеклопакет за м²", "unit": "м²", "price": 2500, "formula": "(width / 1000) * (height / 1000)" },
+    { "id": "glass_energy", "name": "Энергосберегающий стеклопакет за м²", "unit": "м²", "price": 3000, "formula": "(width / 1000) * (height / 1000)" },
+    { "id": "hardware", "name": "Фурнитура базовая", "unit": "компл.", "price": 2000, "formula": "1" },
+    { "id": "hardware_turn", "name": "Доп. за поворотно-откидную фурнитуру", "unit": "компл.", "price": 800, "formula": "1" },
+    { "id": "hardware_slide", "name": "Фурнитура раздвижная", "unit": "компл.", "price": 3000, "formula": "1" },
+    { "id": "sill", "name": "Подоконник за м.п.", "unit": "м.п.", "price": 800, "formula": "(width / 1000)" },
+    { "id": "drip_cap", "name": "Отлив за м.п.", "unit": "м.п.", "price": 600, "formula": "(width / 1000)" },
+    { "id": "slope_plastic", "name": "Откос пластиковый за м.п.", "unit": "м.п.", "price": 1200, "formula": "2 * (width / 1000) + (height / 1000)" },
+    { "id": "slope_sandwich", "name": "Откос сэндвич-панель за м.п.", "unit": "м.п.", "price": 1500, "formula": "2 * (width / 1000) + (height / 1000)" },
+    { "id": "slope_plaster", "name": "Откос штукатурка за м.п.", "unit": "м.п.", "price": 900, "formula": "2 * (width / 1000) + (height / 1000)" },
+    { "id": "installation", "name": "Монтаж за м²", "unit": "м²", "price": 2500, "formula": "(width / 1000) * (height / 1000)" },
+    { "id": "geometry_correction", "name": "Наценка за сложную геометрию (диагонали >2мм)", "unit": "фикс.", "price": 1500, "formula": "1" },
+    { "id": "high_floor_delivery", "name": "Доплата за этаж без лифта (>5 этаж)", "unit": "фикс.", "price": 500, "formula": "1" }
   ]
 }

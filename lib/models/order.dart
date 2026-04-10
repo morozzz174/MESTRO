@@ -126,7 +126,9 @@ class Order {
       'appointment_end': appointmentEnd?.toIso8601String(),
       'client_phone': clientPhone,
       'notes': notes,
-      'floor_plan_data': floorPlanData != null ? jsonEncode(floorPlanData) : null,
+      'floor_plan_data': floorPlanData != null
+          ? jsonEncode(floorPlanData)
+          : null,
       'paid_amount': paidAmount,
     };
   }
@@ -293,6 +295,28 @@ class PhotoAnnotation {
       latitude: map['latitude'] as double?,
       longitude: map['longitude'] as double?,
       timestamp: DateTime.parse(map['timestamp'] as String),
+    );
+  }
+
+  PhotoAnnotation copyWith({
+    String? id,
+    String? orderId,
+    String? filePath,
+    String? annotatedPath,
+    String? checklistFieldId,
+    double? latitude,
+    double? longitude,
+    DateTime? timestamp,
+  }) {
+    return PhotoAnnotation(
+      id: id ?? this.id,
+      orderId: orderId ?? this.orderId,
+      filePath: filePath ?? this.filePath,
+      annotatedPath: annotatedPath ?? this.annotatedPath,
+      checklistFieldId: checklistFieldId ?? this.checklistFieldId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      timestamp: timestamp ?? this.timestamp,
     );
   }
 }

@@ -42,7 +42,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     }
 
     try {
+      AppLogger.info('OrderBloc', 'Создание заявки: ${event.order.clientName}');
       await _repository.insertOrder(event.order);
+      AppLogger.success('OrderBloc', 'Заявка создана успешно');
       // В фоне перезагружаем для синхронизации
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
@@ -86,7 +88,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     // Оптимистичное удаление
     if (state is OrderLoaded) {
       final currentOrders = (state as OrderLoaded).orders;
-      final updatedOrders = currentOrders.where((o) => o.id != event.orderId).toList();
+      final updatedOrders = currentOrders
+          .where((o) => o.id != event.orderId)
+          .toList();
       emit(OrderLoaded(updatedOrders));
     }
 
@@ -116,7 +120,12 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     }
 
     try {
+      AppLogger.info(
+        'OrderBloc',
+        'Добавление фото для заявки ${event.orderId}',
+      );
       await _repository.insertPhoto(event.photo);
+      AppLogger.success('OrderBloc', 'Фото добавлено успешно');
       // В фоне синхронизируем
       final orders = await _repository.getAllOrders();
       emit(OrderLoaded(orders));
@@ -135,7 +144,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     if (state is OrderLoaded) {
       final currentOrders = (state as OrderLoaded).orders;
       final updatedOrders = currentOrders.map((order) {
-        final photoIndex = order.photos.indexWhere((p) => p.id == event.photo.id);
+        final photoIndex = order.photos.indexWhere(
+          (p) => p.id == event.photo.id,
+        );
         if (photoIndex != -1) {
           final updatedPhotos = [...order.photos];
           updatedPhotos[photoIndex] = event.photo;
@@ -165,7 +176,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     if (state is OrderLoaded) {
       final currentOrders = (state as OrderLoaded).orders;
       final updatedOrders = currentOrders.map((order) {
-        final filteredPhotos = order.photos.where((p) => p.id != event.photoId).toList();
+        final filteredPhotos = order.photos
+            .where((p) => p.id != event.photoId)
+            .toList();
         if (filteredPhotos.length != order.photos.length) {
           return order.copyWith(photos: filteredPhotos);
         }

@@ -11,6 +11,9 @@ import 'features/notifications/services/notification_service.dart';
 import 'database/database_helper.dart';
 import 'screens/registration_screen.dart';
 import 'features/home/presentation/pages/home_page.dart';
+import 'utils/cost_calculator.dart';
+import 'services/price_list_service.dart';
+import 'services/app_logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +24,42 @@ void main() async {
   // Принудительная проверка/восстановление таблиц БД
   await _ensureDatabaseTables();
 
+  // Загрузка цен из БД/JSON в CostCalculator (синхронизация прайс-листа с калькулятором)
+  await _initializePrices();
+
   runApp(const MestroApp());
+}
+
+/// Загружает цены из PriceListService (БД или JSON) и применяет их к CostCalculator
+Future<void> _initializePrices() async {
+  try {
+    final service = PriceListService();
+    final workTypes = [
+      'windows',
+      'doors',
+      'air_conditioners',
+      'kitchens',
+      'tiles',
+      'furniture',
+      'engineering',
+      'electrical',
+    ];
+    int totalSynced = 0;
+    for (final workType in workTypes) {
+      final items = await service.getPriceList(workType);
+      for (final item in items) {
+        CostCalculator.updatePrice(workType, item.id, item.price);
+        totalSynced++;
+      }
+    }
+    AppLogger.success(
+      'Main',
+      'Синхронизировано $totalSynced цен из прайс-листа',
+    );
+  } catch (e, st) {
+    AppLogger.error('Main', 'Ошибка инициализации цен', e, st);
+    // Если ошибка — используем дефолтные цены из CostCalculator.basePrices
+  }
 }
 
 /// Проверяет и восстанавливает критичные таблицы
@@ -97,6 +135,46 @@ Future<void> _ensureDatabaseTables() async {
       await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_payment_order ON payments (order_id)',
       );
+    }
+
+    // Проверяем и добавляем недостающие колонки в orders (миграции)
+    final columns = await db.rawQuery('PRAGMA table_info(orders)');
+    final columnNames = columns.map((c) => c['name'] as String).toSet();
+
+    final Map<String, String> missingColumns = {};
+    if (!columnNames.contains('appointment_date')) {
+      missingColumns['appointment_date'] = 'TEXT';
+    }
+    if (!columnNames.contains('appointment_end')) {
+      missingColumns['appointment_end'] = 'TEXT';
+    }
+    if (!columnNames.contains('client_phone')) {
+      missingColumns['client_phone'] = 'TEXT';
+    }
+    if (!columnNames.contains('notes')) {
+      missingColumns['notes'] = 'TEXT';
+    }
+    if (!columnNames.contains('floor_plan_data')) {
+      missingColumns['floor_plan_data'] = 'TEXT';
+    }
+    if (!columnNames.contains('paid_amount')) {
+      missingColumns['paid_amount'] = 'REAL DEFAULT 0';
+    }
+
+    for (final entry in missingColumns.entries) {
+      AppLogger.info('Main', 'Добавляем колонку orders.${entry.key}');
+      try {
+        await db.execute(
+          'ALTER TABLE orders ADD COLUMN ${entry.key} ${entry.value}',
+        );
+        AppLogger.success('Main', 'Колонка orders.${entry.key} добавлена');
+      } catch (e) {
+        AppLogger.error(
+          'Main',
+          'Ошибка добавления колонки orders.${entry.key}',
+          e,
+        );
+      }
     }
   } catch (e) {
     // Ошибка проверки — не критично

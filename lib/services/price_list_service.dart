@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 import '../models/price_item.dart';
 import '../database/database_helper.dart';
+import 'app_logger.dart';
 
 /// Сервис управления прайс-листами
 /// Загружает дефолтные цены из assets, позволяет сохранять кастомные в БД
@@ -19,22 +20,36 @@ class PriceListService {
   Future<List<PriceItem>> getPriceList(String workType) async {
     // Проверяем кэш
     if (_cache.containsKey(workType)) {
+      AppLogger.debug(
+        'PriceListService',
+        'Кэш для $workType: ${_cache[workType]!.length} позиций',
+      );
       return _cache[workType]!;
     }
 
     // Пробуем загрузить из БД
     final dbItems = await _loadFromDatabase(workType);
-    
+
     if (dbItems.isNotEmpty) {
+      AppLogger.success(
+        'PriceListService',
+        'Возвращаем из БД: ${dbItems.length} позиций для $workType',
+      );
       _cache[workType] = dbItems;
       return dbItems;
     }
 
     // Загружаем дефолтный прайс из assets
+    AppLogger.info(
+      'PriceListService',
+      'БД пуста для $workType, загружаем из assets',
+    );
     final items = await _loadDefaultPrices(workType);
 
-    // Сохраняем в БД
-    await _saveToDatabase(workType, items);
+    if (items.isNotEmpty) {
+      // Сохраняем в БД
+      await _saveToDatabase(workType, items);
+    }
 
     // Кэшируем
     _cache[workType] = items;
@@ -47,13 +62,34 @@ class PriceListService {
     try {
       final db = DatabaseHelper();
       final maps = await db.getPricesForWorkType(workType);
-      
+
       if (maps.isEmpty) return [];
-      
-      return maps
-          .map((map) => PriceItem.fromMap(map))
-          .toList();
-    } catch (e) {
+
+      AppLogger.info(
+        'PriceListService',
+        'Загружено ${maps.length} записей из БД для $workType',
+      );
+
+      final items = <PriceItem>[];
+      for (final map in maps) {
+        try {
+          items.add(PriceItem.fromMap(map));
+        } catch (e) {
+          AppLogger.warn(
+            'PriceListService',
+            'Пропуск записи для $workType: $e. Данные: $map',
+          );
+        }
+      }
+
+      return items;
+    } catch (e, st) {
+      AppLogger.error(
+        'PriceListService',
+        'Ошибка загрузки из БД: $workType',
+        e,
+        st,
+      );
       return [];
     }
   }
@@ -79,24 +115,38 @@ class PriceListService {
           'updated_at': now,
         });
       }
-    } catch (e) {
-      // Ошибка сохранения в БД - не критично
+    } catch (e, st) {
+      AppLogger.error(
+        'PriceListService',
+        'Ошибка сохранения в БД: $workType',
+        e,
+        st,
+      );
     }
   }
 
   /// Обновить цену в прайсе
-  Future<void> updatePrice(String workType, String itemId, double newPrice) async {
+  Future<void> updatePrice(
+    String workType,
+    String itemId,
+    double newPrice,
+  ) async {
     final items = await getPriceList(workType);
     final index = items.indexWhere((item) => item.id == itemId);
     if (index != -1) {
       _cache[workType]![index] = items[index].copyWith(price: newPrice);
-      
+
       // Обновляем в БД
       try {
         final db = DatabaseHelper();
         await db.updatePriceItem(itemId, newPrice);
-      } catch (e) {
-        // Ошибка обновления в БД
+      } catch (e, st) {
+        AppLogger.error(
+          'PriceListService',
+          'Ошибка обновления цены: $itemId',
+          e,
+          st,
+        );
       }
     }
   }
@@ -104,14 +154,19 @@ class PriceListService {
   /// Обновить весь прайс-лист
   Future<void> updatePriceList(String workType, List<PriceItem> items) async {
     _cache[workType] = items;
-    
+
     // Обновляем в БД
     try {
       final db = DatabaseHelper();
       await db.deleteAllPricesForWorkType(workType);
       await _saveToDatabase(workType, items);
-    } catch (e) {
-      // Ошибка сохранения в БД
+    } catch (e, st) {
+      AppLogger.error(
+        'PriceListService',
+        'Ошибка сохранения прайс-листа: $workType',
+        e,
+        st,
+      );
     }
   }
 
@@ -138,8 +193,9 @@ class PriceListService {
         'created_at': now,
         'updated_at': now,
       });
-    } catch (e) {
-      // Ошибка сохранения в БД
+      AppLogger.info('PriceListService', 'Добавлена позиция: ${newItem.name}');
+    } catch (e, st) {
+      AppLogger.error('PriceListService', 'Ошибка добавления позиции', e, st);
     }
 
     return newItem;
@@ -155,23 +211,25 @@ class PriceListService {
     try {
       final db = DatabaseHelper();
       await db.deletePriceItem(itemId);
-    } catch (e) {
-      // Ошибка удаления из БД
+      AppLogger.info('PriceListService', 'Удалена позиция: $itemId');
+    } catch (e, st) {
+      AppLogger.error('PriceListService', 'Ошибка удаления позиции', e, st);
     }
   }
 
   /// Сбросить прайс к дефолтному
   Future<void> resetToDefault(String workType) async {
     _cache.remove(workType);
-    
+
     // Удаляем из БД пользовательские цены
     try {
       final db = DatabaseHelper();
       await db.deleteAllPricesForWorkType(workType);
-    } catch (e) {
-      // Ошибка удаления из БД
+      AppLogger.info('PriceListService', 'Прайс сброшен: $workType');
+    } catch (e, st) {
+      AppLogger.error('PriceListService', 'Ошибка сброса прайса', e, st);
     }
-    
+
     // Перезагружаем дефолтные
     await getPriceList(workType);
   }
@@ -199,11 +257,35 @@ class PriceListService {
       );
       final Map<String, dynamic> json = jsonDecode(jsonString);
       final List<dynamic> itemsJson = json['items'] as List;
-      return itemsJson
-          .map((itemJson) => PriceItem.fromMap(itemJson as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      // Если файл не найден — возвращаем пустой список
+      AppLogger.info(
+        'PriceListService',
+        'Загружено ${itemsJson.length} позиций из JSON для $workType',
+      );
+
+      final items = <PriceItem>[];
+      for (final itemJson in itemsJson) {
+        try {
+          items.add(PriceItem.fromMap(itemJson as Map<String, dynamic>));
+        } catch (e) {
+          AppLogger.warn(
+            'PriceListService',
+            'Пропуск позиции из JSON для $workType: $e',
+          );
+        }
+      }
+
+      AppLogger.success(
+        'PriceListService',
+        'Распарсено ${items.length}/${itemsJson.length} позиций для $workType',
+      );
+      return items;
+    } catch (e, st) {
+      AppLogger.error(
+        'PriceListService',
+        'Ошибка загрузки JSON для $workType',
+        e,
+        st,
+      );
       return [];
     }
   }
@@ -224,10 +306,7 @@ class PriceListService {
   }
 
   /// Рассчитать количество для позиции прайса
-  static double _calculateQuantity(
-    PriceItem item,
-    Map<String, dynamic> data,
-  ) {
+  static double _calculateQuantity(PriceItem item, Map<String, dynamic> data) {
     // Если есть формула — вычисляем
     if (item.formula != null && item.formula!.isNotEmpty) {
       return _evaluateFormula(item.formula!, data);
@@ -259,7 +338,8 @@ class PriceListService {
 
     // Заменяем переменные на значения
     // Порядок: сначала длинные имена (чтобы wall_height не совпало с height)
-    final keys = data.keys.toList()..sort((a, b) => b.length.compareTo(a.length));
+    final keys = data.keys.toList()
+      ..sort((a, b) => b.length.compareTo(a.length));
 
     for (final key in keys) {
       final value = data[key];
@@ -366,8 +446,7 @@ class _ExpressionParser {
 
   double _parseNumber() {
     final start = _pos;
-    while (_pos < _expr.length &&
-        (_expr[_pos].contains(RegExp(r'[0-9.]')))) {
+    while (_pos < _expr.length && (_expr[_pos].contains(RegExp(r'[0-9.]')))) {
       _pos++;
     }
     final numStr = _expr.substring(start, _pos);

@@ -2,68 +2,34 @@
   "work_type": "engineering",
   "title": "Прайс-лист: Инженерные системы",
   "items": [
-    {
-      "id": "boiler_gas",
-      "name": "Газовый котёл",
-      "unit": "шт",
-      "price": 35000,
-      "formula": "1"
-    },
-    {
-      "id": "boiler_electric",
-      "name": "Электрический котёл",
-      "unit": "шт",
-      "price": 20000,
-      "formula": "1"
-    },
-    {
-      "id": "radiator_section",
-      "name": "Секция радиатора",
-      "unit": "шт",
-      "price": 5000,
-      "formula": "radiator_sections_count"
-    },
-    {
-      "id": "pipe_pp_per_m",
-      "name": "Труба ПП",
-      "unit": "м.п.",
-      "price": 200,
-      "formula": "pipe_length"
-    },
-    {
-      "id": "pipe_pex_per_m",
-      "name": "Труба PEX",
-      "unit": "м.п.",
-      "price": 350,
-      "formula": "pipe_length"
-    },
-    {
-      "id": "warm_floor_water_per_m2",
-      "name": "Водяной тёплый пол",
-      "unit": "м²",
-      "price": 1500,
-      "formula": "floor_area"
-    },
-    {
-      "id": "warm_floor_electric_per_m2",
-      "name": "Электрический тёплый пол",
-      "unit": "м²",
-      "price": 2000,
-      "formula": "floor_area"
-    },
-    {
-      "id": "sewage_pipe_per_m",
-      "name": "Канализационная труба",
-      "unit": "м.п.",
-      "price": 500,
-      "formula": "pipe_length"
-    },
-    {
-      "id": "ventilation_install",
-      "name": "Вентиляция (точка)",
-      "unit": "точка",
-      "price": 3000,
-      "formula": "intake_valves_count"
-    }
+    { "id": "boiler_gas", "name": "Газовый котёл", "unit": "шт.", "price": 35000, "formula": "1" },
+    { "id": "boiler_electric", "name": "Электрический котёл", "unit": "шт.", "price": 20000, "formula": "1" },
+    { "id": "boiler_solid", "name": "Твёрдотопливный котёл", "unit": "шт.", "price": 25000, "formula": "1" },
+    { "id": "boiler_liquid", "name": "Жидкотопливный котёл", "unit": "шт.", "price": 30000, "formula": "1" },
+    { "id": "boiler_power_kw", "name": "Доплата за кВт мощности (свыше 10кВт)", "unit": "кВт", "price": 500, "formula": "boiler_power - 10" },
+    { "id": "boiler_wall_mount", "name": "Настенный монтаж котла", "unit": "фикс.", "price": 2000, "formula": "1" },
+    { "id": "boiler_floor_mount", "name": "Напольный монтаж котла", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "chimney_install", "name": "Монтаж дымохода за м", "unit": "м", "price": 3000, "formula": "chimney_height" },
+    { "id": "radiator_section_bimetal", "name": "Секция биметалл за шт.", "unit": "шт.", "price": 6000, "formula": "radiator_sections_count" },
+    { "id": "radiator_section_aluminum", "name": "Секция алюминий за шт.", "unit": "шт.", "price": 4500, "formula": "radiator_sections_count" },
+    { "id": "radiator_section_castiron", "name": "Секция чугун за шт.", "unit": "шт.", "price": 5000, "formula": "radiator_sections_count" },
+    { "id": "radiator_section", "name": "Секция радиатора базовая за шт.", "unit": "шт.", "price": 5000, "formula": "radiator_sections_count" },
+    { "id": "pipe_pp_per_m", "name": "Труба ПП за м", "unit": "м", "price": 200, "formula": "room_area" },
+    { "id": "pipe_pex_per_m", "name": "Труба PEX за м", "unit": "м", "price": 350, "formula": "room_area" },
+    { "id": "pipe_concealed", "name": "Скрытая прокладка (доплата за м)", "unit": "м", "price": 300, "formula": "room_area" },
+    { "id": "warm_floor_water_per_m2", "name": "Водяной тёплый пол за м²", "unit": "м²", "price": 1500, "formula": "room_area" },
+    { "id": "warm_floor_electric_per_m2", "name": "Электрический тёплый пол за м²", "unit": "м²", "price": 2000, "formula": "room_area" },
+    { "id": "warm_floor_cable_per_m2", "name": "Кабельный тёплый пол за м²", "unit": "м²", "price": 1800, "formula": "room_area" },
+    { "id": "warm_floor_mat_per_m2", "name": "Нагревательный мат за м²", "unit": "м²", "price": 2200, "formula": "room_area" },
+    { "id": "sewage_pipe_per_m", "name": "Канализационная труба за м", "unit": "м", "price": 500, "formula": "room_area" },
+    { "id": "ventilation_install", "name": "Естественная вентиляция за точку", "unit": "точка", "price": 3000, "formula": "intake_valves_count" },
+    { "id": "ventilation_forced", "name": "Принудительная вентиляция за точку", "unit": "точка", "price": 5000, "formula": "intake_valves_count" },
+    { "id": "insulation_per_m2", "name": "Утепление за м²", "unit": "м²", "price": 800, "formula": "room_area" },
+    { "id": "heat_loss_calculation", "name": "Расчёт теплопотерь", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "filter", "name": "Фильтр водоснабжения", "unit": "шт.", "price": 3000, "formula": "1" },
+    { "id": "water_meter", "name": "Счётчик воды", "unit": "шт.", "price": 2500, "formula": "1" },
+    { "id": "recuperator", "name": "Рекуператор", "unit": "шт.", "price": 25000, "formula": "1" },
+    { "id": "collector", "name": "Коллекторный шкаф", "unit": "шт.", "price": 8000, "formula": "floor_heating_contours" },
+    { "id": "floor_drain", "name": "Трап канализационный", "unit": "шт.", "price": 3000, "formula": "1" }
   ]
 }

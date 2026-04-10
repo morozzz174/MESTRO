@@ -218,6 +218,15 @@ class PdfGenerator {
     final allLabels = <String, Map<String, String>>{
       'windows': {
         ...commonLabels,
+        'width_top': 'Ширина — верх',
+        'width_middle': 'Ширина — середина',
+        'width_bottom': 'Ширина — низ',
+        'height_left': 'Высота — лево',
+        'height_middle': 'Высота — центр',
+        'height_right': 'Высота — право',
+        'diagonal_1': 'Диагональ 1',
+        'diagonal_2': 'Диагональ 2',
+        'opening_depth': 'Глубина проёма',
         'glass_type': 'Тип стеклопакета',
         'has_quarter': 'Есть четверть',
         'quarter_depth': 'Глубина четверти',
@@ -226,11 +235,19 @@ class PdfGenerator {
         'slope_type': 'Тип откосов',
         'has_sill': 'Подоконник',
         'sill_width': 'Ширина подоконника',
+        'has_drip_cap': 'Отлив',
+        'drip_cap_width': 'Ширина отлива',
         'opening_type': 'Тип открывания',
         'floor_number': 'Этаж',
       },
       'doors': {
         ...commonLabels,
+        'width_top': 'Ширина — верх',
+        'width_middle': 'Ширина — середина',
+        'width_bottom': 'Ширина — низ',
+        'height_left': 'Высота — лево',
+        'height_right': 'Высота — право',
+        'floor_level_difference': 'Перепад высот в проёме',
         'wall_thickness': 'Толщина стены',
         'door_type': 'Тип двери',
         'opening_direction': 'Направление открывания',
@@ -249,8 +266,11 @@ class PdfGenerator {
         'install_type': 'Тип монтажа',
         'indoor_unit_location': 'Расположение внутр. блока',
         'outdoor_unit_location': 'Расположение нар. блока',
+        'outdoor_unit_access': 'Доступ к нар. блоку',
         'pipe_length': 'Длина трубы',
+        'route_method': 'Способ прокладки',
         'drain_length': 'Длина дренажа',
+        'power_supply': 'Электроснабжение',
         'has_drain_pump': 'Дренажная помпа',
         'has_wifi_module': 'Wi-Fi модуль',
         'wall_material': 'Материал стены',
@@ -258,6 +278,9 @@ class PdfGenerator {
       'kitchens': {
         ...commonLabels,
         'kitchen_length': 'Длина кухни',
+        'kitchen_length_150': 'Длина на 150 мм',
+        'kitchen_length_850': 'Длина на 850 мм',
+        'kitchen_length_2000': 'Длина на 2000 мм',
         'kitchen_type': 'Тип кухни',
         'countertop_material': 'Материал столешницы',
         'facade_material': 'Материал фасада',
@@ -271,12 +294,36 @@ class PdfGenerator {
         'has_oven': 'Духовой шкаф',
         'has_hood': 'Вытяжка',
         'sink_type': 'Тип мойки',
+        'distance_corner_to_window': 'Расст. до окна',
+        'distance_corner_to_door': 'Расст. до двери',
+        'sill_height_from_floor': 'Высота подоконника',
+        'sill_projection': 'Выступ подоконника',
+        'has_gas_pipe': 'Газовая труба',
+        'gas_pipe_position': 'Расположение газа',
+        'has_water_supply': 'Водопровод',
+        'water_pipe_position': 'Расположение воды',
+        'has_sewage_outlet': 'Канализация',
+        'sewage_outlet_position': 'Расположение канализации',
+        'has_ventilation_duct': 'Вентканал',
+        'ventilation_position': 'Расположение вентиляции',
       },
       'furniture': {
         ...commonLabels,
         'room_type': 'Тип комнаты',
         'wall_length': 'Длина стены',
+        'wall_length_top': 'Длина стены — потолок',
+        'wall_length_middle': 'Длина стены — середина',
+        'wall_length_bottom': 'Длина стены — пол',
         'ceiling_height': 'Высота потолка',
+        'ceiling_height_left': 'Высота потолка — лево',
+        'ceiling_height_middle': 'Высота потолка — центр',
+        'ceiling_height_right': 'Высота потолка — право',
+        'wall_curvature': 'Кривизна стены',
+        'has_niches': 'Есть ниши',
+        'niche_width': 'Ширина ниши',
+        'niche_height': 'Высота ниши',
+        'niche_depth': 'Глубина ниши',
+        'niche_position': 'Расположение ниши',
         'has_baseboards': 'Плинтуса',
         'has_sockets_switches': 'Розетки/выключатели',
         'sockets_position': 'Расположение розеток',
@@ -302,11 +349,50 @@ class PdfGenerator {
         'heating_pipe_position': 'Расположение трубы',
         'door_opening_clearance': 'Зазор открывания двери',
       },
+      'tiles': {
+        ...commonLabels,
+        'surface_type': 'Тип поверхности',
+        'tile_material': 'Материал плитки',
+        'laying_method': 'Способ укладки',
+        'wall_height': 'Высота стены',
+        'wall_length': 'Длина стены',
+        'has_windows_doors': 'Окна/двери для вычета',
+        'windows_doors_area': 'Площадь окон/дверей',
+        'floor_length': 'Длина пола',
+        'floor_width': 'Ширина пола',
+        'floor_complex_shape': 'Сложная форма пола',
+        'apron_height': 'Высота фартука',
+        'apron_length': 'Длина фартука',
+        'has_sockets': 'Розетки на фартуке',
+        'sockets_count': 'Кол-во розеток',
+        'tile_length': 'Длина плитки',
+        'tile_width': 'Ширина плитки',
+        'tile_thickness': 'Толщина плитки',
+        'tile_caliber': 'Калибр плитки',
+        'surface_evenness': 'Ровность основания',
+        'base_type': 'Тип основания',
+        'reserve_coefficient': 'Запас материала',
+        'has_decorative_inserts': 'Декоративные вставки',
+        'decorative_inserts_count': 'Кол-во вставок',
+        'has_underfloor_heating': 'Тёплый пол',
+        'heating_type': 'Тип тёплого пола',
+        'heating_power': 'Мощность тёплого пола',
+        'heating_area': 'Площадь тёплого пола',
+      },
       'engineering': {
         ...commonLabels,
         'system_type': 'Тип системы',
         'room_area': 'Площадь комнаты',
         'ceiling_height': 'Высота потолка',
+        'wall_material': 'Материал наружных стен',
+        'wall_thickness_external': 'Толщина наружных стен',
+        'has_insulation': 'Утепление наружных стен',
+        'insulation_type': 'Тип утеплителя',
+        'insulation_thickness': 'Толщина утеплителя',
+        'window_type': 'Тип остекления',
+        'floor_type': 'Тип пола',
+        'has_floor_insulation': 'Утепление пола',
+        'floor_insulation_thickness': 'Толщина утепления пола',
         'boiler_type': 'Тип котла',
         'boiler_power': 'Мощность котла',
         'boiler_position': 'Расположение котла',
@@ -459,10 +545,10 @@ class PdfGenerator {
               ),
             ),
             pw.SizedBox(height: 8),
-            
+
             // Рисуем план помещения
             _buildFloorPlanDrawing(plan, font, fontBold),
-            
+
             pw.SizedBox(height: 16),
             pw.Divider(),
 
@@ -554,46 +640,90 @@ class PdfGenerator {
                 border: pw.TableBorder.all(color: PdfColors.grey),
                 children: [
                   pw.TableRow(
-                    decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                    decoration: const pw.BoxDecoration(
+                      color: PdfColors.grey200,
+                    ),
                     children: [
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('Комната', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
+                        child: pw.Text(
+                          'Комната',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            font: fontBold,
+                          ),
+                        ),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('Площадь', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
+                        child: pw.Text(
+                          'Площадь',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            font: fontBold,
+                          ),
+                        ),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('Двери', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
+                        child: pw.Text(
+                          'Двери',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            font: fontBold,
+                          ),
+                        ),
                       ),
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('Окна', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, font: fontBold)),
+                        child: pw.Text(
+                          'Окна',
+                          style: pw.TextStyle(
+                            fontSize: 11,
+                            fontWeight: pw.FontWeight.bold,
+                            font: fontBold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  ...plan.rooms.map((room) => pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('${room.type.icon} ${room.type.label}', style: pw.TextStyle(fontSize: 10, font: font)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('${room.area.toStringAsFixed(1)} м²', style: pw.TextStyle(fontSize: 10, font: font)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('${room.doors.length}', style: pw.TextStyle(fontSize: 10, font: font)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(4),
-                        child: pw.Text('${room.windows.length}', style: pw.TextStyle(fontSize: 10, font: font)),
-                      ),
-                    ],
-                  )),
+                  ...plan.rooms.map(
+                    (room) => pw.TableRow(
+                      children: [
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            '${room.type.icon} ${room.type.label}',
+                            style: pw.TextStyle(fontSize: 10, font: font),
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            '${room.area.toStringAsFixed(1)} м²',
+                            style: pw.TextStyle(fontSize: 10, font: font),
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            '${room.doors.length}',
+                            style: pw.TextStyle(fontSize: 10, font: font),
+                          ),
+                        ),
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(4),
+                          child: pw.Text(
+                            '${room.windows.length}',
+                            style: pw.TextStyle(fontSize: 10, font: font),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -667,7 +797,9 @@ class PdfGenerator {
 
     final buffer = StringBuffer();
     buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
-    buffer.writeln('<svg xmlns="http://www.w3.org/2000/svg" width="$width" height="$height">');
+    buffer.writeln(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="$width" height="$height">',
+    );
 
     // Фон
     buffer.writeln('<rect width="$width" height="$height" fill="#f5f5f5"/>');
@@ -694,16 +826,36 @@ class PdfGenerator {
       // Цвет комнаты в зависимости от типа
       String fillColor = '#e3f2fd'; // default
       switch (room.type) {
-        case RoomType.kitchen: fillColor = '#fff3e0'; break;
-        case RoomType.livingRoom: fillColor = '#e8f5e9'; break;
-        case RoomType.bedroom: fillColor = '#fce4ec'; break;
-        case RoomType.bathroom: fillColor = '#e0f7fa'; break;
-        case RoomType.toilet: fillColor = '#f3e5f5'; break;
-        case RoomType.hallway: fillColor = '#fff9c4'; break;
-        case RoomType.balcony: fillColor = '#e8eaf6'; break;
-        case RoomType.storage: fillColor = '#efebe9'; break;
-        case RoomType.office: fillColor = '#e0f2f1'; break;
-        case RoomType.childrenRoom: fillColor = '#fff3e0'; break;
+        case RoomType.kitchen:
+          fillColor = '#fff3e0';
+          break;
+        case RoomType.livingRoom:
+          fillColor = '#e8f5e9';
+          break;
+        case RoomType.bedroom:
+          fillColor = '#fce4ec';
+          break;
+        case RoomType.bathroom:
+          fillColor = '#e0f7fa';
+          break;
+        case RoomType.toilet:
+          fillColor = '#f3e5f5';
+          break;
+        case RoomType.hallway:
+          fillColor = '#fff9c4';
+          break;
+        case RoomType.balcony:
+          fillColor = '#e8eaf6';
+          break;
+        case RoomType.storage:
+          fillColor = '#efebe9';
+          break;
+        case RoomType.office:
+          fillColor = '#e0f2f1';
+          break;
+        case RoomType.childrenRoom:
+          fillColor = '#fff3e0';
+          break;
       }
 
       // Комната
@@ -722,7 +874,7 @@ class PdfGenerator {
         );
         // Дуга открывания
         buffer.writeln(
-          '<path d="M $dx $dy Q ${dx + dw/2} ${dy - dw/2} ${dx + dw} $dy" fill="none" stroke="#795548" stroke-width="1" stroke-dasharray="3,3"/>',
+          '<path d="M $dx $dy Q ${dx + dw / 2} ${dy - dw / 2} ${dx + dw} $dy" fill="none" stroke="#795548" stroke-width="1" stroke-dasharray="3,3"/>',
         );
       }
 

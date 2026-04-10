@@ -10,10 +10,46 @@
       "hint": "мм"
     },
     {
+      "id": "width_top",
+      "type": "number",
+      "label": "Ширина — верх (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "width_middle",
+      "type": "number",
+      "label": "Ширина — середина (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "width_bottom",
+      "type": "number",
+      "label": "Ширина — низ (мм)",
+      "hint": "мм"
+    },
+    {
       "id": "height",
       "type": "number",
       "label": "Высота проёма (мм)",
       "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "height_left",
+      "type": "number",
+      "label": "Высота — лево (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "height_right",
+      "type": "number",
+      "label": "Высота — право (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "floor_level_difference",
+      "type": "number",
+      "label": "Перепад высот в проёме (мм)",
       "hint": "мм"
     },
     {

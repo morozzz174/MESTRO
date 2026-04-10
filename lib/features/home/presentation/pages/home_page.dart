@@ -12,6 +12,7 @@ import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../calendar/presentation/dialogs/create_appointment_dialog.dart';
 import '../../../calendar/bloc/calendar_bloc.dart';
 import '../../../calendar/bloc/calendar_event.dart';
+import '../../../notifications/services/scheduling_service.dart';
 import '../../../../models/order.dart';
 import '../../../../screens/checklist_screen.dart';
 
@@ -162,7 +163,22 @@ class _HomePageState extends State<HomePage> {
       availableWorkTypes: availableWorkTypes,
     );
     if (order != null && mounted) {
-      context.read<CalendarBloc>().add(CalendarCreateOrder(order));
+      // Отправляем в OrderBloc для сохранения в БД и обновления UI
+      context.read<OrderBloc>().add(CreateOrder(order));
+      // Отправляем в CalendarBloc ТОЛЬКО для планирования уведомлений (без сохранения)
+      // CalendarCreateOrder вызывает insertOrder, поэтому OrderBloc уже сохранил
+      // Уведомления запланируем через отдельный механизм если appointmentDate установлен
+      if (order.appointmentDate != null) {
+        // Планируем уведомления в фоне, не блокируя UI
+        Future.delayed(const Duration(milliseconds: 500), () async {
+          try {
+            final scheduler = AppointmentNotificationScheduler();
+            await scheduler.scheduleForAppointment(order);
+          } catch (_) {
+            // Не критично если уведомления не запланировались
+          }
+        });
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Замер для "${order.clientName}" создан')),

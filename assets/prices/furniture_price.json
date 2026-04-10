@@ -2,47 +2,26 @@
   "work_type": "furniture",
   "title": "Прайс-лист: Мебельные блоки",
   "items": [
-    {
-      "id": "ldsp_per_m2",
-      "name": "Корпус ЛДСП",
-      "unit": "м²",
-      "price": 2500,
-      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
-    },
-    {
-      "id": "mdf_per_m2",
-      "name": "Корпус МДФ",
-      "unit": "м²",
-      "price": 3500,
-      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
-    },
-    {
-      "id": "solid_per_m2",
-      "name": "Корпус массив",
-      "unit": "м²",
-      "price": 6000,
-      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
-    },
-    {
-      "id": "facade_per_m2",
-      "name": "Фасады",
-      "unit": "м²",
-      "price": 4000,
-      "formula": "(wall_length / 1000) * (ceiling_height / 1000)"
-    },
-    {
-      "id": "drawer_mechanism",
-      "name": "Механизм выдвижной",
-      "unit": "шт",
-      "price": 1500,
-      "formula": "drawers_count"
-    },
-    {
-      "id": "furniture_assembly",
-      "name": "Сборка",
-      "unit": "м.п.",
-      "price": 3000,
-      "formula": "wall_length / 1000"
-    }
+    { "id": "ldsp_per_m2", "name": "ЛДСП корпус за м²", "unit": "м²", "price": 2500, "formula": "wall_length / 1000 * ceiling_height / 1000" },
+    { "id": "mdf_per_m2", "name": "МДФ корпус за м²", "unit": "м²", "price": 3500, "formula": "wall_length / 1000 * ceiling_height / 1000" },
+    { "id": "solid_per_m2", "name": "Массив корпус за м²", "unit": "м²", "price": 6000, "formula": "wall_length / 1000 * ceiling_height / 1000" },
+    { "id": "facade_per_m2", "name": "Фасады за м²", "unit": "м²", "price": 4000, "formula": "wall_length / 1000 * ceiling_height / 1000" },
+    { "id": "drawer_mechanism", "name": "Выдвижной механизм за шт.", "unit": "шт.", "price": 1500, "formula": "drawers_count" },
+    { "id": "furniture_assembly", "name": "Сборка за м.п.", "unit": "м.п.", "price": 3000, "formula": "wall_length / 1000" },
+    { "id": "builtin_surcharge", "name": "Встроенная мебель (доплата за м²)", "unit": "м²", "price": 2000, "formula": "wall_length / 1000 * ceiling_height / 1000" },
+    { "id": "door_sliding", "name": "Раздвижные двери (доплата комплект)", "unit": "компл.", "price": 5000, "formula": "1" },
+    { "id": "niche_custom_work", "name": "Индивидуальная работа для ниши", "unit": "фикс.", "price": 5000, "formula": "1" },
+    { "id": "wall_curvature_compensation", "name": "Компенсация кривизны стен (>5мм)", "unit": "фикс.", "price": 3000, "formula": "1" },
+    { "id": "pantograph", "name": "Пантограф за шт.", "unit": "шт.", "price": 4000, "formula": "1" },
+    { "id": "rod", "name": "Штанга за шт.", "unit": "шт.", "price": 1500, "formula": "1" },
+    { "id": "mezzanine", "name": "Антресоль", "unit": "фикс.", "price": 3000, "formula": "1" },
+    { "id": "open_shelf", "name": "Открытая полка", "unit": "шт.", "price": 1000, "formula": "1" },
+    { "id": "edge_abs", "name": "Кромка АБС (доплата за м.п.)", "unit": "м.п.", "price": 200, "formula": "wall_length / 1000" },
+    { "id": "edge_medium", "name": "Кромка 1мм (доплата за м.п.)", "unit": "м.п.", "price": 300, "formula": "wall_length / 1000" },
+    { "id": "edge_thick", "name": "Кромка 2мм (доплата за м.п.)", "unit": "м.п.", "price": 600, "formula": "wall_length / 1000" },
+    { "id": "socket_cutout", "name": "Вырез под розетку", "unit": "фикс.", "price": 500, "formula": "1" },
+    { "id": "pipe_cutout", "name": "Обход трубы отопления", "unit": "фикс.", "price": 2000, "formula": "1" },
+    { "id": "skewed_corner", "name": "Скошенный угол", "unit": "фикс.", "price": 3000, "formula": "1" },
+    { "id": "column_cutout", "name": "Обход колонны", "unit": "фикс.", "price": 2000, "formula": "1" }
   ]
 }

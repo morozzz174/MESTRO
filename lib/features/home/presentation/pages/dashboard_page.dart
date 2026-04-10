@@ -87,11 +87,13 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: CircleAvatar(
                             radius: 28,
                             backgroundColor: AppDesign.cardBackground,
-                            backgroundImage: _user?.avatarPath != null &&
+                            backgroundImage:
+                                _user?.avatarPath != null &&
                                     File(_user!.avatarPath!).existsSync()
                                 ? FileImage(File(_user!.avatarPath!))
                                 : null,
-                            child: _user?.avatarPath == null ||
+                            child:
+                                _user?.avatarPath == null ||
                                     !File(_user!.avatarPath!).existsSync()
                                 ? const Icon(
                                     Icons.person,
@@ -353,7 +355,9 @@ class _ActiveStatCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+                        borderRadius: BorderRadius.circular(
+                          AppDesign.radiusListItem,
+                        ),
                       ),
                       child: Icon(icon, color: color, size: 24),
                     ),
@@ -364,11 +368,23 @@ class _ActiveStatCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text(value, style: AppDesign.titleStyle.copyWith(fontSize: 24)),
-                    Text(label, style: AppDesign.captionStyle),
+                    Text(
+                      value,
+                      style: AppDesign.titleStyle.copyWith(fontSize: 24),
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: AppDesign.captionStyle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
               ],

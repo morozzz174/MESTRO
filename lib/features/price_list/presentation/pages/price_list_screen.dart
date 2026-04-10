@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/price_item.dart';
 import '../../../../services/price_list_service.dart';
+import '../../../../utils/cost_calculator.dart';
+import '../../../../services/app_logger.dart';
+import '../../../../services/price_list_excel_service.dart';
 
 /// Экран выбора типа работ для редактирования прайса
 class PriceListScreen extends StatelessWidget {
@@ -13,6 +16,16 @@ class PriceListScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Прайс-листы'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download),
+            onPressed: () => _exportToExcel(context),
+            tooltip: 'Экспорт в Excel',
+          ),
+          IconButton(
+            icon: const Icon(Icons.file_upload),
+            onPressed: () => _importFromExcel(context),
+            tooltip: 'Импорт из Excel',
+          ),
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: () => _resetAllPrices(context),
@@ -97,6 +110,95 @@ class PriceListScreen extends StatelessWidget {
       }
     }
   }
+
+  Future<void> _exportToExcel(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Формирование файла...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    final success = await PriceListExcelService.exportAllPriceLists();
+
+    if (context.mounted) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            success ? 'Прайс-лист экспортирован' : 'Экспорт отменён',
+          ),
+          backgroundColor: success ? Colors.green : Colors.orange,
+        ),
+      );
+    }
+  }
+
+  Future<void> _importFromExcel(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('Выберите файл для импорта...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    final result = await PriceListExcelService.importPriceLists();
+
+    if (context.mounted) {
+      if (!result.isSuccess) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(result.errorMessage ?? 'Импорт отменён'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      } else if (result.errorCount > 0) {
+        // Показываем детали ошибок
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Импорт завершён с ошибками'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Результат: ${result.summary}'),
+                  const SizedBox(height: 8),
+                  if (result.errors.isNotEmpty) ...[
+                    const Text(
+                      'Ошибки:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    ...result.errors.take(10).map((e) => Text('• $e')),
+                    if (result.errors.length > 10)
+                      Text('...и ещё ${result.errors.length - 10}'),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Импорт: ${result.summary}'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
 }
 
 /// Экран редактирования цен для конкретного типа работ
@@ -132,9 +234,18 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
 
   Future<void> _loadPrices() async {
     setState(() => _isLoading = true);
-    
+
     final items = await _priceService.getPriceList(widget.workType);
-    
+
+    // Синхронизируем с калькулятором
+    for (final item in items) {
+      CostCalculator.updatePrice(widget.workType, item.id, item.price);
+    }
+    AppLogger.info(
+      'PriceEdit',
+      'Загружено ${items.length} позиций для ${widget.workType}',
+    );
+
     setState(() {
       _items = items;
       _isLoading = false;
@@ -143,6 +254,12 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
 
   Future<void> _updatePrice(String itemId, double newPrice) async {
     await _priceService.updatePrice(widget.workType, itemId, newPrice);
+    // Синхронизируем с калькулятором
+    CostCalculator.updatePrice(widget.workType, itemId, newPrice);
+    AppLogger.info(
+      'PriceEdit',
+      'Цена обновлена: $itemId = $newPrice для ${widget.workType}',
+    );
     await _loadPrices();
   }
 
@@ -177,6 +294,18 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
         );
       }
     }
+  }
+
+  /// Синхронизировать текущие цены из PriceListService в CostCalculator
+  Future<void> _syncPricesToCalculator() async {
+    final items = await _priceService.getPriceList(widget.workType);
+    for (final item in items) {
+      CostCalculator.updatePrice(widget.workType, item.id, item.price);
+    }
+    AppLogger.info(
+      'PriceEdit',
+      'Синхронизировано ${items.length} позиций для ${widget.workType}',
+    );
   }
 
   Future<void> _showAddItemDialog() async {
@@ -294,9 +423,7 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.workTypeName),
-        ),
+        appBar: AppBar(title: Text(widget.workTypeName)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -455,8 +582,9 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
                                       if (item.formula != null &&
                                           item.formula!.isNotEmpty)
                                         Padding(
-                                          padding:
-                                              const EdgeInsets.only(top: 4),
+                                          padding: const EdgeInsets.only(
+                                            top: 4,
+                                          ),
                                           child: Text(
                                             'Формула: ${item.formula}',
                                             style: TextStyle(
@@ -480,9 +608,9 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
                                       isDense: true,
                                       contentPadding:
                                           const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 8,
-                                      ),
+                                            horizontal: 8,
+                                            vertical: 8,
+                                          ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -531,7 +659,6 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
           FilledButton(
             onPressed: () {
               Navigator.of(context).pop(true);
-              _doReset();
             },
             child: const Text('Сбросить'),
           ),
@@ -544,15 +671,19 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
     }
   }
 
-  void _doReset() {
-    _priceService.resetToDefault(widget.workType);
-    _loadPrices();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Цены сброшены'),
-        backgroundColor: Colors.green,
-      ),
-    );
+  Future<void> _doReset() async {
+    await _priceService.resetToDefault(widget.workType);
+    // Синхронизируем с калькулятором
+    await _syncPricesToCalculator();
+    await _loadPrices();
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Цены сброшены'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 }
 
@@ -580,55 +711,55 @@ final _priceCategories = [
     title: 'Окна',
     icon: Icons.window,
     color: Colors.blue,
-    items: 7,
+    items: 15,
   ),
   _PriceCategory(
     workType: 'doors',
     title: 'Двери',
     icon: Icons.door_front_door,
     color: Colors.brown,
-    items: 5,
+    items: 16,
   ),
   _PriceCategory(
     workType: 'air_conditioners',
     title: 'Кондиционеры',
     icon: Icons.ac_unit,
     color: Colors.cyan,
-    items: 5,
+    items: 13,
   ),
   _PriceCategory(
     workType: 'kitchens',
     title: 'Кухни',
     icon: Icons.kitchen,
     color: Colors.orange,
-    items: 5,
+    items: 18,
   ),
   _PriceCategory(
     workType: 'tiles',
     title: 'Плиточные работы',
     icon: Icons.grid_on,
     color: Colors.teal,
-    items: 6,
+    items: 19,
   ),
   _PriceCategory(
     workType: 'furniture',
     title: 'Мебельные блоки',
     icon: Icons.chair,
     color: Colors.deepPurple,
-    items: 6,
+    items: 21,
   ),
   _PriceCategory(
     workType: 'engineering',
     title: 'Инженерные системы',
     icon: Icons.plumbing,
     color: Colors.red,
-    items: 9,
+    items: 29,
   ),
   _PriceCategory(
     workType: 'electrical',
     title: 'Электрика',
     icon: Icons.electrical_services,
     color: Colors.amber,
-    items: 8,
+    items: 21,
   ),
 ];
