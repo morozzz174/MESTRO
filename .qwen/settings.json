@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter *)",
+      "Bash(findstr *)",
+      "Bash(gradlew.bat *)",
+      "Bash(dir *)",
+      "Bash(taskkill *)",
+      "Bash(timeout *)",
+      "Bash(gradle.bat *)",
+      "Bash(.\\gradlew.bat *)",
+      "Bash(dart *)",
+      "Bash(select-object *)",
+      "Bash(tasklist)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git rebase *)",
+      "Bash(git checkout *)",
+      "Bash(copy *)",
+      "Bash(xcopy *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(mkdir *)",
+      "Bash(echo.)",
+      "Bash(python *)",
+      "Bash(pip show *)",
+      "Bash(py *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Read(c:\\ИП Морозов\\FNS_7456_745013371800_cf7811851c634dbda91cee58b27cb1d1_ИП_04_36/**)"
+    ]
+  },
+  "$version": 3
+}
