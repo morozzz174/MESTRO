@@ -1,3 +1,5 @@
+import 'floor_plan_models.dart';
+
 /// Состояние редактора плана
 class EditorState {
   final List<RoomState> rooms;
@@ -21,6 +23,42 @@ class EditorState {
     this.plumbingFixtures = const [],
     this.electricalPoints = const [],
   });
+
+  /// Создание EditorState из FloorPlan
+  factory EditorState.fromFloorPlan(FloorPlan plan) {
+    return EditorState(
+      rooms: plan.rooms
+          .map((room) => RoomState(
+                id: DateTime.now().millisecondsSinceEpoch.toString() +
+                    room.type.name,
+                type: room.type.name,
+                x: room.x,
+                y: room.y,
+                width: room.width,
+                height: room.height,
+                doors: room.doors
+                    .map((d) => DoorState(
+                          id: d.x.toString() + d.y.toString(),
+                          x: d.x,
+                          y: d.y,
+                          width: d.width,
+                          type: d.type.name,
+                        ))
+                    .toList(),
+                windows: room.windows
+                    .map((w) => WindowState(
+                          id: w.x.toString() + w.y.toString(),
+                          x: w.x,
+                          y: w.y,
+                          width: w.width,
+                        ))
+                    .toList(),
+              ))
+          .toList(),
+      totalWidth: plan.totalWidth,
+      totalHeight: plan.totalHeight,
+    );
+  }
 
   EditorState copyWith({
     List<RoomState>? rooms,

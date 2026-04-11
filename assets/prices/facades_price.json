@@ -1,0 +1,19 @@
+{
+  "work_type": "facades",
+  "title": "Прайс-лист: Фасады",
+  "items": [
+    { "id": "facade_plaster", "name": "Фасадная штукатурка", "unit": "м²", "price": 1800, "formula": "facade_area" },
+    { "id": "facade_siding_vinyl", "name": "Виниловый сайдинг", "unit": "м²", "price": 1200, "formula": "facade_area" },
+    { "id": "facade_siding_metal", "name": "Металлический сайдинг", "unit": "м²", "price": 1500, "formula": "facade_area" },
+    { "id": "facade_clinker", "name": "Клинкерная плитка", "unit": "м²", "price": 2800, "formula": "facade_area" },
+    { "id": "facade_composite", "name": "Композитные панели", "unit": "м²", "price": 3200, "formula": "facade_area" },
+    { "id": "facade_porcelain", "name": "Керамогранит", "unit": "м²", "price": 3500, "formula": "facade_area" },
+    { "id": "facade_stone", "name": "Натуральный камень", "unit": "м²", "price": 4200, "formula": "facade_area" },
+    { "id": "insulation_facade", "name": "Утепление фасада", "unit": "м²", "price": 850, "formula": "facade_area" },
+    { "id": "decorative_elements", "name": "Декоративные элементы", "unit": "пог.м", "price": 1200, "formula": "facade_area*0.1" },
+    { "id": "scaffolding_facade", "name": "Леса для фасада", "unit": "компл.", "price": 18000, "formula": "1" },
+    { "id": "window_trims", "name": "Откосы оконные", "unit": "шт", "price": 2500, "formula": "facade_area*0.05" },
+    { "id": "base_finish", "name": "Отделка цоколя", "unit": "пог.м", "price": 2200, "formula": "facade_area*0.15" },
+    { "id": "labor_facade", "name": "Рабочая сила (фасад)", "unit": "компл.", "price": 25000, "formula": "1" }
+  ]
+}

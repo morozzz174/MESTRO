@@ -1,0 +1,16 @@
+{
+  "work_type": "metal_structures",
+  "title": "Прайс-лист: Металлоконструкции",
+  "items": [
+    { "id": "metal_fabrication", "name": "Изготовление металлоконструкций", "unit": "кг", "price": 180, "formula": "metal_weight" },
+    { "id": "metal_installation", "name": "Монтаж металлоконструкций", "unit": "кг", "price": 120, "formula": "metal_weight" },
+    { "id": "antikorrosion", "name": "Антикоррозийная обработка", "unit": "кг", "price": 65, "formula": "metal_weight" },
+    { "id": "bolt_connections", "name": "Болтовые соединения", "unit": "компл.", "price": 5500, "formula": "1" },
+    { "id": "welding_work", "name": "Сварочные работы", "unit": "пог.м", "price": 1500, "formula": "structure_length/1000*3" },
+    { "id": "concrete_foundation_metal", "name": "Бетонный фундамент (металлоконструкции)", "unit": "м³", "price": 6500, "formula": "structure_length/1000*structure_width/1000*0.5" },
+    { "id": "delivery_metal", "name": "Доставка металлоконструкций", "unit": "компл.", "price": 12000, "formula": "1" },
+    { "id": "crane_work", "name": "Крановые работы", "unit": "час", "price": 4500, "formula": "structure_height*2" },
+    { "id": "scaffolding_metal", "name": "Леса для металлоконструкций", "unit": "компл.", "price": 15000, "formula": "1" },
+    { "id": "labor_metal", "name": "Рабочая сила (металлоконструкции)", "unit": "компл.", "price": 20000, "formula": "1" }
+  ]
+}

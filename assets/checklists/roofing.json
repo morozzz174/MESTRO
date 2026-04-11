@@ -1,0 +1,23 @@
+{
+  "work_type": "roofing",
+  "title": "Кровля",
+  "fields": [
+    { "id": "roof_type", "type": "select", "label": "Тип кровли", "required": false, "options": ["Двускатная", "Четырёхскатная (вальмовая)", "Односкатная", "Плоская", "Мансардная", "Шатровая"] },
+    { "id": "roof_area", "type": "number", "label": "Площадь кровли", "required": true, "hint": "м²" },
+    { "id": "roof_material", "type": "select", "label": "Материал кровли", "required": false, "options": ["Металлочерепица", "Мягкая кровля (гибкая)", "Профнастил", "Фальцевая", "Ондулин", "Керамическая черепица"] },
+    { "id": "roof_slope_angle", "type": "number", "label": "Угол наклона ската", "required": false, "hint": "градусов" },
+    { "id": "rafter_step", "type": "number", "label": "Шаг стропил", "required": false, "hint": "мм" },
+    { "id": "has_insulation", "type": "boolean", "label": "Утепление кровли", "required": false },
+    { "id": "insulation_thickness", "type": "number", "label": "Толщина утеплителя", "required": false, "hint": "мм", "condition": { "field": "has_insulation", "operator": "equals", "value": true } },
+    { "id": "has_waterproofing_membrane", "type": "boolean", "label": "Гидроизоляционная мембрана", "required": false },
+    { "id": "has_vapor_barrier", "type": "boolean", "label": "Пароизоляция", "required": false },
+    { "id": "has_gutter", "type": "boolean", "label": "Водосточная система", "required": false },
+    { "id": "gutter_material", "type": "select", "label": "Материал водостока", "required": false, "options": ["Металл", "Пластик"], "condition": { "field": "has_gutter", "operator": "equals", "value": true } },
+    { "id": "ridge_type", "type": "select", "label": "Тип конька", "required": false, "options": ["Прямой", "Фигурный"] },
+    { "id": "has_snow_retention", "type": "boolean", "label": "Снегозадержатели", "required": false },
+    { "id": "building_width", "type": "number", "label": "Ширина здания", "required": false, "hint": "м" },
+    { "id": "building_length", "type": "number", "label": "Длина здания", "required": false, "hint": "м" },
+    { "id": "site_photo", "type": "photo", "label": "Фото кровли/объекта", "required": false },
+    { "id": "notes", "type": "text", "label": "Примечания", "required": false }
+  ]
+}

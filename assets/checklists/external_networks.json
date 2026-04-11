@@ -1,0 +1,23 @@
+{
+  "work_type": "external_networks",
+  "title": "Инженерные сети наружные",
+  "fields": [
+    { "id": "network_type", "type": "select", "label": "Тип сети", "required": false, "options": ["Водоснабжение", "Канализация", "Газоснабжение", "Электричество наружное", "Теплоснабжение"] },
+    { "id": "trench_length", "type": "number", "label": "Длина траншеи", "required": true, "hint": "м" },
+    { "id": "trench_depth", "type": "number", "label": "Глубина заложения", "required": true, "hint": "м" },
+    { "id": "trench_width", "type": "number", "label": "Ширина траншеи", "required": false, "hint": "мм" },
+    { "id": "pipe_material", "type": "select", "label": "Материал трубы", "required": false, "options": ["ПНД", "ПВХ", "Сталь", "Чугун", "Медь", "Полипропилен", "Стеклопластик"] },
+    { "id": "pipe_diameter", "type": "number", "label": "Диаметр трубы", "required": false, "hint": "мм" },
+    { "id": "has_wells", "type": "boolean", "label": "Колодцы/смотровые камеры", "required": false },
+    { "id": "wells_count", "type": "number", "label": "Количество колодцев", "required": false, "condition": { "field": "has_wells", "operator": "equals", "value": true } },
+    { "id": "well_material", "type": "select", "label": "Материал колодцев", "required": false, "options": ["Кольца Ж/Б", "Кирпич", "Пластик"], "condition": { "field": "has_wells", "operator": "equals", "value": true } },
+    { "id": "has_horizontal_boring", "type": "boolean", "label": "Горизонтальное бурение (ГНБ)", "required": false },
+    { "id": "boring_length", "type": "number", "label": "Длина бурения", "required": false, "hint": "м", "condition": { "field": "has_horizontal_boring", "operator": "equals", "value": true } },
+    { "id": "soil_type", "type": "select", "label": "Тип грунта", "required": false, "options": ["Песок", "Суглинок", "Глина", "Скальный"] },
+    { "id": "has_road_crossing", "type": "boolean", "label": "Пересечение дорог", "required": false },
+    { "id": "has_water_crossing", "type": "boolean", "label": "Пересечение водных преград", "required": false },
+    { "id": "restoration_work", "type": "boolean", "label": "Восстановление покрытия/благоустройство", "required": false },
+    { "id": "site_photo", "type": "photo", "label": "Фото трассы", "required": false },
+    { "id": "notes", "type": "text", "label": "Примечания", "required": false }
+  ]
+}

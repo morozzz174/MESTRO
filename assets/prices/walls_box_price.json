@@ -1,0 +1,15 @@
+{
+  "work_type": "walls_box",
+  "title": "Прайс-лист: Коробка (стены)",
+  "items": [
+    { "id": "wall_block", "name": "Кладка стен из блоков", "unit": "м²", "price": 2800, "formula": "perimeter*wall_height - (window_count*window_avg_width/1000*window_avg_height/1000) - (door_ext_count*1*2.1)" },
+    { "id": "insulation", "name": "Утепление стен", "unit": "м²", "price": 650, "formula": "perimeter*wall_height*0.8" },
+    { "id": "armo_poyas", "name": "Армопояс", "unit": "пог.м", "price": 1800, "formula": "perimeter" },
+    { "id": "window_openings", "name": "Оформление оконных проёмов", "unit": "шт", "price": 3500, "formula": "window_count" },
+    { "id": "door_openings", "name": "Оформление дверных проёмов", "unit": "шт", "price": 4200, "formula": "door_ext_count" },
+    { "id": "internal_walls", "name": "Внутренние стены", "unit": "м²", "price": 2400, "formula": "internal_wall_length*wall_height" },
+    { "id": "floor_slab_install", "name": "Монтаж плит перекрытия", "unit": "м²", "price": 2200, "formula": "perimeter*perimeter/4/100" },
+    { "id": "scaffolding", "name": "Строительные леса", "unit": "компл.", "price": 25000, "formula": "1" },
+    { "id": "labor_box", "name": "Рабочая сила (коробка)", "unit": "компл.", "price": 35000, "formula": "1" }
+  ]
+}

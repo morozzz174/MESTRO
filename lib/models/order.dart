@@ -9,7 +9,15 @@ enum WorkType {
   tiles('Плиточные работы', 'tiles'),
   furniture('Мебельные блоки', 'furniture'),
   engineering('Инженерные системы', 'engineering'),
-  electrical('Электрика', 'electrical');
+  electrical('Электрика', 'electrical'),
+  // Строительство ИЖС
+  foundations('Фундаменты', 'foundations'),
+  houseConstruction('Строительство ИЖС', 'house_construction'),
+  wallsBox('Коробка (стены)', 'walls_box'),
+  facades('Фасады', 'facades'),
+  roofing('Кровля', 'roofing'),
+  metalStructures('Металлоконструкции', 'metal_structures'),
+  externalNetworks('Инженерные сети наружные', 'external_networks');
 
   final String title;
   final String checklistFile;

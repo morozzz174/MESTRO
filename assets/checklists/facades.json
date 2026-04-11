@@ -1,0 +1,20 @@
+{
+  "work_type": "facades",
+  "title": "Фасады",
+  "fields": [
+    { "id": "facade_area", "type": "number", "label": "Общая площадь фасада", "required": true, "hint": "м²" },
+    { "id": "facade_type", "type": "select", "label": "Тип фасада", "required": false, "options": ["Штукатурка (мокрый)", "Сайдинг виниловый", "Сайдинг металлический", "Клинкерная плитка", "Композитные панели", "Керамогранит", "Декоративный камень"] },
+    { "id": "has_insulation", "type": "boolean", "label": "Утепление фасада", "required": false },
+    { "id": "insulation_material", "type": "select", "label": "Материал утеплителя", "required": false, "options": ["Минвата", "Пенополистирол", "Эковата"], "condition": { "field": "has_insulation", "operator": "equals", "value": true } },
+    { "id": "insulation_thickness", "type": "number", "label": "Толщина утеплителя", "required": false, "hint": "мм", "condition": { "field": "has_insulation", "operator": "equals", "value": true } },
+    { "id": "color_scheme", "type": "select", "label": "Цветовая схема", "required": false, "options": ["Светлая", "Тёмная", "Комбинированная"] },
+    { "id": "has_decor_elements", "type": "boolean", "label": "Декоративные элементы (карнизы, пилястры)", "required": false },
+    { "id": "needs_scaffolding", "type": "boolean", "label": "Нужны строительные леса", "required": false },
+    { "id": "scaffolding_height", "type": "number", "label": "Высота лесов", "required": false, "hint": "м", "condition": { "field": "needs_scaffolding", "operator": "equals", "value": true } },
+    { "id": "building_floors", "type": "select", "label": "Этажность", "required": false, "options": ["1", "2", "3"] },
+    { "id": "window_trim", "type": "boolean", "label": "Отделка откосов и отливов", "required": false },
+    { "id": "base_finish", "type": "select", "label": "Тип отделки цоколя", "required": false, "options": ["Штукатурка", "Клинкер", "Камень", "Не отделывается"] },
+    { "id": "site_photo", "type": "photo", "label": "Фото фасада", "required": false },
+    { "id": "notes", "type": "text", "label": "Примечания", "required": false }
+  ]
+}

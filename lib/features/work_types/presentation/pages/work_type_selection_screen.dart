@@ -177,6 +177,20 @@ class _WorkTypeSelectionScreenState extends State<WorkTypeSelectionScreen> {
         return Icons.plumbing;
       case WorkType.electrical:
         return Icons.electrical_services;
+      case WorkType.foundations:
+        return Icons.foundation;
+      case WorkType.houseConstruction:
+        return Icons.home;
+      case WorkType.wallsBox:
+        return Icons.meeting_room;
+      case WorkType.facades:
+        return Icons.apartment;
+      case WorkType.roofing:
+        return Icons.roofing;
+      case WorkType.metalStructures:
+        return Icons.hardware;
+      case WorkType.externalNetworks:
+        return Icons.cable;
     }
   }
 }

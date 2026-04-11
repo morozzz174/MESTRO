@@ -320,13 +320,21 @@ class FloorPlanRuleEngine {
     switch (order.workType) {
       case WorkType.windows:
       case WorkType.doors:
+      case WorkType.tiles:
         type = FloorPlanType.apartment;
         break;
       case WorkType.kitchens:
         type = FloorPlanType.studio;
         break;
-      case WorkType.tiles:
-        type = FloorPlanType.apartment;
+      // Строительство ИЖС → тип дома
+      case WorkType.foundations:
+      case WorkType.houseConstruction:
+      case WorkType.wallsBox:
+      case WorkType.facades:
+      case WorkType.roofing:
+      case WorkType.metalStructures:
+      case WorkType.externalNetworks:
+        type = FloorPlanType.house;
         break;
       default:
         type = FloorPlanType.apartment;

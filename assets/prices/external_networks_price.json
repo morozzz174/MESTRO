@@ -1,0 +1,20 @@
+{
+  "work_type": "external_networks",
+  "title": "Прайс-лист: Инженерные сети наружные",
+  "items": [
+    { "id": "trench_excavation", "name": "Разработка траншеи", "unit": "м³", "price": 1800, "formula": "trench_length*trench_depth*trench_width/1000" },
+    { "id": "pipe_installation", "name": "Прокладка труб", "unit": "пог.м", "price": 850, "formula": "trench_length" },
+    { "id": "pipe_pnd", "name": "Труба ПНД", "unit": "пог.м", "price": 350, "formula": "trench_length" },
+    { "id": "pipe_pvc", "name": "Труба ПВХ", "unit": "пог.м", "price": 280, "formula": "trench_length" },
+    { "id": "pipe_steel", "name": "Труба стальная", "unit": "пог.м", "price": 950, "formula": "trench_length" },
+    { "id": "pipe_cast_iron", "name": "Труба чугунная", "unit": "пог.м", "price": 1200, "formula": "trench_length" },
+    { "id": "pipe_copper", "name": "Труба медная", "unit": "пог.м", "price": 2500, "formula": "trench_length" },
+    { "id": "well_installation", "name": "Монтаж колодца", "unit": "шт", "price": 28000, "formula": "wells_count" },
+    { "id": "horizontal_boring", "name": "Горизонтальное бурение", "unit": "пог.м", "price": 4500, "formula": "boring_length" },
+    { "id": "road_crossing", "name": "Переход под дорогой", "unit": "шт", "price": 35000, "formula": "1" },
+    { "id": "water_crossing", "name": "Переход под водным препятствием", "unit": "шт", "price": 85000, "formula": "1" },
+    { "id": "backfill", "name": "Обратная засыпка", "unit": "м³", "price": 650, "formula": "trench_length*trench_depth*trench_width/1000" },
+    { "id": "restoration_work", "name": "Восстановительные работы", "unit": "компл.", "price": 25000, "formula": "1" },
+    { "id": "labor_networks", "name": "Рабочая сила (сети)", "unit": "компл.", "price": 18000, "formula": "1" }
+  ]
+}

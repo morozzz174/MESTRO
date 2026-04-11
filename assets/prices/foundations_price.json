@@ -1,0 +1,16 @@
+{
+  "work_type": "foundations",
+  "title": "Прайс-лист: Фундаменты",
+  "items": [
+    { "id": "concrete_work", "name": "Бетонные работы", "unit": "м³", "price": 5500, "formula": "length/1000*width/1000*depth/1000" },
+    { "id": "formwork", "name": "Устройство опалубки", "unit": "м²", "price": 800, "formula": "(length+width)/1000*height/1000*2" },
+    { "id": "reinforcement", "name": "Армирование", "unit": "кг", "price": 95, "formula": "(length+width)/1000*4*1.5" },
+    { "id": "sand_cushion", "name": "Песчаная подушка", "unit": "м³", "price": 1200, "formula": "length/1000*width/1000*0.3" },
+    { "id": "waterproofing", "name": "Гидроизоляция", "unit": "м²", "price": 450, "formula": "length/1000*width/1000" },
+    { "id": "excavation", "name": "Земляные работы (котлован)", "unit": "м³", "price": 2500, "formula": "length/1000*width/1000*depth/1000" },
+    { "id": "drainage", "name": "Дренажная система", "unit": "пог.м", "price": 1800, "formula": "length/1000" },
+    { "id": "geotextile", "name": "Геотекстиль", "unit": "м²", "price": 180, "formula": "length/1000*width/1000" },
+    { "id": "delivery_concrete", "name": "Доставка бетона", "unit": "м³", "price": 500, "formula": "1" },
+    { "id": "labor_foundation", "name": "Рабочая сила (фундамент)", "unit": "компл.", "price": 15000, "formula": "1" }
+  ]
+}

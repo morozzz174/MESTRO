@@ -23,7 +23,7 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -131,6 +131,18 @@ class DatabaseHelper {
         'CREATE INDEX IF NOT EXISTS idx_payment_order ON payments (order_id)',
       );
     }
+    if (oldVersion < 9) {
+      // Миграция v8 -> v9: добавляем премиум-поля в users
+      await db.execute(
+        'ALTER TABLE users ADD COLUMN is_premium INTEGER DEFAULT 0',
+      );
+      await db.execute(
+        'ALTER TABLE users ADD COLUMN premium_until TEXT',
+      );
+      await db.execute(
+        'ALTER TABLE users ADD COLUMN premium_activated_at TEXT',
+      );
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -144,6 +156,9 @@ class DatabaseHelper {
         consent_version TEXT NOT NULL,
         selected_work_types TEXT DEFAULT '',
         avatar_path TEXT,
+        is_premium INTEGER DEFAULT 0,
+        premium_until TEXT,
+        premium_activated_at TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )

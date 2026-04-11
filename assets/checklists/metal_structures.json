@@ -1,0 +1,22 @@
+{
+  "work_type": "metal_structures",
+  "title": "Металлоконструкции",
+  "fields": [
+    { "id": "structure_type", "type": "select", "label": "Тип конструкции", "required": false, "options": ["Каркас здания", "Навес/козырёк", "Ангар/склад", "Металлическая лестница", "Ограждения/перила", "Ворота/калитка", "Прочее"] },
+    { "id": "structure_length", "type": "number", "label": "Длина конструкции", "required": true, "hint": "мм" },
+    { "id": "structure_width", "type": "number", "label": "Ширина конструкции", "required": false, "hint": "мм" },
+    { "id": "structure_height", "type": "number", "label": "Высота конструкции", "required": false, "hint": "мм" },
+    { "id": "metal_weight", "type": "number", "label": "Ориентировочный вес металла", "required": false, "hint": "кг" },
+    { "id": "metal_profile", "type": "select", "label": "Профиль металла", "required": false, "options": ["Профильная труба", "Двутавр", "Швеллер", "Уголок", "Круглая труба", "Листовой прокат"] },
+    { "id": "has_antikorrosion", "type": "boolean", "label": "Антикоррозийная обработка", "required": false },
+    { "id": "antikorrosion_type", "type": "select", "label": "Тип антикоррозийной обработки", "required": false, "options": ["Грунт-эмаль", "Грунт + краска", "Горячее цинкование"], "condition": { "field": "has_antikorrosion", "operator": "equals", "value": true } },
+    { "id": "connection_type", "type": "select", "label": "Тип соединений", "required": false, "options": ["Болтовые", "Сварные", "Болто-сварные", "Заклёпки"] },
+    { "id": "has_concrete_foundation", "type": "boolean", "label": "Нужен фундамент", "required": false },
+    { "id": "foundation_type", "type": "select", "label": "Тип фундамента", "required": false, "options": ["Столбчатый", "Ленточный", "Свайный"], "condition": { "field": "has_concrete_foundation", "operator": "equals", "value": true } },
+    { "id": "installation_height", "type": "number", "label": "Высота монтажа", "required": false, "hint": "м" },
+    { "id": "has_delivery", "type": "boolean", "label": "Требуется доставка", "required": false },
+    { "id": "site_access", "type": "select", "label": "Подъезд к объекту", "required": false, "options": ["Асфальт", "Грунт", "Ограничен", "Затруднён"] },
+    { "id": "site_photo", "type": "photo", "label": "Фото объекта", "required": false },
+    { "id": "notes", "type": "text", "label": "Примечания", "required": false }
+  ]
+}

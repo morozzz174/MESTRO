@@ -184,6 +184,102 @@ class CostCalculator {
       'cctv_point': 5000.0, // точка видеонаблюдения
       'smart_home_point': 3000.0, // точка умного дома
     },
+    // ===== Строительство ИЖС =====
+    'foundations': {
+      'concrete_work': 5500.0, // бетонные работы за м³
+      'formwork': 800.0, // опалубка за м²
+      'reinforcement': 95.0, // арматура за кг
+      'sand_cushion': 1200.0, // песчаная подушка за м³
+      'waterproofing': 450.0, // гидроизоляция за м²
+      'excavation': 2500.0, // земляные работы за м³
+      'drainage': 1800.0, // дренаж за пог.м
+      'geotextile': 180.0, // геотекстиль за м²
+      'delivery_concrete': 500.0, // доставка бетона за м³
+      'labor_foundation': 15000.0, // работа за компл.
+    },
+    'house_construction': {
+      'wall_construction': 3500.0, // возведение стен за м²
+      'ceiling_installation': 1200.0, // перекрытия за м²
+      'partition_install': 900.0, // перегородки за м²
+      'roof_installation': 2800.0, // кровля за м²
+      'window_installation': 8500.0, // установка окон за шт
+      'door_installation': 6500.0, // установка дверей за шт
+      'rough_finish': 1800.0, // черновая отделка за м²
+      'garage_construction': 4200.0, // гараж за м²
+      'basement_construction': 5500.0, // подвал за м²
+      'project_management': 85000.0, // управление проектом
+      'site_preparation': 45000.0, // подготовка площадки
+    },
+    'walls_box': {
+      'wall_block': 2800.0, // кладка блока за м²
+      'insulation': 650.0, // утепление за м²
+      'armo_poyas': 1800.0, // армопояс за пог.м
+      'window_openings': 3500.0, // оформление оконных проёмов за шт
+      'door_openings': 4200.0, // оформление дверных проёмов за шт
+      'internal_walls': 2400.0, // внутренние стены за м²
+      'floor_slab_install': 2200.0, // монтаж плит за м²
+      'scaffolding': 25000.0, // леса за компл.
+      'labor_box': 35000.0, // работа за компл.
+    },
+    'facades': {
+      'facade_plaster': 1800.0, // штукатурка за м²
+      'facade_siding_vinyl': 1200.0, // виниловый сайдинг за м²
+      'facade_siding_metal': 1500.0, // металлический сайдинг за м²
+      'facade_clinker': 2800.0, // клинкер за м²
+      'facade_composite': 3200.0, // композит за м²
+      'facade_porcelain': 3500.0, // керамогранит за м²
+      'facade_stone': 4200.0, // декор. камень за м²
+      'insulation_facade': 850.0, // утепление фасада за м²
+      'decorative_elements': 1200.0, // декор элементы за пог.м
+      'scaffolding_facade': 18000.0, // леса за компл.
+      'window_trims': 2500.0, // откосы/отливы за шт
+      'base_finish': 2200.0, // отделка цоколя за пог.м
+      'labor_facade': 25000.0, // работа за компл.
+    },
+    'roofing': {
+      'roof_metal_tile': 950.0, // металлочерепица за м²
+      'roof_soft': 1200.0, // мягкая кровля за м²
+      'roof_prof': 750.0, // профнастил за м²
+      'roof_seam': 1400.0, // фальцевая за м²
+      'roof_ondulin': 650.0, // ондулин за м²
+      'roof_ceramic': 2200.0, // керамическая за м²
+      'rafter_system': 1500.0, // стропильная система за м²
+      'roof_insulation': 750.0, // утепление кровли за м²
+      'waterproofing_membrane': 350.0, // гидро-мембрана за м²
+      'vapor_barrier': 250.0, // пароизоляция за м²
+      'gutter_system': 850.0, // водосток за пог.м
+      'ridge': 650.0, // конёк за пог.м
+      'snow_retention': 3500.0, // снегозадержатели за шт
+      'labor_roofing': 30000.0, // работа за компл.
+    },
+    'metal_structures': {
+      'metal_fabrication': 180.0, // изготовление за кг
+      'metal_installation': 120.0, // монтаж за кг
+      'antikorrosion': 65.0, // антикоррозийная за кг
+      'bolt_connections': 5500.0, // болтовые соединения компл.
+      'welding_work': 1500.0, // сварка за пог.м
+      'concrete_foundation_metal': 6500.0, // фундамент под конструкцию за м³
+      'delivery_metal': 12000.0, // доставка металла
+      'crane_work': 4500.0, // крановые работы за час
+      'scaffolding_metal': 15000.0, // леса за компл.
+      'labor_metal': 20000.0, // работа за компл.
+    },
+    'external_networks': {
+      'trench_excavation': 1800.0, // земляные работы за м³
+      'pipe_installation': 850.0, // прокладка трубы за пог.м
+      'pipe_pnd': 350.0, // труба ПНД за пог.м
+      'pipe_pvc': 280.0, // труба ПВХ за пог.м
+      'pipe_steel': 950.0, // труба стальная за пог.м
+      'pipe_cast_iron': 1200.0, // труба чугунная за пог.м
+      'pipe_copper': 2500.0, // труба медная за пог.м
+      'well_installation': 28000.0, // монтаж колодца за шт
+      'horizontal_boring': 4500.0, // ГНБ за пог.м
+      'road_crossing': 35000.0, // пересечение дороги
+      'water_crossing': 85000.0, // пересечение воды
+      'backfill': 650.0, // обратная засыпка за м³
+      'restoration_work': 25000.0, // восстановление покрытия
+      'labor_networks': 18000.0, // работа за компл.
+    },
   };
 
   /// Текущие цены (могут быть переопределены из UI)
@@ -244,6 +340,27 @@ class CostCalculator {
         break;
       case WorkType.electrical:
         total = _calculateElectrical(data, prices);
+        break;
+      case WorkType.foundations:
+        total = _calculateFoundations(data, prices);
+        break;
+      case WorkType.houseConstruction:
+        total = _calculateHouseConstruction(data, prices);
+        break;
+      case WorkType.wallsBox:
+        total = _calculateWallsBox(data, prices);
+        break;
+      case WorkType.facades:
+        total = _calculateFacades(data, prices);
+        break;
+      case WorkType.roofing:
+        total = _calculateRoofing(data, prices);
+        break;
+      case WorkType.metalStructures:
+        total = _calculateMetalStructures(data, prices);
+        break;
+      case WorkType.externalNetworks:
+        total = _calculateExternalNetworks(data, prices);
         break;
     }
 
@@ -1071,5 +1188,446 @@ class CostCalculator {
     }
 
     return total;
+  }
+
+  // ===== Расчёты для строительства ИЖС =====
+
+  static double _calculateFoundations(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final length = (data['foundation_length'] as num?)?.toDouble() ?? 0;
+    final width = (data['foundation_width'] as num?)?.toDouble() ?? 0;
+    final depth = (data['foundation_depth'] as num?)?.toDouble() ?? 0;
+    final height = (data['foundation_height'] as num?)?.toDouble() ?? 500;
+
+    // Объём бетона (м³)
+    final concreteVolume = length / 1000 * width / 1000 * depth / 1000;
+    total += concreteVolume * (prices['concrete_work'] ?? 0);
+
+    // Опалубка (м²) — периметр * высота
+    final formworkArea =
+        (length + width) / 1000 * (depth + height) / 1000 * 2;
+    total += formworkArea * (prices['formwork'] ?? 0);
+
+    // Арматура (приблизительно: 4 продольных стержня * длина)
+    if (data['has_reinforcement'] == true) {
+      final reinfLength = (length + width) / 1000 * 4 * 1.5; // 4 прутка + перехлёст
+      total += reinfLength * (prices['reinforcement'] ?? 0);
+    }
+
+    // Песчаная подушка
+    if (data['has_sand_cushion'] == true) {
+      final sandVolume = length / 1000 * width / 1000 * 0.3;
+      total += sandVolume * (prices['sand_cushion'] ?? 0);
+    }
+
+    // Гидроизоляция
+    if (data['has_waterproofing'] == true) {
+      final waterproofArea = length / 1000 * width / 1000;
+      total += waterproofArea * (prices['waterproofing'] ?? 0);
+    }
+
+    // Земляные работы
+    total += concreteVolume * (prices['excavation'] ?? 0);
+
+    // Дренаж
+    if (data['has_drainage'] == true) {
+      total += length / 1000 * (prices['drainage'] ?? 0);
+    }
+
+    // Геотекстиль
+    total += length / 1000 * width / 1000 * (prices['geotextile'] ?? 0);
+
+    // Доставка бетона
+    total += concreteVolume * (prices['delivery_concrete'] ?? 0);
+
+    // Работа
+    total += prices['labor_foundation'] ?? 0;
+
+    return total;
+  }
+
+  static double _calculateHouseConstruction(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final houseArea = (data['house_area'] as num?)?.toDouble() ?? 0;
+    final floorsCount = _parseSelectCount(data['floors_count']);
+
+    // Стены (площадь стен ≈ 40% площади этажа * этажность)
+    final wallArea = houseArea * 0.4 * floorsCount;
+    total += wallArea * (prices['wall_construction'] ?? 0);
+
+    // Перекрытия
+    total += houseArea * (prices['ceiling_installation'] ?? 0);
+
+    // Перегородки (≈ 15% площади этажа)
+    total += houseArea * 0.15 * (prices['partition_install'] ?? 0);
+
+    // Кровля (площадь кровли ≈ 60% площади дома)
+    total += houseArea * 0.6 * (prices['roof_installation'] ?? 0);
+
+    // Окна
+    final windowCount = (data['window_count'] as num?)?.toDouble() ?? 0;
+    total += windowCount * (prices['window_installation'] ?? 0);
+
+    // Двери
+    final doorCount = (data['door_count'] as num?)?.toDouble() ?? 0;
+    total += doorCount * (prices['door_installation'] ?? 0);
+
+    // Черновая отделка
+    if (data['rough_finish'] == true) {
+      total += houseArea * floorsCount * (prices['rough_finish'] ?? 0);
+    }
+
+    // Гараж
+    if (data['has_garage'] == true) {
+      final garageArea = (data['garage_area'] as num?)?.toDouble() ?? 0;
+      total += garageArea * (prices['garage_construction'] ?? 0);
+    }
+
+    // Подвал
+    if (data['has_basement'] == true) {
+      total += houseArea * 0.3 * (prices['basement_construction'] ?? 0);
+    }
+
+    // Управление проектом и подготовка площадки
+    total += prices['project_management'] ?? 0;
+    total += prices['site_preparation'] ?? 0;
+
+    return total;
+  }
+
+  static double _calculateWallsBox(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final perimeter = (data['perimeter'] as num?)?.toDouble() ?? 0;
+    final wallHeight = (data['wall_height'] as num?)?.toDouble() ?? 0;
+    final wallArea = perimeter * wallHeight;
+
+    // Вычет проёмов
+    final windowCount = (data['window_count'] as num?)?.toDouble() ?? 0;
+    final windowAvgW = (data['window_avg_width'] as num?)?.toDouble() ?? 1200;
+    final windowAvgH = (data['window_avg_height'] as num?)?.toDouble() ?? 1400;
+    final windowArea = windowCount * windowAvgW / 1000 * windowAvgH / 1000;
+
+    final doorCount = (data['door_ext_count'] as num?)?.toDouble() ?? 0;
+    final doorArea = doorCount * 1.0 * 2.1;
+
+    final netWallArea = wallArea - windowArea - doorArea;
+    total += netWallArea * (prices['wall_block'] ?? 0);
+
+    // Утепление
+    total += wallArea * 0.8 * (prices['insulation'] ?? 0);
+
+    // Армопояс
+    if (data['has_armo_poyas'] == true) {
+      total += perimeter * (prices['armo_poyas'] ?? 0);
+    }
+
+    // Оформление проёмов
+    total += windowCount * (prices['window_openings'] ?? 0);
+    total += doorCount * (prices['door_openings'] ?? 0);
+
+    // Внутренние несущие стены
+    if (data['has_internal_walls'] == true) {
+      final intWallLength = (data['internal_wall_length'] as num?)?.toDouble() ?? 0;
+      total += intWallLength * wallHeight * (prices['internal_walls'] ?? 0);
+    }
+
+    // Плиты перекрытия (приблизительная площадь = периметр²/4)
+    final floorArea = perimeter * perimeter / 4 / 100;
+    total += floorArea * (prices['floor_slab_install'] ?? 0);
+
+    // Леса
+    total += prices['scaffolding'] ?? 0;
+
+    // Работа
+    total += prices['labor_box'] ?? 0;
+
+    return total;
+  }
+
+  static double _calculateFacades(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final facadeArea = (data['facade_area'] as num?)?.toDouble() ?? 0;
+
+    // Отделка фасада — выбираем по типу
+    final facadeType = data['facade_type'] as String?;
+    switch (facadeType) {
+      case 'Штукатурка (мокрый)':
+        total += facadeArea * (prices['facade_plaster'] ?? 0);
+        break;
+      case 'Сайдинг виниловый':
+        total += facadeArea * (prices['facade_siding_vinyl'] ?? 0);
+        break;
+      case 'Сайдинг металлический':
+        total += facadeArea * (prices['facade_siding_metal'] ?? 0);
+        break;
+      case 'Клинкерная плитка':
+        total += facadeArea * (prices['facade_clinker'] ?? 0);
+        break;
+      case 'Композитные панели':
+        total += facadeArea * (prices['facade_composite'] ?? 0);
+        break;
+      case 'Керамогранит':
+        total += facadeArea * (prices['facade_porcelain'] ?? 0);
+        break;
+      case 'Декоративный камень':
+        total += facadeArea * (prices['facade_stone'] ?? 0);
+        break;
+      default:
+        total += facadeArea * (prices['facade_plaster'] ?? 0);
+    }
+
+    // Утепление
+    if (data['has_insulation'] == true) {
+      total += facadeArea * (prices['insulation_facade'] ?? 0);
+    }
+
+    // Декоративные элементы
+    if (data['has_decor_elements'] == true) {
+      total += facadeArea * 0.1 * (prices['decorative_elements'] ?? 0);
+    }
+
+    // Леса
+    if (data['needs_scaffolding'] == true) {
+      total += prices['scaffolding_facade'] ?? 0;
+    }
+
+    // Откосы и отливы
+    if (data['window_trim'] == true) {
+      total += facadeArea * 0.05 * (prices['window_trims'] ?? 0);
+    }
+
+    // Цоколь
+    final baseFinish = data['base_finish'] as String?;
+    if (baseFinish != null && baseFinish != 'Не отделывается') {
+      total += facadeArea * 0.15 * (prices['base_finish'] ?? 0);
+    }
+
+    // Работа
+    total += prices['labor_facade'] ?? 0;
+
+    return total;
+  }
+
+  static double _calculateRoofing(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final roofArea = (data['roof_area'] as num?)?.toDouble() ?? 0;
+    final buildingWidth = (data['building_width'] as num?)?.toDouble() ?? 0;
+    final buildingLength = (data['building_length'] as num?)?.toDouble() ?? 0;
+
+    // Кровельный материал
+    final roofMaterial = data['roof_material'] as String?;
+    switch (roofMaterial) {
+      case 'Металлочерепица':
+        total += roofArea * (prices['roof_metal_tile'] ?? 0);
+        break;
+      case 'Мягкая кровля (гибкая)':
+        total += roofArea * (prices['roof_soft'] ?? 0);
+        break;
+      case 'Профнастил':
+        total += roofArea * (prices['roof_prof'] ?? 0);
+        break;
+      case 'Фальцевая':
+        total += roofArea * (prices['roof_seam'] ?? 0);
+        break;
+      case 'Ондулин':
+        total += roofArea * (prices['roof_ondulin'] ?? 0);
+        break;
+      case 'Керамическая черепица':
+        total += roofArea * (prices['roof_ceramic'] ?? 0);
+        break;
+      default:
+        total += roofArea * (prices['roof_metal_tile'] ?? 0);
+    }
+
+    // Стропильная система
+    total += roofArea * (prices['rafter_system'] ?? 0);
+
+    // Утепление
+    if (data['has_insulation'] == true) {
+      total += roofArea * (prices['roof_insulation'] ?? 0);
+    }
+
+    // Гидро-мембрана
+    if (data['has_waterproofing_membrane'] == true) {
+      total += roofArea * (prices['waterproofing_membrane'] ?? 0);
+    }
+
+    // Пароизоляция
+    if (data['has_vapor_barrier'] == true) {
+      total += roofArea * (prices['vapor_barrier'] ?? 0);
+    }
+
+    // Водосток
+    if (data['has_gutter'] == true) {
+      final gutterLength = (buildingWidth + buildingLength) / 1000 * 2;
+      total += gutterLength * (prices['gutter_system'] ?? 0);
+    }
+
+    // Конёк
+    total += buildingLength / 1000 * (prices['ridge'] ?? 0);
+
+    // Снегозадержатели
+    if (data['has_snow_retention'] == true) {
+      total += (roofArea / 20).ceil() * (prices['snow_retention'] ?? 0);
+    }
+
+    // Работа
+    total += prices['labor_roofing'] ?? 0;
+
+    return total;
+  }
+
+  static double _calculateMetalStructures(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final metalWeight = (data['metal_weight'] as num?)?.toDouble() ?? 0;
+    final structLength = (data['structure_length'] as num?)?.toDouble() ?? 0;
+    final structHeight = (data['structure_height'] as num?)?.toDouble() ?? 0;
+
+    // Изготовление металлоконструкций
+    total += metalWeight * (prices['metal_fabrication'] ?? 0);
+
+    // Монтаж
+    total += metalWeight * (prices['metal_installation'] ?? 0);
+
+    // Антикоррозийная обработка
+    if (data['has_antikorrosion'] == true) {
+      total += metalWeight * (prices['antikorrosion'] ?? 0);
+    }
+
+    // Сварка
+    total += structLength / 1000 * 3 * (prices['welding_work'] ?? 0);
+
+    // Болтовые соединения
+    total += prices['bolt_connections'] ?? 0;
+
+    // Фундамент под конструкцию
+    if (data['has_concrete_foundation'] == true) {
+      final structWidth = (data['structure_width'] as num?)?.toDouble() ?? 0;
+      final foundationVolume =
+          structLength / 1000 * structWidth / 1000 * 0.5;
+      total += foundationVolume * (prices['concrete_foundation_metal'] ?? 0);
+    }
+
+    // Доставка
+    if (data['has_delivery'] == true) {
+      total += prices['delivery_metal'] ?? 0;
+    }
+
+    // Крановые работы (зависит от высоты)
+    total += structHeight * 2 * (prices['crane_work'] ?? 0);
+
+    // Леса (если высота > 3м)
+    if (structHeight > 3000) {
+      total += prices['scaffolding_metal'] ?? 0;
+    }
+
+    // Работа
+    total += prices['labor_metal'] ?? 0;
+
+    return total;
+  }
+
+  static double _calculateExternalNetworks(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final trenchLength = (data['trench_length'] as num?)?.toDouble() ?? 0;
+    final trenchDepth = (data['trench_depth'] as num?)?.toDouble() ?? 0;
+    final trenchWidth = (data['trench_width'] as num?)?.toDouble() ?? 600;
+
+    // Земляные работы (м³)
+    final trenchVolume = trenchLength * trenchDepth * trenchWidth / 1000;
+    total += trenchVolume * (prices['trench_excavation'] ?? 0);
+
+    // Прокладка трубы (пог.м)
+    total += trenchLength * (prices['pipe_installation'] ?? 0);
+
+    // Материал трубы
+    final pipeMaterial = data['pipe_material'] as String?;
+    switch (pipeMaterial) {
+      case 'ПНД':
+        total += trenchLength * (prices['pipe_pnd'] ?? 0);
+        break;
+      case 'ПВХ':
+        total += trenchLength * (prices['pipe_pvc'] ?? 0);
+        break;
+      case 'Сталь':
+        total += trenchLength * (prices['pipe_steel'] ?? 0);
+        break;
+      case 'Чугун':
+        total += trenchLength * (prices['pipe_cast_iron'] ?? 0);
+        break;
+      case 'Медь':
+        total += trenchLength * (prices['pipe_copper'] ?? 0);
+        break;
+      case 'Полипропилен':
+      case 'Стеклопластик':
+        total += trenchLength * (prices['pipe_pnd'] ?? 0);
+        break;
+    }
+
+    // Колодцы
+    if (data['has_wells'] == true) {
+      final wellsCount = (data['wells_count'] as num?)?.toDouble() ?? 0;
+      total += wellsCount * (prices['well_installation'] ?? 0);
+    }
+
+    // Горизонтальное бурение
+    if (data['has_horizontal_boring'] == true) {
+      final boringLength = (data['boring_length'] as num?)?.toDouble() ?? 0;
+      total += boringLength * (prices['horizontal_boring'] ?? 0);
+    }
+
+    // Пересечение дорог
+    if (data['has_road_crossing'] == true) {
+      total += prices['road_crossing'] ?? 0;
+    }
+
+    // Пересечение воды
+    if (data['has_water_crossing'] == true) {
+      total += prices['water_crossing'] ?? 0;
+    }
+
+    // Обратная засыпка
+    total += trenchVolume * (prices['backfill'] ?? 0);
+
+    // Восстановление покрытия
+    if (data['restoration_work'] == true) {
+      total += prices['restoration_work'] ?? 0;
+    }
+
+    // Работа
+    total += prices['labor_networks'] ?? 0;
+
+    return total;
+  }
+
+  /// Парсинг select-значения с количеством этажей
+  static int _parseSelectCount(dynamic value) {
+    if (value == null) return 1;
+    final str = value.toString();
+    if (str.contains('1.5')) return 2;
+    if (str.contains('2')) return 2;
+    if (str.contains('3')) return 3;
+    return 1;
   }
 }

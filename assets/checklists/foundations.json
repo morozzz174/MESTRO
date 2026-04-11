@@ -1,0 +1,170 @@
+{
+  "work_type": "foundations",
+  "title": "Замер фундамента",
+  "fields": [
+    {
+      "id": "foundation_type",
+      "type": "select",
+      "label": "Тип фундамента",
+      "required": true,
+      "options": ["Ленточный", "Свайный", "Плитный", "Столбчатый"]
+    },
+    {
+      "id": "foundation_length",
+      "type": "number",
+      "label": "Длина фундамента",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "foundation_width",
+      "type": "number",
+      "label": "Ширина фундамента",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "foundation_depth",
+      "type": "number",
+      "label": "Глубина заложения",
+      "required": true,
+      "hint": "мм"
+    },
+    {
+      "id": "foundation_height",
+      "type": "number",
+      "label": "Высота над землёй (цоколь)",
+      "required": false,
+      "hint": "мм"
+    },
+    {
+      "id": "wall_thickness",
+      "type": "number",
+      "label": "Толщина стен фундамента",
+      "required": false,
+      "hint": "мм"
+    },
+    {
+      "id": "has_sand_cushion",
+      "type": "boolean",
+      "label": "Песчаная подушка",
+      "required": false
+    },
+    {
+      "id": "sand_cushion_thickness",
+      "type": "number",
+      "label": "Толщина песчаной подушки",
+      "required": false,
+      "hint": "мм",
+      "condition": {
+        "field": "has_sand_cushion",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_reinforcement",
+      "type": "boolean",
+      "label": "Армирование",
+      "required": false
+    },
+    {
+      "id": "reinforcement_diameter",
+      "type": "number",
+      "label": "Диаметр арматуры",
+      "required": false,
+      "hint": "мм",
+      "condition": {
+        "field": "has_reinforcement",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "reinforcement_layers",
+      "type": "number",
+      "label": "Количество слоёв арматуры",
+      "required": false,
+      "condition": {
+        "field": "has_reinforcement",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "concrete_grade",
+      "type": "select",
+      "label": "Марка бетона",
+      "required": true,
+      "options": ["М200", "М250", "М300", "М350", "М400"]
+    },
+    {
+      "id": "has_formwork",
+      "type": "boolean",
+      "label": "Опалубка",
+      "required": false
+    },
+    {
+      "id": "formwork_material",
+      "type": "select",
+      "label": "Материал опалубки",
+      "required": false,
+      "options": ["Доска", "Фанера", "Металлическая"],
+      "condition": {
+        "field": "has_formwork",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_waterproofing",
+      "type": "boolean",
+      "label": "Гидроизоляция",
+      "required": false
+    },
+    {
+      "id": "waterproofing_type",
+      "type": "select",
+      "label": "Тип гидроизоляции",
+      "required": false,
+      "options": ["Обмазочная", "Оклеечная", "Проникающая"],
+      "condition": {
+        "field": "has_waterproofing",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_drainage",
+      "type": "boolean",
+      "label": "Дренажная система",
+      "required": false
+    },
+    {
+      "id": "soil_type",
+      "type": "select",
+      "label": "Тип грунта",
+      "required": true,
+      "options": ["Песок", "Суглинок", "Глина", "Скальный", "Насыпной"]
+    },
+    {
+      "id": "groundwater_level",
+      "type": "number",
+      "label": "Уровень грунтовых вод",
+      "required": false,
+      "hint": "м"
+    },
+    {
+      "id": "site_photo",
+      "type": "photo",
+      "label": "Фото участка",
+      "required": false
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "required": false
+    }
+  ]
+}

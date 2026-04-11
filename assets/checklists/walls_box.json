@@ -1,0 +1,22 @@
+{
+  "work_type": "walls_box",
+  "title": "Коробка (стены)",
+  "fields": [
+    { "id": "perimeter", "type": "number", "label": "Периметр здания", "required": true, "hint": "м" },
+    { "id": "wall_height", "type": "number", "label": "Высота стен", "required": true, "hint": "м" },
+    { "id": "wall_material", "type": "select", "label": "Материал стен", "required": false, "options": ["Газоблок D400", "Газоблок D500", "Кирпич керамический", "Кирпич силикатный", "Керамоблок", "Каркас (OSB)", "SIP-панели"] },
+    { "id": "wall_thickness", "type": "number", "label": "Толщина стены", "required": false, "hint": "мм" },
+    { "id": "insulation_thickness", "type": "number", "label": "Толщина утеплителя", "required": false, "hint": "мм" },
+    { "id": "has_armo_poyas", "type": "boolean", "label": "Армопояс", "required": false },
+    { "id": "armo_poyas_height", "type": "number", "label": "Высота армопояса", "required": false, "hint": "мм", "condition": { "field": "has_armo_poyas", "operator": "equals", "value": true } },
+    { "id": "window_count", "type": "number", "label": "Количество оконных проёмов", "required": false },
+    { "id": "window_avg_width", "type": "number", "label": "Средняя ширина окна", "required": false, "hint": "мм" },
+    { "id": "window_avg_height", "type": "number", "label": "Средняя высота окна", "required": false, "hint": "мм" },
+    { "id": "door_ext_count", "type": "number", "label": "Количество входных дверей", "required": false },
+    { "id": "has_internal_walls", "type": "boolean", "label": "Внутренние несущие стены", "required": false },
+    { "id": "internal_wall_length", "type": "number", "label": "Длина внутренних стен", "required": false, "hint": "м", "condition": { "field": "has_internal_walls", "operator": "equals", "value": true } },
+    { "id": "floor_slab_type", "type": "select", "label": "Тип перекрытия", "required": false, "options": ["Ж/Б плиты", "Деревянные", "Пустотные"] },
+    { "id": "site_photo", "type": "photo", "label": "Фото объекта", "required": false },
+    { "id": "notes", "type": "text", "label": "Примечания", "required": false }
+  ]
+}

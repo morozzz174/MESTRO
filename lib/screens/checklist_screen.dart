@@ -8,12 +8,14 @@ import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import '../features/profile/presentation/widgets/ai_agent_button.dart';
+import '../models/checklist_config.dart';
+import '../utils/checklist_loader.dart';
 import '../bloc/order_bloc.dart';
 import '../bloc/order_event.dart';
 import '../bloc/checklist_bloc.dart';
 import '../bloc/checklist_event.dart';
 import '../models/order.dart';
-import '../models/checklist_config.dart';
 import '../utils/app_design.dart';
 import '../utils/condition_evaluator.dart';
 import '../utils/location_helper.dart';
@@ -90,13 +92,41 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
         estimatedCost: _order.estimatedCost,
         paidAmount: _order.paidAmount,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _takePhoto,
-        icon: const Icon(Icons.camera_alt),
-        label: const Text('Фото'),
-        backgroundColor: AppDesign.accentTeal,
-        foregroundColor: Colors.white,
-      ),
+      floatingActionButton: _buildFloatingButtons(),
+    );
+  }
+
+  Widget _buildFloatingButtons() {
+    return Stack(
+      children: [
+        // Основная кнопка — Фото
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: FloatingActionButton.extended(
+            onPressed: _takePhoto,
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('Фото'),
+            backgroundColor: AppDesign.accentTeal,
+            foregroundColor: Colors.white,
+          ),
+        ),
+        // AI-агент
+        Positioned(
+          bottom: 90,
+          right: 16,
+          child: FutureBuilder<ChecklistConfig>(
+            future: ChecklistLoader.load(_order.workType.checklistFile),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox.shrink();
+              return AIAgentButton(
+                order: _order,
+                checklistConfig: snapshot.data!,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

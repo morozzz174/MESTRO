@@ -4,10 +4,14 @@ import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
 import 'dart:convert';
 import '../../../../models/order.dart';
-import '../../../../database/database_helper.dart';
+import '../../../../services/ai_agent_service.dart';
+import '../../../../services/subscription_service.dart';
+import '../../../../services/construction_drawing_generator.dart';
 import '../../../../utils/app_design.dart';
+import '../../../../database/database_helper.dart';
 import '../../../../utils/pdf_generator.dart';
 import '../../models/floor_plan_models.dart';
+import '../../models/floor_plan_models_extended.dart' as extended;
 import '../../models/editor_state.dart';
 import '../../engine/floor_plan_rule_engine.dart';
 import '../../engine/ai_floor_plan_optimizer.dart';
@@ -31,12 +35,15 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   late final FloorPlanRuleEngine _ruleEngine;
   late final AIFloorPlanOptimizer _aiOptimizer;
   late final EditorUndoRedoManager _undoRedo;
+  final _aiAnalyzer = SmartChecklistAnalyzer();
+  final _subscriptionService = SubscriptionService();
 
   FloorPlan? _plan;
   EditorState? _editorState;
   double _zoom = 1.0;
   bool _isGenerating = false;
   bool _isAIOptimized = false;
+  bool _isAIFloorPlanGenerated = false;
   bool _isEditing = false;
   final TransformationController _transformationController = TransformationController();
 
@@ -54,6 +61,77 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   Future<void> _initializeAI() async {
     await _aiOptimizer.initialize();
     if (mounted) setState(() {});
+  }
+
+  /// AI-генерация Floor Plan из данных замера
+  Future<void> _generateAIFloorPlan() async {
+    // Проверяем премиум
+    final isPremium = await _subscriptionService.isPremiumActive();
+    if (!isPremium && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('AI-генерация плана доступна только для Премиум'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isGenerating = true);
+
+    try {
+      final aiPlan = _aiAnalyzer.generateFloorPlan(widget.order);
+
+      setState(() {
+        _plan = aiPlan;
+        _editorState = EditorState.fromFloorPlan(aiPlan);
+        _isAIFloorPlanGenerated = true;
+        _isGenerating = false;
+      });
+
+      _undoRedo.clear();
+      _undoRedo.push(_editorState!);
+      _savePlanToOrder();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.auto_awesome, color: Colors.white),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text('AI-план сгенерирован из данных замера'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Отмена AI — вернуться к обычному плану
+                    _generatePlan();
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  },
+                  child: const Text(
+                    'Отмена',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppDesign.deepSteelBlue,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isGenerating = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ошибка AI-генерации: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _generatePlan() {
@@ -517,6 +595,11 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                 onPressed: _plan != null ? () => _sharePlan() : null,
                 tooltip: 'Поделиться',
               ),
+              IconButton(
+                icon: const Icon(Icons.engineering),
+                onPressed: _plan != null ? () => _generateConstructionDrawing() : null,
+                tooltip: 'Строительный чертёж',
+              ),
             ],
           ),
         ),
@@ -541,6 +624,40 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
               onAddPlumbing: _addPlumbing,
               onAddElectrical: _addElectrical,
               onReset: _resetPlan,
+            ),
+          // AI кнопка
+          if (!_isEditing)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isGenerating ? null : _generateAIFloorPlan,
+                      icon: _isGenerating
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation(Colors.white),
+                              ),
+                            )
+                          : const Icon(Icons.auto_awesome, size: 18),
+                      label: Text(
+                        _isAIFloorPlanGenerated
+                            ? '🤖 AI-план готов (пересоздать)'
+                            : '🤖 AI-генерация из замера',
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppDesign.deepSteelBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           Expanded(child: _buildBody()),
         ],
@@ -763,6 +880,54 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка экспорта: $e')),
+      );
+    }
+  }
+
+  /// Генерация полного строительного чертежа
+  Future<void> _generateConstructionDrawing() async {
+    if (_plan == null) return;
+
+    // Проверяем премиум
+    final isPremium = await _subscriptionService.isPremiumActive();
+    if (!isPremium && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Строительный чертёж доступен только для Премиум'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    try {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Генерация полного комплекта чертежей...'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+
+      final file = await ConstructionDrawingGenerator.generateFullDrawingPackage(
+        plan: _plan!,
+        order: widget.order,
+        projectName: 'Проект — ${widget.order.clientName}',
+      );
+
+      if (!mounted) return;
+
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Строительный чертёж — ${widget.order.clientName}',
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка генерации чертежа: $e')),
       );
     }
   }

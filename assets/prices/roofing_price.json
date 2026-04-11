@@ -1,0 +1,20 @@
+{
+  "work_type": "roofing",
+  "title": "Прайс-лист: Кровля",
+  "items": [
+    { "id": "roof_metal_tile", "name": "Металлочерепица", "unit": "м²", "price": 950, "formula": "roof_area" },
+    { "id": "roof_soft", "name": "Мягкая кровля", "unit": "м²", "price": 1200, "formula": "roof_area" },
+    { "id": "roof_prof", "name": "Профнастил", "unit": "м²", "price": 750, "formula": "roof_area" },
+    { "id": "roof_seam", "name": "Фальцевая кровля", "unit": "м²", "price": 1400, "formula": "roof_area" },
+    { "id": "roof_ondulin", "name": "Ондулин", "unit": "м²", "price": 650, "formula": "roof_area" },
+    { "id": "roof_ceramic", "name": "Керамическая черепица", "unit": "м²", "price": 2200, "formula": "roof_area" },
+    { "id": "rafter_system", "name": "Стропильная система", "unit": "м²", "price": 1500, "formula": "roof_area" },
+    { "id": "roof_insulation", "name": "Утепление кровли", "unit": "м²", "price": 750, "formula": "roof_area" },
+    { "id": "waterproofing_membrane", "name": "Гидроизоляционная мембрана", "unit": "м²", "price": 350, "formula": "roof_area" },
+    { "id": "vapor_barrier", "name": "Пароизоляция", "unit": "м²", "price": 250, "formula": "roof_area" },
+    { "id": "gutter_system", "name": "Водосточная система", "unit": "пог.м", "price": 850, "formula": "(building_width+building_length)/1000*2" },
+    { "id": "ridge", "name": "Конёк", "unit": "пог.м", "price": 650, "formula": "building_length/1000" },
+    { "id": "snow_retention", "name": "Снегозадержание", "unit": "шт", "price": 3500, "formula": "roof_area/20" },
+    { "id": "labor_roofing", "name": "Рабочая сила (кровля)", "unit": "компл.", "price": 30000, "formula": "1" }
+  ]
+}

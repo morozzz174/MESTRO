@@ -1,0 +1,23 @@
+{
+  "work_type": "house_construction",
+  "title": "Строительство ИЖС",
+  "fields": [
+    { "id": "house_area", "type": "number", "label": "Общая площадь дома", "required": true, "hint": "м²" },
+    { "id": "floors_count", "type": "select", "label": "Количество этажей", "required": false, "options": ["1", "1.5", "2", "3"] },
+    { "id": "project_type", "type": "select", "label": "Тип проекта", "required": false, "options": ["Типовой", "Индивидуальный"] },
+    { "id": "wall_material", "type": "select", "label": "Материал стен", "required": false, "options": ["Газоблок", "Кирпич", "Каркас", "Брус", "СИП-панели"] },
+    { "id": "wall_thickness", "type": "number", "label": "Толщина стен", "required": false, "hint": "мм" },
+    { "id": "has_basement", "type": "boolean", "label": "Подвал/цокольный этаж", "required": false },
+    { "id": "ceiling_type", "type": "select", "label": "Тип перекрытий", "required": false, "options": ["Ж/Б плиты", "Деревянные", "Металлические"] },
+    { "id": "partition_material", "type": "select", "label": "Материал перегородок", "required": false, "options": ["Газоблок", "Кирпич", "Гипсокартон", "Дерево"] },
+    { "id": "has_garage", "type": "boolean", "label": "Гараж в проекте", "required": false },
+    { "id": "garage_area", "type": "number", "label": "Площадь гаража", "required": false, "hint": "м²", "condition": { "field": "has_garage", "operator": "equals", "value": true } },
+    { "id": "rough_finish", "type": "boolean", "label": "Черновая отделка", "required": false },
+    { "id": "roof_type", "type": "select", "label": "Тип крыши", "required": false, "options": ["Двускатная", "Четырёхскатная", "Плоская", "Мансардная"] },
+    { "id": "roof_material", "type": "select", "label": "Материал кровли", "required": false, "options": ["Металлочерепица", "Мягкая кровля", "Профнастил", "Фальц"] },
+    { "id": "window_count", "type": "number", "label": "Количество окон", "required": false },
+    { "id": "door_count", "type": "number", "label": "Количество дверей", "required": false },
+    { "id": "site_photo", "type": "photo", "label": "Фото участка", "required": false },
+    { "id": "notes", "type": "text", "label": "Примечания", "required": false }
+  ]
+}

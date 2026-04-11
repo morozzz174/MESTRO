@@ -1,0 +1,17 @@
+{
+  "work_type": "house_construction",
+  "title": "Прайс-лист: Строительство ИЖС",
+  "items": [
+    { "id": "wall_construction", "name": "Возведение стен", "unit": "м²", "price": 3500, "formula": "house_area*floors_count*0.4" },
+    { "id": "ceiling_installation", "name": "Монтаж перекрытий", "unit": "м²", "price": 1200, "formula": "house_area" },
+    { "id": "partition_install", "name": "Устройство перегородок", "unit": "м²", "price": 900, "formula": "house_area*0.15" },
+    { "id": "roof_installation", "name": "Монтаж кровли", "unit": "м²", "price": 2800, "formula": "house_area*0.6" },
+    { "id": "window_installation", "name": "Установка окон", "unit": "шт", "price": 8500, "formula": "window_count" },
+    { "id": "door_installation", "name": "Установка дверей", "unit": "шт", "price": 6500, "formula": "door_count" },
+    { "id": "rough_finish", "name": "Черновая отделка", "unit": "м²", "price": 1800, "formula": "house_area*floors_count" },
+    { "id": "garage_construction", "name": "Строительство гаража", "unit": "м²", "price": 4200, "formula": "garage_area" },
+    { "id": "basement_construction", "name": "Строительство подвала", "unit": "м²", "price": 5500, "formula": "house_area*0.3" },
+    { "id": "project_management", "name": "Управление проектом", "unit": "компл.", "price": 85000, "formula": "1" },
+    { "id": "site_preparation", "name": "Подготовка площадки", "unit": "компл.", "price": 45000, "formula": "1" }
+  ]
+}

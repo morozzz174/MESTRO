@@ -12,6 +12,8 @@ import '../../../../utils/app_design.dart';
 import '../../../../services/export_service.dart';
 import '../../../../services/database_backup_service.dart';
 import '../../../../features/work_types/presentation/pages/work_type_selection_screen.dart';
+import '../../../../features/profile/presentation/pages/subscription_screen.dart';
+import '../../../../services/subscription_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -23,6 +25,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   User? _user;
   bool _isLoading = true;
+  final _subscriptionService = SubscriptionService();
+  bool _isPremium = false;
   // removed
 
   @override
@@ -34,9 +38,11 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUser() async {
     final user = await DatabaseHelper().getCurrentUser();
     if (mounted) {
+      final isPrem = await _subscriptionService.isPremiumActive();
       setState(() {
         _user = user;
         _isLoading = false;
+        _isPremium = isPrem;
       });
     }
   }
@@ -449,6 +455,85 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
               ],
+            ),
+          ),
+        ),
+
+        const SizedBox(height: AppDesign.spacing16),
+
+        // Премиум подписка
+        InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+          ),
+          borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+          child: Container(
+            decoration: BoxDecoration(
+              color: _isPremium
+                  ? const Color(0xFF4CAF50).withOpacity(0.08)
+                  : AppDesign.primaryDark.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+              border: Border.all(
+                color: _isPremium
+                    ? const Color(0xFF4CAF50).withOpacity(0.3)
+                    : AppDesign.primaryDark.withOpacity(0.2),
+                width: 1.5,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(AppDesign.spacing16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: (_isPremium
+                              ? const Color(0xFF4CAF50)
+                              : AppDesign.primaryDark)
+                          .withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(
+                        AppDesign.radiusListItem,
+                      ),
+                    ),
+                    child: Icon(
+                      _isPremium
+                          ? Icons.workspace_premium
+                          : Icons.lock_outline,
+                      color: _isPremium
+                          ? const Color(0xFF4CAF50)
+                          : AppDesign.primaryDark,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: AppDesign.spacing12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isPremium ? 'Премиум активен' : 'Премиум подписка',
+                          style: AppDesign.subtitleStyle.copyWith(
+                            color: _isPremium
+                                ? const Color(0xFF4CAF50)
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _isPremium
+                              ? 'AI-ассистент • Умные рекомендации'
+                              : 'Разблокировать AI-ассистента',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, size: 16),
+                ],
+              ),
             ),
           ),
         ),
