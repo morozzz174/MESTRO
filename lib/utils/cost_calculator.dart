@@ -283,7 +283,15 @@ class CostCalculator {
   };
 
   /// Текущие цены (могут быть переопределены из UI)
-  static Map<String, Map<String, double>> _currentPrices = Map.from(basePrices);
+  static Map<String, Map<String, double>> _currentPrices = _deepCopy(basePrices);
+
+  static Map<String, Map<String, double>> _deepCopy(
+    Map<String, Map<String, double>> source,
+  ) {
+    return Map.fromEntries(
+      source.entries.map((e) => MapEntry(e.key, Map.from(e.value))),
+    );
+  }
 
   /// Обновить цену для конкретного типа работ
   static void updatePrice(String workType, String itemId, double newPrice) {
@@ -295,7 +303,7 @@ class CostCalculator {
 
   /// Сбросить все цены к дефолтным
   static void resetToDefaults() {
-    _currentPrices = Map.from(basePrices);
+    _currentPrices = _deepCopy(basePrices);
   }
 
   /// Получить текущую цену

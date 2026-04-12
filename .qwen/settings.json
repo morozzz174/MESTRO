@@ -27,7 +27,9 @@
       "Bash(py *)",
       "Bash(git push *)",
       "Bash(git pull *)",
-      "Read(c:\\ИП Морозов\\FNS_7456_745013371800_cf7811851c634dbda91cee58b27cb1d1_ИП_04_36/**)"
+      "Read(c:\\ИП Морозов\\FNS_7456_745013371800_cf7811851c634dbda91cee58b27cb1d1_ИП_04_36/**)",
+      "Bash(set *)",
+      "Bash(git config *)"
     ]
   },
   "$version": 3

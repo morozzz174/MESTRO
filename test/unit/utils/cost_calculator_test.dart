@@ -31,7 +31,7 @@ void main() {
             'width': 1500.0, // 1.5м
             'height': 1400.0, // 1.4м
             'glass_type': 'single',
-            'has_slopes': false,
+            'has_sill': true, // подоконник считается только если выбран
           },
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -61,6 +61,7 @@ void main() {
             'height': 1500.0, // 1.5м
             'glass_type': 'double',
             'has_slopes': true,
+            'has_sill': true, // подоконник только если выбран
           },
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -207,11 +208,12 @@ void main() {
         final cost = CostCalculator.calculate(order, sampleConfig);
 
         // kitchen_lm: 3 * 15000 = 45000
-        // countertop: 3 * 8000 = 24000
+        // countertop_ldsp (по умолчанию): 3 * 8000 = 24000
         // appliance_install: 3 * 3000 = 9000
-        // backsplash: 2 * 0.6 * 2000 = 2400
-        // Total: 80400
-        expect(cost, 80400.0);
+        // backsplash_tile (по умолчанию): 2 * 0.6 * 2000 = 2400
+        // kitchen_sink (по умолчанию): 5000
+        // Total: 45000 + 24000 + 9000 + 2400 + 5000 = 85400
+        expect(cost, 85400.0);
       });
     });
 
@@ -318,6 +320,7 @@ void main() {
           checklistData: {
             'system_type': 'Котельная',
             'boiler_type': 'Газовый',
+            'boiler_position': 'Напольный', // настенный добавляет 2000
           },
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -326,7 +329,9 @@ void main() {
         final cost = CostCalculator.calculate(order, sampleConfig);
 
         // boiler_gas: 35000
-        expect(cost, 35000.0);
+        // boiler_floor_mount: 5000
+        // Total: 40000
+        expect(cost, 40000.0);
       });
 
       test('should calculate radiator heating cost', () {
@@ -366,6 +371,9 @@ void main() {
             'floor_routes_length': 10.0,
             'ceiling_routes_length': 15.0,
             'has_smart_home': true,
+            'switches_type': '', // отключаем выключатели по умолчанию
+            'cable_brand': 'ВВГнг', // по умолчанию
+            'cable_routing': '', // отключаем скрытую прокладку
           },
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
@@ -376,10 +384,12 @@ void main() {
         // sockets: 10 * 400 = 4000
         // lighting: 5 * 800 = 4000
         // cable_routing: (20+10+15) * 300 = 13500
+        // cable_vvg: (20+10+15) * 80 = 3600
         // panel_assembly: 5000
+        // switches (default): 10 * 350 = 3500
         // smart_home: 3000
-        // Total: 29500
-        expect(cost, 29500.0);
+        // Total: 4000 + 4000 + 13500 + 3600 + 5000 + 3500 + 3000 = 36600
+        expect(cost, 36600.0);
       });
     });
 

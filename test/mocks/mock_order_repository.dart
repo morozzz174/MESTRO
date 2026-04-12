@@ -24,7 +24,11 @@ class MockOrderRepository implements OrderRepository {
       throw Exception(errorMessage ?? 'Database error');
     }
     getAllOrdersCallCount++;
-    return List.from(_orders);
+    // Обогащаем заказы фотографиями
+    return _orders.map((order) {
+      final orderPhotos = _photos.where((p) => p.orderId == order.id).toList();
+      return order.copyWith(photos: orderPhotos);
+    }).toList();
   }
 
   @override

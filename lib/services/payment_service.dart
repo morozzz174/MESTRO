@@ -40,8 +40,9 @@ class PricingPlan {
   }
 
   double get pricePerDay {
-    if (durationDays == null) return 0;
-    return priceRubles / durationDays;
+    final days = durationDays;
+    if (days == null) return 0;
+    return priceRubles / days;
   }
 
   static const List<PricingPlan> available = [

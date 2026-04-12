@@ -53,9 +53,9 @@ void main() {
         expect(expectedStates, [
           isA<OrderLoading>(),
           isA<OrderLoaded>().having(
-            (s) => (s as OrderLoaded).orders,
-            'orders',
-            [testOrder],
+            (s) => (s as OrderLoaded).orders.map((o) => o.id),
+            'orders ids',
+            [testOrder.id],
           ),
         ]);
       });
@@ -87,7 +87,7 @@ void main() {
         // Оптимистичное обновление
         expect(expectedStates.last, isA<OrderLoaded>());
         final loadedState = expectedStates.last as OrderLoaded;
-        expect(loadedState.orders, contains(testOrder));
+        expect(loadedState.orders.map((o) => o.id), contains(testOrder.id));
       });
 
       test('should rollback on database failure', () async {

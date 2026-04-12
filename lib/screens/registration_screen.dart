@@ -9,7 +9,6 @@ import '../repositories/impl/user_repository_impl.dart';
 import '../models/user.dart';
 import '../models/order.dart';
 import '../services/ucaller_service.dart';
-import '../utils/app_design.dart';
 import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/work_types/presentation/pages/work_type_selection_screen.dart';
@@ -27,78 +26,438 @@ class RegistrationScreen extends StatefulWidget {
   State<RegistrationScreen> createState() => _RegistrationScreenState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _RegistrationScreenState extends State<RegistrationScreen>
+    with TickerProviderStateMixin {
   int _currentStep = 0;
   String? _verifiedPhone;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    );
+    _fadeController.forward();
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: AppDesign.appBarGradient,
-            boxShadow: AppDesign.appBarShadow,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0D1B2A), // глубокий тёмно-синий
+              Color(0xFF1B2838), // чуть светлее
+              Color(0xFF1A2733),
+            ],
           ),
-          child: AppBar(title: const Text('Регистрация')),
         ),
-      ),
-      body: SafeArea(
-        child: Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: AppDesign.deepSteelBlue,
-              primary: AppDesign.deepSteelBlue,
-              secondary: AppDesign.accentTeal,
+        child: SafeArea(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              children: [
+                // ===== HERO-СЕКЦИЯ =====
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      // Логотип / Иконка
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00B4D8).withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.construction_rounded,
+                          size: 44,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'MESTRO',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Единый Стандарт Точности Расчёта Объекта',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withOpacity(0.5),
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Описание
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            _FeatureRow(
+                              icon: Icons.calendar_today_rounded,
+                              title: 'Запись клиентов',
+                              desc: 'Календарь замеров с напоминаниями',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.checklist_rtl,
+                              title: '15 специализаций',
+                              desc: 'Окна, двери, кухни, электрика, ИЖС и др.',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.calculate_rounded,
+                              title: 'Авто-расчёт стоимости',
+                              desc: 'Мгновенный расчёт по вашим замерам',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.description_rounded,
+                              title: 'Чертежи и планы',
+                              desc: 'Генерация планов помещений по ГОСТ',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.camera_enhance_rounded,
+                              title: 'Фотофиксация',
+                              desc: 'Фото с аннотациями и геотегами',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.wifi_off_rounded,
+                              title: 'Полный офлайн',
+                              desc: 'Работает без интернета',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+
+                // ===== КНОПКА НАЧАТЬ =====
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() => _currentStep = 0);
+                            _showRegistration(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00B4D8),
+                            foregroundColor: Colors.white,
+                            elevation: 4,
+                            shadowColor: const Color(0xFF00B4D8).withOpacity(0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: const Text(
+                            'Начать работу',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Регистрация займёт меньше минуты',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Stepper(
-            currentStep: _currentStep,
-            controlsBuilder: (_, _) => const SizedBox.shrink(),
-            onStepTapped: (step) {
-              if (step >= _currentStep) {
-                setState(() => _currentStep = step);
-              }
-            },
-            steps: [
-              Step(
-                title: const Text('Телефон'),
-                content: _PhoneVerificationStep(
-                  onVerified: (phone) {
-                    setState(() {
-                      _verifiedPhone = phone;
-                      _currentStep = 1;
-                    });
-                  },
+        ),
+      ),
+    );
+  }
+
+  void _showRegistration(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.92,
+        minChildSize: 0.5,
+        maxChildSize: 0.98,
+        builder: (_, controller) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              // Ручка для свайпа
+              Padding(
+                padding: const EdgeInsets.only(top: 12, bottom: 8),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-                isActive: _currentStep >= 0,
-                state: _currentStep > 0
-                    ? StepState.complete
-                    : StepState.indexed,
               ),
-              Step(
-                title: const Text('Профиль'),
-                content: _ProfileStep(
-                  verifiedPhone: _verifiedPhone ?? '',
-                  onRegistered: () {
-                    setState(() => _currentStep = 2);
-                  },
+              Expanded(
+                child: ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  children: [
+                    // Заголовок формы
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.person_add,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Регистрация',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _RegistrationForm(
+                      currentStep: _currentStep,
+                      verifiedPhone: _verifiedPhone,
+                      onStepChanged: (step, phone) {
+                        setState(() {
+                          _currentStep = step;
+                          _verifiedPhone = phone;
+                        });
+                      },
+                      onRegistered: () {
+                        Navigator.of(ctx).pop();
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                            builder: (_) => const HomePage(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                isActive: _currentStep >= 1,
-                state: _currentStep > 1
-                    ? StepState.complete
-                    : StepState.indexed,
-              ),
-              Step(
-                title: const Text('Готово'),
-                content: _SuccessStep(),
-                isActive: _currentStep >= 2,
-                state: StepState.indexed,
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ===== FEATURE ROW =====
+
+class _FeatureRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String desc;
+
+  const _FeatureRow({
+    required this.icon,
+    required this.title,
+    required this.desc,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFF00B4D8).withOpacity(0.15),
+          ),
+          child: Icon(icon, size: 20, color: const Color(0xFF00B4D8)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                desc,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.5),
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ===== ФОРМА РЕГИСТРАЦИИ =====
+
+class _RegistrationForm extends StatefulWidget {
+  final int currentStep;
+  final String? verifiedPhone;
+  final Function(int step, String? phone) onStepChanged;
+  final VoidCallback onRegistered;
+
+  const _RegistrationForm({
+    required this.currentStep,
+    required this.verifiedPhone,
+    required this.onStepChanged,
+    required this.onRegistered,
+  });
+
+  @override
+  State<_RegistrationForm> createState() => _RegistrationFormState();
+}
+
+class _RegistrationFormState extends State<_RegistrationForm> {
+  late int _currentStep;
+  String? _verifiedPhone;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStep = widget.currentStep;
+    _verifiedPhone = widget.verifiedPhone;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0077B6),
+          primary: const Color(0xFF0077B6),
+          secondary: const Color(0xFF00B4D8),
+        ),
+      ),
+      child: Stepper(
+        currentStep: _currentStep,
+        controlsBuilder: (_, _) => const SizedBox.shrink(),
+        onStepTapped: (step) {
+          if (step >= _currentStep) {
+            setState(() => _currentStep = step);
+          }
+        },
+        steps: [
+          Step(
+            title: const Text('Телефон'),
+            content: _PhoneVerificationStep(
+              onVerified: (phone) {
+                setState(() {
+                  _verifiedPhone = phone;
+                  _currentStep = 1;
+                });
+                widget.onStepChanged(1, phone);
+              },
+            ),
+            isActive: _currentStep >= 0,
+            state:
+                _currentStep > 0 ? StepState.complete : StepState.indexed,
+          ),
+          Step(
+            title: const Text('Профиль'),
+            content: _ProfileStep(
+              verifiedPhone: _verifiedPhone ?? '',
+              onRegistered: () {
+                setState(() => _currentStep = 2);
+                widget.onStepChanged(2, _verifiedPhone);
+              },
+            ),
+            isActive: _currentStep >= 1,
+            state:
+                _currentStep > 1 ? StepState.complete : StepState.indexed,
+          ),
+          Step(
+            title: const Text('Готово'),
+            content: _SuccessStep(onDone: widget.onRegistered),
+            isActive: _currentStep >= 2,
+            state: StepState.indexed,
+          ),
+        ],
       ),
     );
   }
@@ -158,15 +517,35 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
             prefixIcon: const Icon(Icons.phone_outlined),
           ),
         ),
-        const SizedBox(height: AppDesign.spacing8),
-        Text(
-          'Тест: 79000000001 — всегда успешный звонок',
-          style: AppDesign.captionStyle.copyWith(
-            color: AppDesign.deepSteelBlue,
-            fontWeight: FontWeight.w500,
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0077B6).withOpacity(0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Color(0xFF0077B6),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Тест: 79000000001 — всегда успешный звонок',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF0077B6),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppDesign.spacing16),
+        const SizedBox(height: 16),
 
         if (_codeSent) ...[
           TextField(
@@ -180,12 +559,15 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
               counterText: '',
             ),
           ),
-          const SizedBox(height: AppDesign.spacing8),
+          const SizedBox(height: 8),
           Text(
             'Вам поступит входящий звонок. Оператор продиктует код — введите его выше.',
-            style: AppDesign.captionStyle,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
           ),
-          const SizedBox(height: AppDesign.spacing16),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
@@ -199,25 +581,24 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
               ),
             ],
           ),
-          const SizedBox(height: AppDesign.spacing16),
+          const SizedBox(height: 16),
         ],
 
         if (_errorMessage != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: AppDesign.spacing12),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               _errorMessage!,
               style: const TextStyle(
-                color: AppDesign.statusCancelled,
+                color: Colors.redAccent,
                 fontSize: 13,
               ),
             ),
           ),
 
         ElevatedButton.icon(
-          onPressed: _isLoading
-              ? null
-              : (_codeSent ? _verifyCode : _requestCall),
+          onPressed:
+              _isLoading ? null : (_codeSent ? _verifyCode : _requestCall),
           icon: _isLoading
               ? const SizedBox(
                   width: 18,
@@ -226,6 +607,9 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
                 )
               : Icon(_codeSent ? Icons.check : Icons.phone),
           label: Text(_codeSent ? 'Подтвердить код' : 'Получить звонок'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
         ),
       ],
     );
@@ -467,7 +851,7 @@ class _ProfileStepState extends State<_ProfileStep> {
             prefixIcon: Icon(Icons.person_outline),
           ),
         ),
-        const SizedBox(height: AppDesign.spacing16),
+        const SizedBox(height: 16),
         TextField(
           controller: TextEditingController(text: widget.verifiedPhone),
           keyboardType: TextInputType.phone,
@@ -475,10 +859,10 @@ class _ProfileStepState extends State<_ProfileStep> {
           decoration: const InputDecoration(
             labelText: 'Телефон (верифицирован)',
             prefixIcon: Icon(Icons.phone_outlined),
-            suffixIcon: Icon(Icons.check_circle, color: AppDesign.accentTeal),
+            suffixIcon: Icon(Icons.check_circle, color: Color(0xFF00B4D8)),
           ),
         ),
-        const SizedBox(height: AppDesign.spacing24),
+        const SizedBox(height: 24),
 
         // Чекбокс согласия
         Row(
@@ -495,19 +879,20 @@ class _ProfileStepState extends State<_ProfileStep> {
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-            const SizedBox(width: AppDesign.spacing8),
+            const SizedBox(width: 8),
             Expanded(
               child: RichText(
                 text: TextSpan(
-                  style: AppDesign.bodyStyle.copyWith(
-                    color: AppDesign.primaryDark,
+                  style: const TextStyle(
+                    color: Color(0xFF1B2838),
+                    fontSize: 14,
                   ),
                   children: [
                     const TextSpan(text: 'Я принимаю условия '),
                     TextSpan(
                       text: 'Согласия на обработку персональных данных',
-                      style: TextStyle(
-                        color: AppDesign.deepSteelBlue,
+                      style: const TextStyle(
+                        color: Color(0xFF0077B6),
                         decoration: TextDecoration.underline,
                         fontWeight: FontWeight.w600,
                       ),
@@ -526,7 +911,7 @@ class _ProfileStepState extends State<_ProfileStep> {
             ),
           ],
         ),
-        const SizedBox(height: AppDesign.spacing24),
+        const SizedBox(height: 24),
 
         // Выбор ниш
         OutlinedButton.icon(
@@ -540,12 +925,12 @@ class _ProfileStepState extends State<_ProfileStep> {
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
             foregroundColor: _selectedWorkTypes.isEmpty
-                ? AppDesign.statusCancelled
-                : AppDesign.accentTeal,
+                ? Colors.redAccent
+                : const Color(0xFF00B4D8),
           ),
         ),
         if (_selectedWorkTypes.isNotEmpty) ...[
-          const SizedBox(height: AppDesign.spacing8),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -556,15 +941,15 @@ class _ProfileStepState extends State<_ProfileStep> {
               );
               return Chip(
                 label: Text(wt.title, style: const TextStyle(fontSize: 12)),
-                backgroundColor: AppDesign.accentTeal.withOpacity(0.12),
-                side: const BorderSide(color: AppDesign.accentTeal),
+                backgroundColor: const Color(0xFF00B4D8).withOpacity(0.12),
+                side: const BorderSide(color: Color(0xFF00B4D8)),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               );
             }).toList(),
           ),
         ],
 
-        const SizedBox(height: AppDesign.spacing24),
+        const SizedBox(height: 24),
 
         if (_isLoading)
           const Center(child: CircularProgressIndicator())
@@ -573,6 +958,9 @@ class _ProfileStepState extends State<_ProfileStep> {
             onPressed: _selectedWorkTypes.isEmpty ? null : _register,
             icon: const Icon(Icons.person_add),
             label: const Text('Завершить регистрацию'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+            ),
           ),
       ],
     );
@@ -661,29 +1049,40 @@ class _ProfileStepState extends State<_ProfileStep> {
 // ===== ШАГ 3: Успех =====
 
 class _SuccessStep extends StatelessWidget {
+  final VoidCallback onDone;
+
+  const _SuccessStep({required this.onDone});
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Icon(Icons.check_circle, size: 64, color: AppDesign.accentTeal),
-        const SizedBox(height: AppDesign.spacing16),
-        Text('Регистрация завершена!', style: AppDesign.titleStyle),
-        const SizedBox(height: AppDesign.spacing8),
+        const Icon(Icons.check_circle, size: 64, color: Color(0xFF00B4D8)),
+        const SizedBox(height: 16),
+        const Text(
+          'Регистрация завершена!',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
         Text(
           'Теперь вы можете создавать заявки и проводить замеры.',
           textAlign: TextAlign.center,
-          style: AppDesign.bodyStyle.copyWith(color: AppDesign.midBlueGray),
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
         ),
-        const SizedBox(height: AppDesign.spacing24),
+        const SizedBox(height: 24),
         ElevatedButton.icon(
-          onPressed: () {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const HomePage()),
-              (route) => false,
-            );
-          },
+          onPressed: onDone,
           icon: const Icon(Icons.arrow_forward),
           label: const Text('Перейти к заявкам'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+          ),
         ),
       ],
     );

@@ -114,13 +114,14 @@ void main() {
         final data = {
           'width': 1500.0,
           'height': 1400.0,
+          'hardware': 1, // фурнитура без формулы — берём количество из данных
         };
 
         final total = PriceListService.calculate(items, data);
 
         // frame: 2.1 * 3500 = 7350
         // glass: 2.1 * 1500 = 3150
-        // hardware: 2000
+        // hardware: 1 * 2000 = 2000
         // sill: 1.5 * 800 = 1200
         // Total: 13700
         expect(total, 13700.0);

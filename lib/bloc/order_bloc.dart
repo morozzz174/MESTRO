@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../services/app_logger.dart';
+import '../models/order.dart';
 import '../repositories/order_repository.dart';
 import '../repositories/impl/order_repository_impl.dart';
 import 'order_event.dart';
@@ -63,9 +64,15 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     // Оптимистичное обновление
     if (state is OrderLoaded) {
       final currentOrders = (state as OrderLoaded).orders;
-      final updatedOrders = currentOrders
-          .map((o) => o.id == event.order.id ? event.order : o)
-          .toList();
+      final index = currentOrders.indexWhere((o) => o.id == event.order.id);
+      List<Order> updatedOrders;
+      if (index != -1) {
+        updatedOrders = List.from(currentOrders);
+        updatedOrders[index] = event.order;
+      } else {
+        // Если заказ не найден, добавляем его
+        updatedOrders = [event.order, ...currentOrders];
+      }
       emit(OrderLoaded(updatedOrders));
     }
 

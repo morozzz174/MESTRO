@@ -6,6 +6,12 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Google Play Core (Deferred Components)
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallException
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+-keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
+
 # SQLite / sqflite
 -keep class org.sqlite.** { *; }
 -keep class com.tekartik.sqflite.** { *; }
