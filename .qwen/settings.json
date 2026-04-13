@@ -30,7 +30,9 @@
       "Read(c:\\ИП Морозов\\FNS_7456_745013371800_cf7811851c634dbda91cee58b27cb1d1_ИП_04_36/**)",
       "Bash(set *)",
       "Bash(git config *)",
-      "Bash(git clean *)"
+      "Bash(git clean *)",
+      "Bash(do *)",
+      "Bash(find *)"
     ]
   },
   "$version": 3

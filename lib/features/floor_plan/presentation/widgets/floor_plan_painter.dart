@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../utils/app_design.dart';
-import '../../models/floor_plan_models.dart';
+import '../../models/floor_plan_models_extended.dart' hide Column;
 import '../../models/editor_state.dart';
 
 /// CustomPainter для отрисовки плана помещения
@@ -22,6 +22,20 @@ class FloorPlanPainter extends CustomPainter {
     // Сетка
     _drawGrid(canvas, size);
 
+    // === КОНСТРУКТИВНЫЕ ЭЛЕМЕНТЫ (рисуем ПОД комнатами) ===
+    if (editorState != null) {
+      // Фундамент (контур)
+      _drawFoundation(canvas, editorState!);
+      // Наружные стены
+      _drawWalls(canvas, editorState!);
+      // Осевые линии
+      _drawAxisLines(canvas, editorState!);
+      // Колонны
+      _drawColumns(canvas, editorState!);
+      // Отметки уровней
+      _drawLevelMarks(canvas, editorState!);
+    }
+
     // Комнаты
     for (final room in plan.rooms) {
       _drawRoom(canvas, room);
@@ -30,9 +44,11 @@ class FloorPlanPainter extends CustomPainter {
     // Свободные элементы (из EditorState)
     if (editorState != null) {
       _drawFreeElements(canvas, editorState!);
+      // Размерные линии
+      _drawDimensionLines(canvas, editorState!);
     }
 
-    // Размеры
+    // Размеры общие
     _drawDimensions(canvas, size);
 
     // Легенда
@@ -50,20 +66,12 @@ class FloorPlanPainter extends CustomPainter {
 
     // Вертикальные линии
     for (double x = 0; x <= widthInPixels; x += pixelsPerMeter) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, heightInPixels),
-        gridPaint,
-      );
+      canvas.drawLine(Offset(x, 0), Offset(x, heightInPixels), gridPaint);
     }
 
     // Горизонтальные линии
     for (double y = 0; y <= heightInPixels; y += pixelsPerMeter) {
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(widthInPixels, y),
-        gridPaint,
-      );
+      canvas.drawLine(Offset(0, y), Offset(widthInPixels, y), gridPaint);
     }
   }
 
@@ -81,7 +89,10 @@ class FloorPlanPainter extends CustomPainter {
 
     // Подсветка ошибок compliance
     if (room.complianceScore < 1.0) {
-      canvas.drawRect(rect, Paint()..color = AppDesign.statusCancelled.withOpacity(0.15));
+      canvas.drawRect(
+        rect,
+        Paint()..color = AppDesign.statusCancelled.withOpacity(0.15),
+      );
     }
 
     // Стены
@@ -131,6 +142,34 @@ class FloorPlanPainter extends CustomPainter {
         return Colors.brown.shade50;
       case RoomType.office:
         return Colors.indigo.shade50;
+      case RoomType.garage:
+        return Colors.blueGrey.shade50;
+      case RoomType.boilerRoom:
+        return Colors.red.shade50;
+      case RoomType.terrace:
+        return Colors.lightGreen.shade100;
+      case RoomType.attic:
+        return Colors.purple.shade50;
+      case RoomType.basement:
+        return Colors.grey.shade200;
+      case RoomType.wardrobe:
+        return Colors.amber.shade50;
+      case RoomType.laundry:
+        return Colors.cyan.shade50;
+      case RoomType.pantry:
+        return Colors.brown.shade100;
+      case RoomType.workshop:
+        return Colors.orange.shade100;
+      case RoomType.sauna:
+        return Colors.deepOrange.shade50;
+      case RoomType.pool:
+        return Colors.blue.shade100;
+      case RoomType.gym:
+        return Colors.red.shade50;
+      case RoomType.cinema:
+        return Colors.indigo.shade100;
+      case RoomType.elevator:
+        return Colors.grey.shade100;
     }
   }
 
@@ -141,7 +180,9 @@ class FloorPlanPainter extends CustomPainter {
     final doorW = door.width * pixelsPerMeter;
 
     final doorPaint = Paint()
-      ..color = door.type == DoorType.entrance ? AppDesign.deepSteelBlue : AppDesign.accentTeal
+      ..color = door.type == DoorType.entrance
+          ? AppDesign.deepSteelBlue
+          : AppDesign.accentTeal
       ..strokeWidth = 2;
 
     // Линия двери
@@ -185,7 +226,8 @@ class FloorPlanPainter extends CustomPainter {
     );
 
     // Двойная линия для обычных окон
-    if (window.type == WindowType.standard || window.type == WindowType.balcony) {
+    if (window.type == WindowType.standard ||
+        window.type == WindowType.balcony) {
       canvas.drawLine(
         Offset(windowX, windowY + 3),
         Offset(windowX + windowW, windowY + 3),
@@ -271,7 +313,9 @@ class FloorPlanPainter extends CustomPainter {
     final doorW = door.width * pixelsPerMeter;
 
     final doorPaint = Paint()
-      ..color = door.type == 'entrance' ? AppDesign.deepSteelBlue : AppDesign.accentTeal
+      ..color = door.type == 'entrance'
+          ? AppDesign.deepSteelBlue
+          : AppDesign.accentTeal
       ..strokeWidth = 2;
 
     // Линия двери
@@ -286,7 +330,14 @@ class FloorPlanPainter extends CustomPainter {
     _drawIcon(canvas, doorX + doorW / 2, doorY - 10, icon, 14);
 
     // Подпись
-    _drawLabel(canvas, doorX, doorY + 15, _getDoorLabel(door.type), 9, doorPaint.color);
+    _drawLabel(
+      canvas,
+      doorX,
+      doorY + 15,
+      _getDoorLabel(door.type),
+      9,
+      doorPaint.color,
+    );
   }
 
   /// Свободное окно
@@ -346,7 +397,11 @@ class FloorPlanPainter extends CustomPainter {
       ..strokeWidth = 1;
     final sectionWidth = 20.0;
     for (double x = rx + sectionWidth; x < rx + rw; x += sectionWidth) {
-      canvas.drawLine(Offset(x, ry - rh / 2), Offset(x, ry + rh / 2), sectionPaint);
+      canvas.drawLine(
+        Offset(x, ry - rh / 2),
+        Offset(x, ry + rh / 2),
+        sectionPaint,
+      );
     }
 
     // Иконка
@@ -366,7 +421,14 @@ class FloorPlanPainter extends CustomPainter {
     _drawIcon(canvas, fx + 10, fy + 10, icon, 20);
 
     // Подпись
-    _drawLabel(canvas, fx - 10, fy + 25, _getPlumbingLabel(fixture.type), 9, Colors.teal.shade700);
+    _drawLabel(
+      canvas,
+      fx - 10,
+      fy + 25,
+      _getPlumbingLabel(fixture.type),
+      9,
+      Colors.teal.shade700,
+    );
   }
 
   /// Электрическая точка
@@ -392,61 +454,100 @@ class FloorPlanPainter extends CustomPainter {
     _drawIcon(canvas, px + 2, py + 2, icon, 10);
 
     // Подпись
-    _drawLabel(canvas, px - 5, py + 16, _getElectricalLabel(point.type), 8, Colors.amber.shade700);
+    _drawLabel(
+      canvas,
+      px - 5,
+      py + 16,
+      _getElectricalLabel(point.type),
+      8,
+      Colors.amber.shade700,
+    );
   }
 
   String _getDoorLabel(String type) {
     switch (type) {
-      case 'entrance': return 'Вход';
-      case 'balcony': return 'Балкон';
-      default: return 'Дверь';
+      case 'entrance':
+        return 'Вход';
+      case 'balcony':
+        return 'Балкон';
+      default:
+        return 'Дверь';
     }
   }
 
   String _getPlumbingIcon(String type) {
     switch (type) {
-      case 'sink': return '🚰';
-      case 'toilet': return '🚽';
-      case 'bathtub': return '🛁';
-      case 'shower': return '🚿';
-      case 'washingMachine': return '🧺';
-      default: return '🔧';
+      case 'sink':
+        return '🚰';
+      case 'toilet':
+        return '🚽';
+      case 'bathtub':
+        return '🛁';
+      case 'shower':
+        return '🚿';
+      case 'washingMachine':
+        return '🧺';
+      default:
+        return '🔧';
     }
   }
 
   String _getPlumbingLabel(String type) {
     switch (type) {
-      case 'sink': return 'Раковина';
-      case 'toilet': return 'Унитаз';
-      case 'bathtub': return 'Ванна';
-      case 'shower': return 'Душ';
-      case 'washingMachine': return 'Стиралка';
-      default: return type;
+      case 'sink':
+        return 'Раковина';
+      case 'toilet':
+        return 'Унитаз';
+      case 'bathtub':
+        return 'Ванна';
+      case 'shower':
+        return 'Душ';
+      case 'washingMachine':
+        return 'Стиралка';
+      default:
+        return type;
     }
   }
 
   String _getElectricalIcon(String type) {
     switch (type) {
-      case 'socket': return '🔌';
-      case 'switch': return '🔘';
-      case 'lightPoint': return '💡';
-      case 'internetSocket': return '🌐';
-      default: return '⚡';
+      case 'socket':
+        return '🔌';
+      case 'switch':
+        return '🔘';
+      case 'lightPoint':
+        return '💡';
+      case 'internetSocket':
+        return '🌐';
+      default:
+        return '⚡';
     }
   }
 
   String _getElectricalLabel(String type) {
     switch (type) {
-      case 'socket': return 'Розетка';
-      case 'switch': return 'Выключатель';
-      case 'lightPoint': return 'Свет';
-      case 'internetSocket': return 'Интернет';
-      default: return type;
+      case 'socket':
+        return 'Розетка';
+      case 'switch':
+        return 'Выключатель';
+      case 'lightPoint':
+        return 'Свет';
+      case 'internetSocket':
+        return 'Интернет';
+      default:
+        return type;
     }
   }
 
   /// Подпись элемента
-  void _drawLabel(Canvas canvas, double x, double y, String text, double fontSize, Color color) {
+  void _drawLabel(
+    Canvas canvas,
+    double x,
+    double y,
+    String text,
+    double fontSize,
+    Color color,
+  ) {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
@@ -495,7 +596,10 @@ class FloorPlanPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     widthLabel.layout();
-    widthLabel.paint(canvas, Offset((widthInPixels - widthLabel.width) / 2, heightInPixels + 25));
+    widthLabel.paint(
+      canvas,
+      Offset((widthInPixels - widthLabel.width) / 2, heightInPixels + 25),
+    );
 
     // Высота (справа)
     canvas.drawLine(
@@ -505,7 +609,13 @@ class FloorPlanPainter extends CustomPainter {
     );
 
     _drawArrow(canvas, widthInPixels + 20, 0, true, vertical: true);
-    _drawArrow(canvas, widthInPixels + 20, heightInPixels, false, vertical: true);
+    _drawArrow(
+      canvas,
+      widthInPixels + 20,
+      heightInPixels,
+      false,
+      vertical: true,
+    );
 
     final heightLabel = TextPainter(
       text: TextSpan(
@@ -521,14 +631,23 @@ class FloorPlanPainter extends CustomPainter {
     heightLabel.layout();
 
     canvas.save();
-    canvas.translate(widthInPixels + 35, (heightInPixels - heightLabel.width) / 2);
+    canvas.translate(
+      widthInPixels + 35,
+      (heightInPixels - heightLabel.width) / 2,
+    );
     canvas.rotate(3.14159 / 2);
     heightLabel.paint(canvas, Offset.zero);
     canvas.restore();
   }
 
   /// Стрелка размера
-  void _drawArrow(Canvas canvas, double x, double y, bool left, {bool vertical = false}) {
+  void _drawArrow(
+    Canvas canvas,
+    double x,
+    double y,
+    bool left, {
+    bool vertical = false,
+  }) {
     final path = Path();
     if (vertical) {
       path.moveTo(x, y);
@@ -581,16 +700,339 @@ class FloorPlanPainter extends CustomPainter {
   /// Иконка (эмодзи)
   void _drawIcon(Canvas canvas, double x, double y, String icon, double size) {
     final textPainter = TextPainter(
-      text: TextSpan(text: icon, style: TextStyle(fontSize: size)),
+      text: TextSpan(
+        text: icon,
+        style: TextStyle(fontSize: size),
+      ),
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
     textPainter.paint(canvas, Offset(x - size / 2, y - size / 2));
   }
 
+  // ========================================================================
+  // КОНСТРУКТИВНЫЕ ЭЛЕМЕНТЫ
+  // ========================================================================
+
+  /// Фундамент — контур
+  void _drawFoundation(Canvas canvas, EditorState state) {
+    final f = state.foundation;
+    if (f == null) return;
+
+    final ppm = pixelsPerMeter;
+    final rect = Rect.fromLTWH(
+      (state.totalWidth / 2 - f.width / 2) * ppm,
+      (state.totalHeight / 2 - f.depth / 2) * ppm,
+      f.width * ppm,
+      f.depth * ppm,
+    );
+
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.brown.withOpacity(0.15)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..color = Colors.brown.shade700
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke,
+    );
+
+    // Подпись
+    _drawLabel(
+      canvas,
+      rect.left,
+      rect.top - 14,
+      'Фундамент: ${_foundationTypeLabel(f.type)}',
+      10,
+      Colors.brown.shade700,
+    );
+  }
+
+  /// Стены
+  void _drawWalls(Canvas canvas, EditorState state) {
+    for (final wall in state.walls) {
+      final ppm = pixelsPerMeter;
+      final x1 = wall.x1 * ppm;
+      final y1 = wall.y1 * ppm;
+      final x2 = wall.x2 * ppm;
+      final y2 = wall.y2 * ppm;
+
+      // Толщина стены в пикселях
+      final thickness = (wall.thickness * ppm).clamp(2.0, 20.0);
+
+      // Цвет по типу
+      Color wallColor;
+      if (wall.type == 'exterior') {
+        wallColor = Colors.red.shade700;
+      } else if (wall.type == 'foundation') {
+        wallColor = Colors.brown.shade600;
+      } else if (wall.isLoadBearing) {
+        wallColor = Colors.orange.shade800;
+      } else {
+        wallColor = Colors.blueGrey.shade400;
+      }
+
+      final wallPaint = Paint()
+        ..color = wallColor
+        ..strokeWidth = thickness
+        ..strokeCap = StrokeCap.round;
+
+      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), wallPaint);
+
+      // Подпись материала для наружных стен
+      if (wall.type == 'exterior') {
+        final mx = (x1 + x2) / 2;
+        final my = (y1 + y2) / 2;
+        _drawLabel(
+          canvas,
+          mx,
+          my - thickness - 6,
+          _materialShortLabel(wall.material),
+          8,
+          wallColor,
+        );
+      }
+    }
+  }
+
+  /// Осевые линии
+  void _drawAxisLines(Canvas canvas, EditorState state) {
+    for (final axis in state.axisLines) {
+      final ppm = pixelsPerMeter;
+      final x1 = axis.x1 * ppm;
+      final y1 = axis.y1 * ppm;
+      final x2 = axis.x2 * ppm;
+      final y2 = axis.y2 * ppm;
+
+      // Штрих-пунктир
+      final dashPaint = Paint()
+        ..color = Colors.red.shade700
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round;
+
+      _drawDashedLine(canvas, Offset(x1, y1), Offset(x2, y2), dashPaint, 8, 4);
+
+      // Кружок с обозначением оси
+      final circlePaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.fill;
+      canvas.drawCircle(Offset(x1, y1), 10, circlePaint);
+      canvas.drawCircle(
+        Offset(x1, y1),
+        10,
+        Paint()
+          ..color = Colors.red.shade700
+          ..strokeWidth = 1.5
+          ..style = PaintingStyle.stroke,
+      );
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: axis.label,
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(x1 - textPainter.width / 2, y1 - textPainter.height / 2),
+      );
+    }
+  }
+
+  /// Колонны
+  void _drawColumns(Canvas canvas, EditorState state) {
+    for (final col in state.columns) {
+      final ppm = pixelsPerMeter;
+      final cx = col.x * ppm;
+      final cy = col.y * ppm;
+      final cw = col.width * ppm;
+      final ch = col.height * ppm;
+
+      final colRect = Rect.fromLTWH(cx - cw / 2, cy - ch / 2, cw, ch);
+
+      // Заливка
+      canvas.drawRect(
+        colRect,
+        Paint()
+          ..color = Colors.grey.shade600
+          ..style = PaintingStyle.fill,
+      );
+
+      // Обводка
+      canvas.drawRect(
+        colRect,
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = 1.5
+          ..style = PaintingStyle.stroke,
+      );
+
+      // Штриховка (крест)
+      canvas.drawLine(
+        Offset(colRect.left, colRect.top),
+        Offset(colRect.right, colRect.bottom),
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = 0.5,
+      );
+      canvas.drawLine(
+        Offset(colRect.right, colRect.top),
+        Offset(colRect.left, colRect.bottom),
+        Paint()
+          ..color = Colors.black
+          ..strokeWidth = 0.5,
+      );
+    }
+  }
+
+  /// Отметки уровней
+  void _drawLevelMarks(Canvas canvas, EditorState state) {
+    for (final level in state.levelMarks) {
+      final ppm = pixelsPerMeter;
+      final lx = level.x * ppm;
+      final ly = level.y * ppm;
+
+      // Стрелка вниз
+      final arrowPaint = Paint()
+        ..color = Colors.blue.shade700
+        ..strokeWidth = 1.5;
+
+      canvas.drawLine(Offset(lx, ly - 20), Offset(lx, ly), arrowPaint);
+      // Треугольник
+      final triangle = Path()
+        ..moveTo(lx, ly)
+        ..lineTo(lx - 5, ly - 8)
+        ..lineTo(lx + 5, ly - 8)
+        ..close();
+      canvas.drawPath(triangle, Paint()..color = Colors.blue.shade700);
+
+      // Подпись
+      final levelText = level.level > 0
+          ? '+${level.level.toStringAsFixed(3)}'
+          : level.level.toStringAsFixed(3);
+      final desc = level.description != null ? ' ${level.description}' : '';
+      _drawLabel(
+        canvas,
+        lx + 8,
+        ly - 4,
+        '$levelText$desc',
+        10,
+        Colors.blue.shade700,
+      );
+    }
+  }
+
+  /// Размерные линии (из EditorState)
+  void _drawDimensionLines(Canvas canvas, EditorState state) {
+    for (final dim in state.dimensionLines) {
+      final ppm = pixelsPerMeter;
+      final x1 = dim.x1 * ppm;
+      final y1 = dim.y1 * ppm;
+      final x2 = dim.x2 * ppm;
+      final y2 = dim.y2 * ppm;
+
+      final dimPaint = Paint()
+        ..color = Colors.green.shade700
+        ..strokeWidth = 1.5;
+
+      // Линия
+      canvas.drawLine(Offset(x1, y1), Offset(x2, y2), dimPaint);
+
+      // Засечки
+      _drawTick(canvas, Offset(x1, y1), dimPaint);
+      _drawTick(canvas, Offset(x2, y2), dimPaint);
+
+      // Текст
+      final mx = (x1 + x2) / 2;
+      final my = (y1 + y2) / 2;
+      _drawLabel(canvas, mx, my - 10, dim.value, 11, Colors.green.shade700);
+    }
+  }
+
+  /// Штриховая линия
+  void _drawDashedLine(
+    Canvas canvas,
+    Offset start,
+    Offset end,
+    Paint paint,
+    double dashLength,
+    double gapLength,
+  ) {
+    final totalLength = (end - start).distance;
+    final direction = (end - start) / totalLength;
+    double distance = 0;
+
+    while (distance < totalLength) {
+      final dashEnd = distance + dashLength;
+      final p1 = start + direction * distance;
+      final p2 = start + direction * dashEnd.clamp(0, totalLength);
+      canvas.drawLine(p1, p2, paint);
+      distance += dashLength + gapLength;
+    }
+  }
+
+  /// Засечка для размерной линии
+  void _drawTick(Canvas canvas, Offset point, Paint paint) {
+    canvas.drawLine(
+      Offset(point.dx - 4, point.dy - 4),
+      Offset(point.dx + 4, point.dy + 4),
+      paint,
+    );
+  }
+
+  String _foundationTypeLabel(String t) {
+    switch (t) {
+      case 'strip':
+        return 'Ленточный';
+      case 'slab':
+        return 'Плитный';
+      case 'pile':
+        return 'Свайный';
+      case 'column':
+        return 'Столбчатый';
+      case 'screw':
+        return 'Винтовые сваи';
+      default:
+        return t;
+    }
+  }
+
+  String _materialShortLabel(String m) {
+    switch (m) {
+      case 'brick':
+        return 'КИР';
+      case 'gasBlockD400':
+      case 'gasBlockD500':
+      case 'gasBlockD600':
+        return 'ГБ';
+      case 'concrete':
+        return 'ЖБ';
+      case 'timber':
+        return 'ДЕР';
+      case 'keramoblock':
+        return 'КБ';
+      case 'foamBlock':
+        return 'ПБ';
+      case 'sipPanel':
+        return 'СИП';
+      default:
+        return m.substring(0, m.length > 3 ? 3 : m.length).toUpperCase();
+    }
+  }
+
   @override
   bool shouldRepaint(covariant FloorPlanPainter oldDelegate) {
-    return oldDelegate.plan != plan || 
+    return oldDelegate.plan != plan ||
         oldDelegate.pixelsPerMeter != pixelsPerMeter ||
         oldDelegate.editorState != editorState;
   }

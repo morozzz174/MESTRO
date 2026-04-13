@@ -1,4 +1,4 @@
-import '../models/floor_plan_models.dart';
+import '../models/floor_plan_models_extended.dart';
 import 'ai_floor_plan_optimizer.dart';
 import '../../../models/order.dart';
 import '../../../services/app_logger.dart';

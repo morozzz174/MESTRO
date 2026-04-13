@@ -28,8 +28,11 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   String? _selectedRadiatorId;
   String? _selectedPlumbingId;
   String? _selectedElectricalId;
-  
-  final TransformationController _transformController = TransformationController();
+  String? _selectedWallId;
+  String? _selectedColumnId;
+
+  final TransformationController _transformController =
+      TransformationController();
 
   @override
   void dispose() {
@@ -57,6 +60,8 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
               _selectedRadiatorId = null;
               _selectedPlumbingId = null;
               _selectedElectricalId = null;
+              _selectedWallId = null;
+              _selectedColumnId = null;
             }),
             child: Stack(
               children: [
@@ -75,69 +80,89 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
                 ...widget.state.rooms.map((room) => _buildRoom(room, ppm)),
                 // Двери
                 if (widget.isEditable)
-                  ...widget.state.doors.map((door) => _buildDraggableElement(
-                        door,
-                        ppm,
-                        isDoor: true,
-                        isSelected: _selectedDoorId == door.id,
-                        onTap: () => setState(() {
-                          _selectedDoorId = door.id;
-                          _clearOtherSelections(isDoor: true);
-                        }),
-                        onDelete: () => _deleteDoor(door),
-                      )),
+                  ...widget.state.doors.map(
+                    (door) => _buildDraggableElement(
+                      door,
+                      ppm,
+                      isDoor: true,
+                      isSelected: _selectedDoorId == door.id,
+                      onTap: () => setState(() {
+                        _selectedDoorId = door.id;
+                        _clearOtherSelections(isDoor: true);
+                      }),
+                      onDelete: () => _deleteDoor(door),
+                    ),
+                  ),
                 // Окна
                 if (widget.isEditable)
-                  ...widget.state.windows.map((window) => _buildDraggableElement(
-                        window,
-                        ppm,
-                        isWindow: true,
-                        isSelected: _selectedWindowId == window.id,
-                        onTap: () => setState(() {
-                          _selectedWindowId = window.id;
-                          _clearOtherSelections(isWindow: true);
-                        }),
-                        onDelete: () => _deleteWindow(window),
-                      )),
+                  ...widget.state.windows.map(
+                    (window) => _buildDraggableElement(
+                      window,
+                      ppm,
+                      isWindow: true,
+                      isSelected: _selectedWindowId == window.id,
+                      onTap: () => setState(() {
+                        _selectedWindowId = window.id;
+                        _clearOtherSelections(isWindow: true);
+                      }),
+                      onDelete: () => _deleteWindow(window),
+                    ),
+                  ),
                 // Радиаторы
                 if (widget.isEditable)
-                  ...widget.state.radiators.map((radiator) => _buildDraggableElement(
-                        radiator,
-                        ppm,
-                        isRadiator: true,
-                        isSelected: _selectedRadiatorId == radiator.id,
-                        onTap: () => setState(() {
-                          _selectedRadiatorId = radiator.id;
-                          _clearOtherSelections(isRadiator: true);
-                        }),
-                        onDelete: () => _deleteRadiator(radiator),
-                      )),
+                  ...widget.state.radiators.map(
+                    (radiator) => _buildDraggableElement(
+                      radiator,
+                      ppm,
+                      isRadiator: true,
+                      isSelected: _selectedRadiatorId == radiator.id,
+                      onTap: () => setState(() {
+                        _selectedRadiatorId = radiator.id;
+                        _clearOtherSelections(isRadiator: true);
+                      }),
+                      onDelete: () => _deleteRadiator(radiator),
+                    ),
+                  ),
                 // Сантехника
                 if (widget.isEditable)
-                  ...widget.state.plumbingFixtures.map((fixture) => _buildDraggableElement(
-                        fixture,
-                        ppm,
-                        isPlumbing: true,
-                        isSelected: _selectedPlumbingId == fixture.id,
-                        onTap: () => setState(() {
-                          _selectedPlumbingId = fixture.id;
-                          _clearOtherSelections(isPlumbing: true);
-                        }),
-                        onDelete: () => _deletePlumbing(fixture),
-                      )),
+                  ...widget.state.plumbingFixtures.map(
+                    (fixture) => _buildDraggableElement(
+                      fixture,
+                      ppm,
+                      isPlumbing: true,
+                      isSelected: _selectedPlumbingId == fixture.id,
+                      onTap: () => setState(() {
+                        _selectedPlumbingId = fixture.id;
+                        _clearOtherSelections(isPlumbing: true);
+                      }),
+                      onDelete: () => _deletePlumbing(fixture),
+                    ),
+                  ),
                 // Электрика
                 if (widget.isEditable)
-                  ...widget.state.electricalPoints.map((point) => _buildDraggableElement(
-                        point,
-                        ppm,
-                        isElectrical: true,
-                        isSelected: _selectedElectricalId == point.id,
-                        onTap: () => setState(() {
-                          _selectedElectricalId = point.id;
-                          _clearOtherSelections(isElectrical: true);
-                        }),
-                        onDelete: () => _deleteElectrical(point),
-                      )),
+                  ...widget.state.electricalPoints.map(
+                    (point) => _buildDraggableElement(
+                      point,
+                      ppm,
+                      isElectrical: true,
+                      isSelected: _selectedElectricalId == point.id,
+                      onTap: () => setState(() {
+                        _selectedElectricalId = point.id;
+                        _clearOtherSelections(isElectrical: true);
+                      }),
+                      onDelete: () => _deleteElectrical(point),
+                    ),
+                  ),
+                // Стены
+                if (widget.isEditable)
+                  ...widget.state.walls.map(
+                    (wall) => _buildWallDraggableElement(wall, ppm),
+                  ),
+                // Колонны
+                if (widget.isEditable)
+                  ...widget.state.columns.map(
+                    (col) => _buildColumnDraggableElement(col, ppm),
+                  ),
               ],
             ),
           ),
@@ -152,12 +177,16 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
     bool isRadiator = false,
     bool isPlumbing = false,
     bool isElectrical = false,
+    bool isWall = false,
+    bool isColumn = false,
   }) {
     if (!isDoor) _selectedDoorId = null;
     if (!isWindow) _selectedWindowId = null;
     if (!isRadiator) _selectedRadiatorId = null;
     if (!isPlumbing) _selectedPlumbingId = null;
     if (!isElectrical) _selectedElectricalId = null;
+    if (!isWall) _selectedWallId = null;
+    if (!isColumn) _selectedColumnId = null;
   }
 
   Widget _buildRoom(RoomState room, double ppm) {
@@ -194,7 +223,7 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   }
 
   // ===== Drag & Drop для элементов =====
-  
+
   Offset? _dragStartPos;
   String? _draggingElementId;
   dynamic _draggingElement;
@@ -312,7 +341,9 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
         child: Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.3) : color.withOpacity(0.15),
+            color: isSelected
+                ? color.withOpacity(0.3)
+                : color.withOpacity(0.15),
             border: Border.all(
               color: isSelected ? color : color.withOpacity(0.5),
               width: isSelected ? 2 : 1,
@@ -370,7 +401,7 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   }
 
   // ===== Room drag & drop =====
-  
+
   void _startDragRoom(RoomState room) {
     _selectedRoomId = room.id;
   }
@@ -384,7 +415,10 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
     final dy = delta.dy / ppm;
 
     final newX = (room.x + dx).clamp(0.0, widget.state.totalWidth - room.width);
-    final newY = (room.y + dy).clamp(0.0, widget.state.totalHeight - room.height);
+    final newY = (room.y + dy).clamp(
+      0.0,
+      widget.state.totalHeight - room.height,
+    );
 
     widget.onChanged(
       widget.state.copyWith(
@@ -430,11 +464,13 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   }
 
   // ===== Door CRUD =====
-  
+
   void _updateDoor(DoorState door) {
     widget.onChanged(
       widget.state.copyWith(
-        doors: widget.state.doors.map((d) => d.id == door.id ? door : d).toList(),
+        doors: widget.state.doors
+            .map((d) => d.id == door.id ? door : d)
+            .toList(),
       ),
     );
   }
@@ -449,11 +485,13 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   }
 
   // ===== Window CRUD =====
-  
+
   void _updateWindow(WindowState window) {
     widget.onChanged(
       widget.state.copyWith(
-        windows: widget.state.windows.map((w) => w.id == window.id ? window : w).toList(),
+        windows: widget.state.windows
+            .map((w) => w.id == window.id ? window : w)
+            .toList(),
       ),
     );
   }
@@ -468,11 +506,13 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   }
 
   // ===== Radiator CRUD =====
-  
+
   void _updateRadiator(RadiatorState radiator) {
     widget.onChanged(
       widget.state.copyWith(
-        radiators: widget.state.radiators.map((r) => r.id == radiator.id ? radiator : r).toList(),
+        radiators: widget.state.radiators
+            .map((r) => r.id == radiator.id ? radiator : r)
+            .toList(),
       ),
     );
   }
@@ -480,18 +520,22 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   void _deleteRadiator(RadiatorState radiator) {
     widget.onChanged(
       widget.state.copyWith(
-        radiators: widget.state.radiators.where((r) => r.id != radiator.id).toList(),
+        radiators: widget.state.radiators
+            .where((r) => r.id != radiator.id)
+            .toList(),
       ),
     );
     setState(() => _selectedRadiatorId = null);
   }
 
   // ===== Plumbing CRUD =====
-  
+
   void _updatePlumbing(PlumbingFixtureState fixture) {
     widget.onChanged(
       widget.state.copyWith(
-        plumbingFixtures: widget.state.plumbingFixtures.map((f) => f.id == fixture.id ? fixture : f).toList(),
+        plumbingFixtures: widget.state.plumbingFixtures
+            .map((f) => f.id == fixture.id ? fixture : f)
+            .toList(),
       ),
     );
   }
@@ -499,7 +543,9 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   void _deletePlumbing(PlumbingFixtureState fixture) {
     widget.onChanged(
       widget.state.copyWith(
-        plumbingFixtures: widget.state.plumbingFixtures.where((f) => f.id != fixture.id).toList(),
+        plumbingFixtures: widget.state.plumbingFixtures
+            .where((f) => f.id != fixture.id)
+            .toList(),
       ),
     );
     setState(() => _selectedPlumbingId = null);
@@ -507,32 +553,46 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
 
   String _getPlumbingLabel(String type) {
     switch (type) {
-      case 'sink': return 'Раковина';
-      case 'toilet': return 'Унитаз';
-      case 'bathtub': return 'Ванна';
-      case 'shower': return 'Душ';
-      case 'washingMachine': return 'Стиралка';
-      default: return type;
+      case 'sink':
+        return 'Раковина';
+      case 'toilet':
+        return 'Унитаз';
+      case 'bathtub':
+        return 'Ванна';
+      case 'shower':
+        return 'Душ';
+      case 'washingMachine':
+        return 'Стиралка';
+      default:
+        return type;
     }
   }
 
   String _getPlumbingIcon(String type) {
     switch (type) {
-      case 'sink': return '🚰';
-      case 'toilet': return '🚽';
-      case 'bathtub': return '🛁';
-      case 'shower': return '🚿';
-      case 'washingMachine': return '🧺';
-      default: return '🔧';
+      case 'sink':
+        return '🚰';
+      case 'toilet':
+        return '🚽';
+      case 'bathtub':
+        return '🛁';
+      case 'shower':
+        return '🚿';
+      case 'washingMachine':
+        return '🧺';
+      default:
+        return '🔧';
     }
   }
 
   // ===== Electrical CRUD =====
-  
+
   void _updateElectrical(ElectricalPointState point) {
     widget.onChanged(
       widget.state.copyWith(
-        electricalPoints: widget.state.electricalPoints.map((p) => p.id == point.id ? point : p).toList(),
+        electricalPoints: widget.state.electricalPoints
+            .map((p) => p.id == point.id ? point : p)
+            .toList(),
       ),
     );
   }
@@ -540,7 +600,9 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
   void _deleteElectrical(ElectricalPointState point) {
     widget.onChanged(
       widget.state.copyWith(
-        electricalPoints: widget.state.electricalPoints.where((p) => p.id != point.id).toList(),
+        electricalPoints: widget.state.electricalPoints
+            .where((p) => p.id != point.id)
+            .toList(),
       ),
     );
     setState(() => _selectedElectricalId = null);
@@ -548,22 +610,278 @@ class _FloorPlanEditorState extends State<FloorPlanEditor> {
 
   String _getElectricalLabel(String type) {
     switch (type) {
-      case 'socket': return 'Розетка';
-      case 'switch': return 'Выключатель';
-      case 'lightPoint': return 'Свет';
-      case 'internetSocket': return 'Интернет';
-      default: return type;
+      case 'socket':
+        return 'Розетка';
+      case 'switch':
+        return 'Выключатель';
+      case 'lightPoint':
+        return 'Свет';
+      case 'internetSocket':
+        return 'Интернет';
+      default:
+        return type;
     }
   }
 
   String _getElectricalIcon(String type) {
     switch (type) {
-      case 'socket': return '🔌';
-      case 'switch': return '🔘';
-      case 'lightPoint': return '💡';
-      case 'internetSocket': return '🌐';
-      default: return '⚡';
+      case 'socket':
+        return '🔌';
+      case 'switch':
+        return '🔘';
+      case 'lightPoint':
+        return '💡';
+      case 'internetSocket':
+        return '🌐';
+      default:
+        return '⚡';
     }
+  }
+
+  // ===== Wall CRUD =====
+
+  Widget _buildWallDraggableElement(WallState wall, double ppm) {
+    final isSelected = _selectedWallId == wall.id;
+    final midX = ((wall.x1 + wall.x2) / 2) * ppm;
+    final midY = ((wall.y1 + wall.y2) / 2) * ppm;
+
+    return Positioned(
+      left: midX - 30,
+      top: midY - 15,
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _selectedWallId = wall.id;
+          _clearOtherSelections(isWall: true);
+        }),
+        onPanStart: (_) => _startDragWall(wall),
+        onPanUpdate: (d) => _updateDragWall(wall, d.delta, ppm),
+        onPanEnd: (_) => _endDragWall(),
+        child: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Colors.red.withOpacity(0.3)
+                : Colors.red.withOpacity(0.1),
+            border: Border.all(
+              color: isSelected ? Colors.red : Colors.red.withOpacity(0.5),
+              width: isSelected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _wallTypeShortLabel(wall.type),
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              const SizedBox(width: 2),
+              if (isSelected)
+                GestureDetector(
+                  onTap: () => _deleteWall(wall),
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 8,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _startDragWall(WallState wall) {
+    _dragWallStartPos = Offset(wall.x1, wall.y1);
+    _dragWallEndPos = Offset(wall.x2, wall.y2);
+    _draggingWallId = wall.id;
+  }
+
+  Offset? _dragWallStartPos;
+  Offset? _dragWallEndPos;
+  String? _draggingWallId;
+
+  void _updateDragWall(WallState wall, Offset delta, double ppm) {
+    if (_draggingWallId != wall.id) return;
+    final dx = delta.dx / ppm;
+    final dy = delta.dy / ppm;
+
+    _dragWallStartPos = Offset(
+      _dragWallStartPos!.dx + dx,
+      _dragWallStartPos!.dy + dy,
+    );
+    _dragWallEndPos = Offset(
+      _dragWallEndPos!.dx + dx,
+      _dragWallEndPos!.dy + dy,
+    );
+
+    widget.onChanged(
+      widget.state.copyWith(
+        walls: widget.state.walls.map((w) {
+          if (w.id == wall.id) {
+            return w.copyWith(
+              x1: _dragWallStartPos!.dx.clamp(0.0, widget.state.totalWidth),
+              y1: _dragWallStartPos!.dy.clamp(0.0, widget.state.totalHeight),
+              x2: _dragWallEndPos!.dx.clamp(0.0, widget.state.totalWidth),
+              y2: _dragWallEndPos!.dy.clamp(0.0, widget.state.totalHeight),
+            );
+          }
+          return w;
+        }).toList(),
+      ),
+    );
+  }
+
+  void _endDragWall() {
+    _draggingWallId = null;
+    _dragWallStartPos = null;
+    _dragWallEndPos = null;
+  }
+
+  void _deleteWall(WallState wall) {
+    widget.onChanged(
+      widget.state.copyWith(
+        walls: widget.state.walls.where((w) => w.id != wall.id).toList(),
+      ),
+    );
+    setState(() => _selectedWallId = null);
+  }
+
+  String _wallTypeShortLabel(String type) {
+    switch (type) {
+      case 'exterior':
+        return '🧱 Наружная';
+      case 'interior':
+        return '🧱 Внутр';
+      case 'partition':
+        return '│ Перегор';
+      case 'foundation':
+        return '▣ Фундам';
+      case 'retaining':
+        return '◧ Подпорн';
+      default:
+        return '🧱 $type';
+    }
+  }
+
+  // ===== Column CRUD =====
+
+  Widget _buildColumnDraggableElement(ColumnState col, double ppm) {
+    final isSelected = _selectedColumnId == col.id;
+    final cx = col.x * ppm;
+    final cy = col.y * ppm;
+
+    return Positioned(
+      left: cx - 15,
+      top: cy - 15,
+      child: GestureDetector(
+        onTap: () => setState(() {
+          _selectedColumnId = col.id;
+          _clearOtherSelections(isColumn: true);
+        }),
+        onPanStart: (_) => _startDragColumn(col),
+        onPanUpdate: (d) => _updateDragColumn(col, d.delta, ppm),
+        onPanEnd: (_) => _endDragColumn(),
+        child: Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.grey.shade600 : Colors.grey.shade500,
+            border: Border.all(color: Colors.black, width: isSelected ? 2 : 1),
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Text(
+                  '✕',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black.withOpacity(0.5),
+                  ),
+                ),
+              ),
+              if (isSelected)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: GestureDetector(
+                    onTap: () => _deleteColumn(col),
+                    child: Container(
+                      width: 14,
+                      height: 14,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 8,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _startDragColumn(ColumnState col) {
+    _draggingColumnId = col.id;
+  }
+
+  String? _draggingColumnId;
+
+  void _updateDragColumn(ColumnState col, Offset delta, double ppm) {
+    if (_draggingColumnId != col.id) return;
+    final dx = delta.dx / ppm;
+    final dy = delta.dy / ppm;
+
+    widget.onChanged(
+      widget.state.copyWith(
+        columns: widget.state.columns.map((c) {
+          if (c.id == col.id) {
+            return ColumnState(
+              id: c.id,
+              x: (c.x + dx).clamp(0.0, widget.state.totalWidth),
+              y: (c.y + dy).clamp(0.0, widget.state.totalHeight),
+              width: c.width,
+              height: c.height,
+              material: c.material,
+            );
+          }
+          return c;
+        }).toList(),
+      ),
+    );
+  }
+
+  void _endDragColumn() {
+    _draggingColumnId = null;
+  }
+
+  void _deleteColumn(ColumnState col) {
+    widget.onChanged(
+      widget.state.copyWith(
+        columns: widget.state.columns.where((c) => c.id != col.id).toList(),
+      ),
+    );
+    setState(() => _selectedColumnId = null);
   }
 }
 
@@ -588,7 +906,9 @@ class _RoomWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: _getRoomColor(room.type).withOpacity(isSelected ? 0.25 : 0.1),
         border: Border.all(
-          color: isSelected ? AppDesign.accentTeal : AppDesign.midBlueGrayBorder,
+          color: isSelected
+              ? AppDesign.accentTeal
+              : AppDesign.midBlueGrayBorder,
           width: isSelected ? 2.5 : 1.5,
         ),
         borderRadius: BorderRadius.circular(4),
@@ -599,7 +919,10 @@ class _RoomWidget extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_getRoomIcon(room.type), style: const TextStyle(fontSize: 28)),
+                Text(
+                  _getRoomIcon(room.type),
+                  style: const TextStyle(fontSize: 28),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   _getRoomLabel(room.type),
@@ -631,9 +954,15 @@ class _RoomWidget extends StatelessWidget {
                   height: 24,
                   decoration: const BoxDecoration(
                     color: AppDesign.accentTeal,
-                    borderRadius: BorderRadius.only(bottomRight: Radius.circular(4)),
+                    borderRadius: BorderRadius.only(
+                      bottomRight: Radius.circular(4),
+                    ),
                   ),
-                  child: const Icon(Icons.zoom_out_map, color: Colors.white, size: 14),
+                  child: const Icon(
+                    Icons.zoom_out_map,
+                    color: Colors.white,
+                    size: 14,
+                  ),
                 ),
               ),
             ),
@@ -661,49 +990,82 @@ class _RoomWidget extends StatelessWidget {
 
   Color _getRoomColor(String type) {
     switch (type) {
-      case 'kitchen': return Colors.orange.shade100;
-      case 'livingRoom': return Colors.blue.shade100;
-      case 'bedroom': return Colors.purple.shade100;
-      case 'childrenRoom': return Colors.green.shade100;
-      case 'bathroom': return Colors.teal.shade100;
-      case 'toilet': return Colors.cyan.shade100;
-      case 'hallway': return Colors.grey.shade200;
-      case 'balcony': return Colors.lightGreen.shade100;
-      case 'storage': return Colors.brown.shade100;
-      case 'office': return Colors.indigo.shade100;
-      default: return Colors.grey.shade100;
+      case 'kitchen':
+        return Colors.orange.shade100;
+      case 'livingRoom':
+        return Colors.blue.shade100;
+      case 'bedroom':
+        return Colors.purple.shade100;
+      case 'childrenRoom':
+        return Colors.green.shade100;
+      case 'bathroom':
+        return Colors.teal.shade100;
+      case 'toilet':
+        return Colors.cyan.shade100;
+      case 'hallway':
+        return Colors.grey.shade200;
+      case 'balcony':
+        return Colors.lightGreen.shade100;
+      case 'storage':
+        return Colors.brown.shade100;
+      case 'office':
+        return Colors.indigo.shade100;
+      default:
+        return Colors.grey.shade100;
     }
   }
 
   String _getRoomIcon(String type) {
     switch (type) {
-      case 'kitchen': return '🍳';
-      case 'livingRoom': return '🛋️';
-      case 'bedroom': return '🛏️';
-      case 'childrenRoom': return '🧸';
-      case 'bathroom': return '🚿';
-      case 'toilet': return '🚽';
-      case 'hallway': return '🚶';
-      case 'balcony': return '🌿';
-      case 'storage': return '📦';
-      case 'office': return '💼';
-      default: return '🏠';
+      case 'kitchen':
+        return '🍳';
+      case 'livingRoom':
+        return '🛋️';
+      case 'bedroom':
+        return '🛏️';
+      case 'childrenRoom':
+        return '🧸';
+      case 'bathroom':
+        return '🚿';
+      case 'toilet':
+        return '🚽';
+      case 'hallway':
+        return '🚶';
+      case 'balcony':
+        return '🌿';
+      case 'storage':
+        return '📦';
+      case 'office':
+        return '💼';
+      default:
+        return '🏠';
     }
   }
 
   String _getRoomLabel(String type) {
     switch (type) {
-      case 'kitchen': return 'Кухня';
-      case 'livingRoom': return 'Гостиная';
-      case 'bedroom': return 'Спальня';
-      case 'childrenRoom': return 'Детская';
-      case 'bathroom': return 'Ванная';
-      case 'toilet': return 'Туалет';
-      case 'hallway': return 'Коридор';
-      case 'balcony': return 'Балкон';
-      case 'storage': return 'Кладовая';
-      case 'office': return 'Кабинет';
-      default: return type;
+      case 'kitchen':
+        return 'Кухня';
+      case 'livingRoom':
+        return 'Гостиная';
+      case 'bedroom':
+        return 'Спальня';
+      case 'childrenRoom':
+        return 'Детская';
+      case 'bathroom':
+        return 'Ванная';
+      case 'toilet':
+        return 'Туалет';
+      case 'hallway':
+        return 'Коридор';
+      case 'balcony':
+        return 'Балкон';
+      case 'storage':
+        return 'Кладовая';
+      case 'office':
+        return 'Кабинет';
+      default:
+        return type;
     }
   }
 }
@@ -725,14 +1087,22 @@ class EditorGridPainter extends CustomPainter {
       ..color = Colors.grey.withOpacity(0.15)
       ..strokeWidth = 0.5;
 
-    for (double x = 0; x <= state.totalWidth * pixelsPerMeter; x += pixelsPerMeter) {
+    for (
+      double x = 0;
+      x <= state.totalWidth * pixelsPerMeter;
+      x += pixelsPerMeter
+    ) {
       canvas.drawLine(
         Offset(x, 0),
         Offset(x, state.totalHeight * pixelsPerMeter),
         gridPaint,
       );
     }
-    for (double y = 0; y <= state.totalHeight * pixelsPerMeter; y += pixelsPerMeter) {
+    for (
+      double y = 0;
+      y <= state.totalHeight * pixelsPerMeter;
+      y += pixelsPerMeter
+    ) {
       canvas.drawLine(
         Offset(0, y),
         Offset(state.totalWidth * pixelsPerMeter, y),
@@ -742,7 +1112,8 @@ class EditorGridPainter extends CustomPainter {
 
     canvas.drawRect(
       Rect.fromLTWH(
-        0, 0,
+        0,
+        0,
         state.totalWidth * pixelsPerMeter,
         state.totalHeight * pixelsPerMeter,
       ),
@@ -755,6 +1126,7 @@ class EditorGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant EditorGridPainter oldDelegate) {
-    return oldDelegate.state != state || oldDelegate.pixelsPerMeter != pixelsPerMeter;
+    return oldDelegate.state != state ||
+        oldDelegate.pixelsPerMeter != pixelsPerMeter;
   }
 }

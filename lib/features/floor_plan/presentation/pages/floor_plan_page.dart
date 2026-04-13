@@ -10,8 +10,7 @@ import '../../../../services/construction_drawing_generator.dart';
 import '../../../../utils/app_design.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../utils/pdf_generator.dart';
-import '../../models/floor_plan_models.dart';
-import '../../models/floor_plan_models_extended.dart' as extended;
+import '../../models/floor_plan_models_extended.dart' hide Column;
 import '../../models/editor_state.dart';
 import '../../engine/floor_plan_rule_engine.dart';
 import '../../engine/ai_floor_plan_optimizer.dart';
@@ -20,6 +19,7 @@ import '../../engine/floor_plan_validator.dart';
 import '../widgets/floor_plan_painter.dart';
 import '../widgets/floor_plan_editor.dart';
 import '../widgets/editor_toolbar.dart';
+import '../widgets/construction_panel.dart';
 
 /// Экран просмотра и редакти плана помещения
 class FloorPlanPage extends StatefulWidget {
@@ -45,7 +45,8 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   bool _isAIOptimized = false;
   bool _isAIFloorPlanGenerated = false;
   bool _isEditing = false;
-  final TransformationController _transformationController = TransformationController();
+  final TransformationController _transformationController =
+      TransformationController();
 
   @override
   void initState() {
@@ -138,49 +139,42 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     setState(() => _isGenerating = true);
 
     final checklistData = widget.order.checklistData;
-    
-    // Пробуем извлечь размеры из разных полей чек-листа
+
+    // Пробуем извлечь размеры помещения из чек-листа
     double widthMm = 0;
     double heightMm = 0;
-    
-    // Для окон и дверей
-    widthMm = (checklistData['width'] as num?)?.toDouble() ?? 0;
-    heightMm = (checklistData['height'] as num?)?.toDouble() ?? 0;
-    
-    // Для плитки и мебели (пол)
-    if (widthMm == 0 || heightMm == 0) {
-      final floorLength = (checklistData['floor_length'] as num?)?.toDouble() ?? 0;
-      final floorWidth = (checklistData['floor_width'] as num?)?.toDouble() ?? 0;
-      if (floorLength > 0 && floorWidth > 0) {
-        widthMm = floorLength;
-        heightMm = floorWidth;
-      }
+
+    // 1. Размеры помещения (пол) — есть только в tiles.json
+    final floorLength =
+        (checklistData['floor_length'] as num?)?.toDouble() ?? 0;
+    final floorWidth = (checklistData['floor_width'] as num?)?.toDouble() ?? 0;
+    if (floorLength > 0 && floorWidth > 0) {
+      widthMm = floorLength;
+      heightMm = floorWidth;
     }
-    
-    // Для кухни
+
+    // 2. Для кухни — отдельные поля (если есть)
     if (widthMm == 0 || heightMm == 0) {
-      final kitchenLength = (checklistData['kitchen_length'] as num?)?.toDouble() ?? 0;
-      if (kitchenLength > 0) {
+      final kitchenLength =
+          (checklistData['kitchen_length'] as num?)?.toDouble() ?? 0;
+      final kitchenWidth =
+          (checklistData['kitchen_width'] as num?)?.toDouble() ?? 0;
+      if (kitchenLength > 0 && kitchenWidth > 0) {
         widthMm = kitchenLength;
-        heightMm = 3000; // Дефолтная ширина кухни
-      }
-    }
-    
-    // Для плитки
-    if (widthMm == 0 || heightMm == 0) {
-      final wallLength = (checklistData['wall_length'] as num?)?.toDouble() ?? 0;
-      final wallHeight = (checklistData['wall_height'] as num?)?.toDouble() ?? 0;
-      if (wallLength > 0 && wallHeight > 0) {
-        widthMm = wallLength;
-        heightMm = wallHeight;
+        heightMm = kitchenWidth;
       }
     }
 
+    // ВАЖНО: НЕ используем размеры отдельных элементов для генерации плана:
+    // - width/height из windows.json — размер ОДНОГО окна, не помещения
+    // - wall_length/wall_height из tiles.json — размер ОДНОЙ стены
+    // Для этих типов работ используем дефолтные размеры
+
     if (widthMm == 0 || heightMm == 0) {
-      // Если данных нет, используем дефолтные размеры
+      // Нет размеров помещения — используем дефолтные 10×8м
       _plan = _ruleEngine.generateFromMeasurements(
-        widthMm: 10000, // 10м
-        heightMm: 8000, // 8м
+        widthMm: 10000,
+        heightMm: 8000,
         objectType: _determineObjectType(widget.order),
       );
     } else {
@@ -193,7 +187,6 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
 
     setState(() => _isGenerating = false);
 
-    // Создаём состояние редактора из плана
     _editorState = _planToEditorState(_plan!);
     _undoRedo.push(_editorState!);
   }
@@ -201,41 +194,51 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   /// Конвертировать FloorPlan в EditorState (сохраняет все данные)
   EditorState _planToEditorState(FloorPlan plan) {
     final rooms = <RoomState>[];
-    
+
     for (final room in plan.rooms) {
       // Генерируем уникальный ID для комнаты
       final roomId = const Uuid().v4();
-      
+
       // Конвертируем двери
-      final doors = room.doors.map((door) => DoorState(
-        id: const Uuid().v4(),
-        x: door.x,
-        y: door.y,
-        width: door.width,
-        type: door.type.name,
-      )).toList();
-      
+      final doors = room.doors
+          .map(
+            (door) => DoorState(
+              id: const Uuid().v4(),
+              x: door.x,
+              y: door.y,
+              width: door.width,
+              type: door.type.name,
+            ),
+          )
+          .toList();
+
       // Конвертируем окна
-      final windows = room.windows.map((window) => WindowState(
-        id: const Uuid().v4(),
-        x: window.x,
-        y: window.y,
-        width: window.width,
-        type: window.type.name,
-      )).toList();
-      
-      rooms.add(RoomState(
-        id: roomId,
-        type: room.type.name,
-        x: room.x,
-        y: room.y,
-        width: room.width,
-        height: room.height,
-        doors: doors,
-        windows: windows,
-      ));
+      final windows = room.windows
+          .map(
+            (window) => WindowState(
+              id: const Uuid().v4(),
+              x: window.x,
+              y: window.y,
+              width: window.width,
+              type: window.type.name,
+            ),
+          )
+          .toList();
+
+      rooms.add(
+        RoomState(
+          id: roomId,
+          type: room.type.name,
+          x: room.x,
+          y: room.y,
+          width: room.width,
+          height: room.height,
+          doors: doors,
+          windows: windows,
+        ),
+      );
     }
-    
+
     return EditorState(
       rooms: rooms,
       totalWidth: plan.totalWidth,
@@ -251,21 +254,16 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           (t) => t.name == room.type,
           orElse: () => RoomType.hallway,
         );
-        
+
         // Восстанавливаем двери
         final doors = room.doors.map((door) {
           final doorType = DoorType.values.firstWhere(
             (t) => t.name == door.type,
             orElse: () => DoorType.internal,
           );
-          return Door(
-            x: door.x,
-            y: door.y,
-            width: door.width,
-            type: doorType,
-          );
+          return Door(x: door.x, y: door.y, width: door.width, type: doorType);
         }).toList();
-        
+
         // Восстанавливаем окна
         final windows = room.windows.map((window) {
           final windowType = WindowType.values.firstWhere(
@@ -279,7 +277,7 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
             type: windowType,
           );
         }).toList();
-        
+
         return Room(
           type: roomType,
           x: room.x,
@@ -288,13 +286,27 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           height: room.height,
           doors: doors,
           windows: windows,
-          hasVentilation: roomType == RoomType.kitchen || 
-                         roomType == RoomType.bathroom ||
-                         windows.isNotEmpty,
+          hasVentilation:
+              roomType == RoomType.kitchen ||
+              roomType == RoomType.bathroom ||
+              windows.isNotEmpty,
         );
       }).toList(),
       totalWidth: editor.totalWidth,
       totalHeight: editor.totalHeight,
+      // === РАСШИРЕННЫЕ ДАННЫЕ ===
+      walls: editor.walls.map((ws) => ws.toWall()).toList(),
+      foundation: editor.foundation?.toFoundation(),
+      roof: editor.roof?.toRoof(),
+      ceilings: editor.ceilings.map((cs) => cs.toCeiling()).toList(),
+      axisLines: editor.axisLines.map((a) => a.toAxis()).toList(),
+      dimensionLines: editor.dimensionLines
+          .map((d) => d.toDimension())
+          .toList(),
+      levelMarks: editor.levelMarks.map((l) => l.toLevelMark()).toList(),
+      columns: editor.columns.map((c) => c.toColumn()).toList(),
+      engineeringSystems:
+          editor.engineeringSystems?.toSystems() ?? const EngineeringSystems(),
     );
   }
 
@@ -310,21 +322,21 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   /// Сохранить план в Order (в БД)
   Future<void> _savePlanToOrder() async {
     if (_plan == null) return;
-    
+
     try {
       // Сериализуем план в JSON
       final planJson = _planToJson(_plan!);
-      
+
       // Обновляем Order
       final updatedOrder = widget.order.copyWith(
         floorPlanData: planJson,
         updatedAt: DateTime.now(),
       );
-      
+
       // Сохраняем в БД
       final db = DatabaseHelper();
       await db.updateOrder(updatedOrder);
-      
+
       print('[FloorPlan] План сохранён в Order ${updatedOrder.id}');
     } catch (e) {
       print('[FloorPlan] Ошибка сохранения плана: $e');
@@ -337,74 +349,322 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       'totalWidth': plan.totalWidth,
       'totalHeight': plan.totalHeight,
       'objectType': plan.objectType.name,
-      'rooms': plan.rooms.map((room) => {
-        'type': room.type.name,
-        'x': room.x,
-        'y': room.y,
-        'width': room.width,
-        'height': room.height,
-        'hasVentilation': room.hasVentilation,
-        'hasBalconyAccess': room.hasBalconyAccess,
-        'doors': room.doors.map((door) => {
-          'x': door.x,
-          'y': door.y,
-          'width': door.width,
-          'type': door.type.name,
-          'clockwise': door.clockwise,
-        }).toList(),
-        'windows': room.windows.map((window) => {
-          'x': window.x,
-          'y': window.y,
-          'width': window.width,
-          'type': window.type.name,
-          'sillHeight': window.sillHeight,
-        }).toList(),
-      }).toList(),
+      'rooms': plan.rooms
+          .map(
+            (room) => {
+              'type': room.type.name,
+              'x': room.x,
+              'y': room.y,
+              'width': room.width,
+              'height': room.height,
+              'hasVentilation': room.hasVentilation,
+              'hasBalconyAccess': room.hasBalconyAccess,
+              'doors': room.doors
+                  .map(
+                    (door) => {
+                      'x': door.x,
+                      'y': door.y,
+                      'width': door.width,
+                      'type': door.type.name,
+                      'clockwise': door.clockwise,
+                    },
+                  )
+                  .toList(),
+              'windows': room.windows
+                  .map(
+                    (window) => {
+                      'x': window.x,
+                      'y': window.y,
+                      'width': window.width,
+                      'type': window.type.name,
+                      'sillHeight': window.sillHeight,
+                    },
+                  )
+                  .toList(),
+            },
+          )
+          .toList(),
     };
 
     // Добавляем свободные элементы из EditorState
     if (_editorState != null) {
-      json['freeDoors'] = _editorState!.doors.map((door) => {
-        'id': door.id,
-        'x': door.x,
-        'y': door.y,
-        'width': door.width,
-        'type': door.type,
-        'rotation': door.rotation,
-      }).toList();
+      json['freeDoors'] = _editorState!.doors
+          .map(
+            (door) => {
+              'id': door.id,
+              'x': door.x,
+              'y': door.y,
+              'width': door.width,
+              'type': door.type,
+              'rotation': door.rotation,
+            },
+          )
+          .toList();
 
-      json['freeWindows'] = _editorState!.windows.map((window) => {
-        'id': window.id,
-        'x': window.x,
-        'y': window.y,
-        'width': window.width,
-        'type': window.type,
-        'rotation': window.rotation,
-      }).toList();
+      json['freeWindows'] = _editorState!.windows
+          .map(
+            (window) => {
+              'id': window.id,
+              'x': window.x,
+              'y': window.y,
+              'width': window.width,
+              'type': window.type,
+              'rotation': window.rotation,
+            },
+          )
+          .toList();
 
-      json['radiators'] = _editorState!.radiators.map((radiator) => {
-        'id': radiator.id,
-        'x': radiator.x,
-        'y': radiator.y,
-        'length': radiator.length,
-        'type': radiator.type,
-      }).toList();
+      json['radiators'] = _editorState!.radiators
+          .map(
+            (radiator) => {
+              'id': radiator.id,
+              'x': radiator.x,
+              'y': radiator.y,
+              'length': radiator.length,
+              'type': radiator.type,
+            },
+          )
+          .toList();
 
-      json['plumbingFixtures'] = _editorState!.plumbingFixtures.map((fixture) => {
-        'id': fixture.id,
-        'x': fixture.x,
-        'y': fixture.y,
-        'type': fixture.type,
-        'rotation': fixture.rotation,
-      }).toList();
+      json['plumbingFixtures'] = _editorState!.plumbingFixtures
+          .map(
+            (fixture) => {
+              'id': fixture.id,
+              'x': fixture.x,
+              'y': fixture.y,
+              'type': fixture.type,
+              'rotation': fixture.rotation,
+            },
+          )
+          .toList();
 
-      json['electricalPoints'] = _editorState!.electricalPoints.map((point) => {
-        'id': point.id,
-        'x': point.x,
-        'y': point.y,
-        'type': point.type,
-        'height': point.height,
-      }).toList();
+      json['electricalPoints'] = _editorState!.electricalPoints
+          .map(
+            (point) => {
+              'id': point.id,
+              'x': point.x,
+              'y': point.y,
+              'type': point.type,
+              'height': point.height,
+            },
+          )
+          .toList();
+
+      // === РАСШИРЕННЫЕ ДАННЫЕ ===
+      json['walls'] = _editorState!.walls
+          .map(
+            (w) => {
+              'id': w.id,
+              'x1': w.x1,
+              'y1': w.y1,
+              'x2': w.x2,
+              'y2': w.y2,
+              'thickness': w.thickness,
+              'type': w.type,
+              'material': w.material,
+              'height': w.height,
+              'isLoadBearing': w.isLoadBearing,
+              'insulationThickness': w.insulationThickness,
+            },
+          )
+          .toList();
+
+      if (_editorState!.foundation != null) {
+        final f = _editorState!.foundation!;
+        json['foundation'] = {
+          'type': f.type,
+          'width': f.width,
+          'depth': f.depth,
+          'height': f.height,
+          'embedmentDepth': f.embedmentDepth,
+          'concreteGrade': f.concreteGrade,
+          'concreteClass': f.concreteClass,
+          'mainBarDiameter': f.mainBarDiameter,
+          'mainBarsCount': f.mainBarsCount,
+          'stirrupDiameter': f.stirrupDiameter,
+          'stirrupSpacing': f.stirrupSpacing,
+          'rebarClass': f.rebarClass,
+          'hasWaterproofing': f.hasWaterproofing,
+          'hasInsulation': f.hasInsulation,
+          'hasDrainage': f.hasDrainage,
+          'sandCushionThickness': f.sandCushionThickness,
+        };
+      }
+
+      if (_editorState!.roof != null) {
+        final r = _editorState!.roof!;
+        json['roof'] = {
+          'type': r.type,
+          'area': r.area,
+          'slopeAngle': r.slopeAngle,
+          'roofingMaterial': r.roofingMaterial,
+          'rafterSpacing': r.rafterSpacing,
+          'rafterSectionWidth': r.rafterSectionWidth,
+          'rafterSectionHeight': r.rafterSectionHeight,
+          'rafterLength': r.rafterLength,
+          'rafterCount': r.rafterCount,
+          'rafterMaterial': r.rafterMaterial,
+          'insulationThickness': r.insulationThickness,
+          'insulationMaterial': r.insulationMaterial,
+          'hasWaterproofingMembrane': r.hasWaterproofingMembrane,
+          'hasVaporBarrier': r.hasVaporBarrier,
+          'hasSnowRetention': r.hasSnowRetention,
+          'snowRetentionCount': r.snowRetentionCount,
+        };
+      }
+
+      json['ceilings'] = _editorState!.ceilings
+          .map(
+            (c) => {
+              'id': c.id,
+              'type': c.type,
+              'material': c.material,
+              'thickness': c.thickness,
+              'area': c.area,
+              'hasSoundproofing': c.hasSoundproofing,
+            },
+          )
+          .toList();
+
+      json['axisLines'] = _editorState!.axisLines
+          .map(
+            (a) => {
+              'id': a.id,
+              'label': a.label,
+              'x1': a.x1,
+              'y1': a.y1,
+              'x2': a.x2,
+              'y2': a.y2,
+            },
+          )
+          .toList();
+
+      json['dimensionLines'] = _editorState!.dimensionLines
+          .map(
+            (d) => {
+              'id': d.id,
+              'x1': d.x1,
+              'y1': d.y1,
+              'x2': d.x2,
+              'y2': d.y2,
+              'value': d.value,
+              'offset': d.offset,
+            },
+          )
+          .toList();
+
+      json['levelMarks'] = _editorState!.levelMarks
+          .map(
+            (l) => {
+              'id': l.id,
+              'x': l.x,
+              'y': l.y,
+              'level': l.level,
+              'description': l.description,
+            },
+          )
+          .toList();
+
+      json['columns'] = _editorState!.columns
+          .map(
+            (c) => {
+              'id': c.id,
+              'x': c.x,
+              'y': c.y,
+              'width': c.width,
+              'height': c.height,
+              'material': c.material,
+            },
+          )
+          .toList();
+
+      if (_editorState!.engineeringSystems != null) {
+        final es = _editorState!.engineeringSystems!;
+        final esJson = <String, dynamic>{};
+        if (es.heating != null) {
+          final h = es.heating!;
+          esJson['heating'] = {
+            'type': h.type,
+            'radiatorCount': h.radiatorCount,
+            'pipeLength': h.pipeLength,
+            'boilerPower': h.boilerPower,
+            'hasWarmFloor': h.hasWarmFloor,
+            'warmFloorArea': h.warmFloorArea,
+          };
+        }
+        if (es.waterSupply != null) {
+          final w = es.waterSupply!;
+          esJson['waterSupply'] = {
+            'coldPipeLength': w.coldPipeLength,
+            'hotPipeLength': w.hotPipeLength,
+            'fixtureCount': w.fixtureCount,
+            'hasWaterHeater': w.hasWaterHeater,
+            'waterHeaterVolume': w.waterHeaterVolume,
+          };
+        }
+        if (es.electrical != null) {
+          final e = es.electrical!;
+          esJson['electrical'] = {
+            'cableLength': e.cableLength,
+            'socketCount': e.socketCount,
+            'switchCount': e.switchCount,
+            'lightPointCount': e.lightPointCount,
+            'breakerCount': e.breakerCount,
+            'hasRCD': e.hasRCD,
+            'hasGrounding': e.hasGrounding,
+            'hasLightningProtection': e.hasLightningProtection,
+            'hasSmartHome': e.hasSmartHome,
+          };
+        }
+        if (es.ventilation != null) {
+          final v = es.ventilation!;
+          esJson['ventilation'] = {
+            'type': v.type,
+            'exhaustPoints': v.exhaustPoints,
+            'supplyPoints': v.supplyPoints,
+            'ductLength': v.ductLength,
+            'hasRecuperator': v.hasRecuperator,
+          };
+        }
+        if (es.sewage != null) {
+          final s = es.sewage!;
+          esJson['sewage'] = {
+            'pipeLength': s.pipeLength,
+            'fixtureCount': s.fixtureCount,
+            'hasSeptic': s.hasSeptic,
+            'septicType': s.septicType,
+          };
+        }
+        json['engineeringSystems'] = esJson;
+      }
+
+      json['outdoorElements'] = _editorState!.outdoorElements
+          .map(
+            (o) => {
+              'id': o.id,
+              'type': o.type,
+              'x': o.x,
+              'y': o.y,
+              'width': o.width,
+              'height': o.height,
+              'material': o.material,
+              'properties': o.properties,
+            },
+          )
+          .toList();
+
+      json['floors'] = _editorState!.floors
+          .map(
+            (f) => {
+              'id': f.id,
+              'name': f.name,
+              'floorHeight': f.floorHeight,
+              'floorLevel': f.floorLevel,
+              'floorIndex': f.floorIndex,
+            },
+          )
+          .toList();
+      json['currentFloorIndex'] = _editorState!.currentFloorIndex;
     }
 
     return json;
@@ -418,35 +678,39 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           (t) => t.name == roomJson['type'],
           orElse: () => RoomType.hallway,
         );
-        
-        final doors = (roomJson['doors'] as List?)?.map((doorJson) {
-          final doorType = DoorType.values.firstWhere(
-            (t) => t.name == doorJson['type'],
-            orElse: () => DoorType.internal,
-          );
-          return Door(
-            x: doorJson['x'].toDouble(),
-            y: doorJson['y'].toDouble(),
-            width: doorJson['width'].toDouble(),
-            type: doorType,
-            clockwise: doorJson['clockwise'] ?? true,
-          );
-        }).toList() ?? [];
-        
-        final windows = (roomJson['windows'] as List?)?.map((windowJson) {
-          final windowType = WindowType.values.firstWhere(
-            (t) => t.name == windowJson['type'],
-            orElse: () => WindowType.standard,
-          );
-          return Window(
-            x: windowJson['x'].toDouble(),
-            y: windowJson['y'].toDouble(),
-            width: windowJson['width'].toDouble(),
-            type: windowType,
-            sillHeight: windowJson['sillHeight']?.toDouble() ?? 0.9,
-          );
-        }).toList() ?? [];
-        
+
+        final doors =
+            (roomJson['doors'] as List?)?.map((doorJson) {
+              final doorType = DoorType.values.firstWhere(
+                (t) => t.name == doorJson['type'],
+                orElse: () => DoorType.internal,
+              );
+              return Door(
+                x: doorJson['x'].toDouble(),
+                y: doorJson['y'].toDouble(),
+                width: doorJson['width'].toDouble(),
+                type: doorType,
+                clockwise: doorJson['clockwise'] ?? true,
+              );
+            }).toList() ??
+            [];
+
+        final windows =
+            (roomJson['windows'] as List?)?.map((windowJson) {
+              final windowType = WindowType.values.firstWhere(
+                (t) => t.name == windowJson['type'],
+                orElse: () => WindowType.standard,
+              );
+              return Window(
+                x: windowJson['x'].toDouble(),
+                y: windowJson['y'].toDouble(),
+                width: windowJson['width'].toDouble(),
+                type: windowType,
+                sillHeight: windowJson['sillHeight']?.toDouble() ?? 0.9,
+              );
+            }).toList() ??
+            [];
+
         return Room(
           type: roomType,
           x: roomJson['x'].toDouble(),
@@ -459,12 +723,12 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           hasBalconyAccess: roomJson['hasBalconyAccess'] ?? false,
         );
       }).toList();
-      
+
       final objectType = FloorPlanType.values.firstWhere(
         (t) => t.name == json['objectType'],
         orElse: () => FloorPlanType.apartment,
       );
-      
+
       return FloorPlan(
         rooms: rooms.cast<Room>(),
         totalWidth: json['totalWidth'].toDouble(),
@@ -483,58 +747,366 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       final savedPlan = _planFromJson(widget.order.floorPlanData!);
       if (savedPlan != null) {
         final editorState = _planToEditorState(savedPlan);
-        
+
         // Загружаем свободные элементы из JSON
-        final freeDoors = (widget.order.floorPlanData!['freeDoors'] as List?)?.map((doorJson) => DoorState(
-          id: doorJson['id'] ?? const Uuid().v4(),
-          x: doorJson['x'].toDouble(),
-          y: doorJson['y'].toDouble(),
-          width: doorJson['width'].toDouble(),
-          type: doorJson['type'] ?? 'internal',
-          rotation: doorJson['rotation']?.toDouble() ?? 0,
-        )).toList() ?? [];
+        final freeDoors =
+            (widget.order.floorPlanData!['freeDoors'] as List?)
+                ?.map(
+                  (doorJson) => DoorState(
+                    id: doorJson['id'] ?? const Uuid().v4(),
+                    x: doorJson['x'].toDouble(),
+                    y: doorJson['y'].toDouble(),
+                    width: doorJson['width'].toDouble(),
+                    type: doorJson['type'] ?? 'internal',
+                    rotation: doorJson['rotation']?.toDouble() ?? 0,
+                  ),
+                )
+                .toList() ??
+            [];
 
-        final freeWindows = (widget.order.floorPlanData!['freeWindows'] as List?)?.map((windowJson) => WindowState(
-          id: windowJson['id'] ?? const Uuid().v4(),
-          x: windowJson['x'].toDouble(),
-          y: windowJson['y'].toDouble(),
-          width: windowJson['width'].toDouble(),
-          type: windowJson['type'] ?? 'standard',
-          rotation: windowJson['rotation']?.toDouble() ?? 0,
-        )).toList() ?? [];
+        final freeWindows =
+            (widget.order.floorPlanData!['freeWindows'] as List?)
+                ?.map(
+                  (windowJson) => WindowState(
+                    id: windowJson['id'] ?? const Uuid().v4(),
+                    x: windowJson['x'].toDouble(),
+                    y: windowJson['y'].toDouble(),
+                    width: windowJson['width'].toDouble(),
+                    type: windowJson['type'] ?? 'standard',
+                    rotation: windowJson['rotation']?.toDouble() ?? 0,
+                  ),
+                )
+                .toList() ??
+            [];
 
-        final radiators = (widget.order.floorPlanData!['radiators'] as List?)?.map((radJson) => RadiatorState(
-          id: radJson['id'] ?? const Uuid().v4(),
-          x: radJson['x'].toDouble(),
-          y: radJson['y'].toDouble(),
-          length: radJson['length'].toDouble() ?? 1.0,
-          type: radJson['type'] ?? 'panel',
-        )).toList() ?? [];
+        final radiators =
+            (widget.order.floorPlanData!['radiators'] as List?)
+                ?.map(
+                  (radJson) => RadiatorState(
+                    id: radJson['id'] ?? const Uuid().v4(),
+                    x: radJson['x'].toDouble(),
+                    y: radJson['y'].toDouble(),
+                    length: radJson['length'].toDouble() ?? 1.0,
+                    type: radJson['type'] ?? 'panel',
+                  ),
+                )
+                .toList() ??
+            [];
 
-        final plumbingFixtures = (widget.order.floorPlanData!['plumbingFixtures'] as List?)?.map((fixJson) => PlumbingFixtureState(
-          id: fixJson['id'] ?? const Uuid().v4(),
-          x: fixJson['x'].toDouble(),
-          y: fixJson['y'].toDouble(),
-          type: fixJson['type'] ?? 'sink',
-          rotation: fixJson['rotation']?.toDouble() ?? 0,
-        )).toList() ?? [];
+        final plumbingFixtures =
+            (widget.order.floorPlanData!['plumbingFixtures'] as List?)
+                ?.map(
+                  (fixJson) => PlumbingFixtureState(
+                    id: fixJson['id'] ?? const Uuid().v4(),
+                    x: fixJson['x'].toDouble(),
+                    y: fixJson['y'].toDouble(),
+                    type: fixJson['type'] ?? 'sink',
+                    rotation: fixJson['rotation']?.toDouble() ?? 0,
+                  ),
+                )
+                .toList() ??
+            [];
 
-        final electricalPoints = (widget.order.floorPlanData!['electricalPoints'] as List?)?.map((pointJson) => ElectricalPointState(
-          id: pointJson['id'] ?? const Uuid().v4(),
-          x: pointJson['x'].toDouble(),
-          y: pointJson['y'].toDouble(),
-          type: pointJson['type'] ?? 'socket',
-          height: pointJson['height']?.toDouble() ?? 0.3,
-        )).toList() ?? [];
+        final electricalPoints =
+            (widget.order.floorPlanData!['electricalPoints'] as List?)
+                ?.map(
+                  (pointJson) => ElectricalPointState(
+                    id: pointJson['id'] ?? const Uuid().v4(),
+                    x: pointJson['x'].toDouble(),
+                    y: pointJson['y'].toDouble(),
+                    type: pointJson['type'] ?? 'socket',
+                    height: pointJson['height']?.toDouble() ?? 0.3,
+                  ),
+                )
+                .toList() ??
+            [];
 
         // Обновляем EditorState свободными элементами
-        final fullEditorState = editorState.copyWith(
+        var fullEditorState = editorState.copyWith(
           doors: freeDoors,
           windows: freeWindows,
           radiators: radiators,
           plumbingFixtures: plumbingFixtures,
           electricalPoints: electricalPoints,
         );
+
+        // === ЗАГРУЗКА РАСШИРЕННЫХ ДАННЫХ ===
+        final data = widget.order.floorPlanData!;
+
+        if (data['walls'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            walls: (data['walls'] as List)
+                .map(
+                  (w) => WallState(
+                    id: w['id'],
+                    x1: w['x1'].toDouble(),
+                    y1: w['y1'].toDouble(),
+                    x2: w['x2'].toDouble(),
+                    y2: w['y2'].toDouble(),
+                    thickness: w['thickness']?.toDouble() ?? 0.2,
+                    type: w['type'] ?? 'interior',
+                    material: w['material'] ?? 'brick',
+                    height: w['height']?.toDouble() ?? 2.7,
+                    isLoadBearing: w['isLoadBearing'] ?? false,
+                    insulationThickness:
+                        w['insulationThickness']?.toDouble() ?? 0,
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['foundation'] != null) {
+          final f = data['foundation'];
+          fullEditorState = fullEditorState.copyWith(
+            foundation: FoundationState(
+              id: f['id'] ?? 'foundation',
+              type: f['type'] ?? 'strip',
+              width: f['width']?.toDouble() ?? 0.4,
+              depth: f['depth']?.toDouble() ?? 1.2,
+              height: f['height']?.toDouble() ?? 0.5,
+              embedmentDepth: f['embedmentDepth']?.toDouble() ?? 1.2,
+              concreteGrade: f['concreteGrade'] ?? 'М300',
+              concreteClass: f['concreteClass'] ?? 'B22_5',
+              mainBarDiameter: f['mainBarDiameter'] ?? 12,
+              mainBarsCount: f['mainBarsCount'] ?? 4,
+              stirrupDiameter: f['stirrupDiameter'] ?? 8,
+              stirrupSpacing: f['stirrupSpacing'] ?? 200,
+              rebarClass: f['rebarClass'] ?? 'A500C',
+              hasWaterproofing: f['hasWaterproofing'] ?? false,
+              hasInsulation: f['hasInsulation'] ?? false,
+              hasDrainage: f['hasDrainage'] ?? false,
+              sandCushionThickness:
+                  f['sandCushionThickness']?.toDouble() ?? 0.2,
+            ),
+          );
+        }
+
+        if (data['roof'] != null) {
+          final r = data['roof'];
+          fullEditorState = fullEditorState.copyWith(
+            roof: RoofState(
+              id: r['id'] ?? 'roof',
+              type: r['type'] ?? 'gable',
+              area: r['area']?.toDouble() ?? 100,
+              slopeAngle: r['slopeAngle']?.toDouble() ?? 30,
+              roofingMaterial: r['roofingMaterial'] ?? 'metalTile',
+              rafterSpacing: r['rafterSpacing'] ?? 600,
+              rafterSectionWidth: r['rafterSectionWidth'] ?? 50,
+              rafterSectionHeight: r['rafterSectionHeight'] ?? 200,
+              rafterLength: r['rafterLength']?.toDouble() ?? 5,
+              rafterCount: r['rafterCount'] ?? 10,
+              rafterMaterial: r['rafterMaterial'] ?? 'pine',
+              insulationThickness: r['insulationThickness']?.toDouble() ?? 0.2,
+              insulationMaterial: r['insulationMaterial'] ?? 'mineralWool',
+              hasWaterproofingMembrane: r['hasWaterproofingMembrane'] ?? false,
+              hasVaporBarrier: r['hasVaporBarrier'] ?? false,
+              hasSnowRetention: r['hasSnowRetention'] ?? false,
+              snowRetentionCount: r['snowRetentionCount'] ?? 0,
+            ),
+          );
+        }
+
+        if (data['ceilings'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            ceilings: (data['ceilings'] as List)
+                .map(
+                  (c) => CeilingState(
+                    id: c['id'],
+                    type: c['type'] ?? 'monolithic',
+                    material: c['material'] ?? 'concreteSlab',
+                    thickness: c['thickness']?.toDouble() ?? 0.2,
+                    area: c['area']?.toDouble() ?? 100,
+                    hasSoundproofing: c['hasSoundproofing'] ?? false,
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['axisLines'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            axisLines: (data['axisLines'] as List)
+                .map(
+                  (a) => AxisLineState(
+                    id: a['id'],
+                    label: a['label'] ?? '',
+                    x1: a['x1'].toDouble(),
+                    y1: a['y1'].toDouble(),
+                    x2: a['x2'].toDouble(),
+                    y2: a['y2'].toDouble(),
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['dimensionLines'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            dimensionLines: (data['dimensionLines'] as List)
+                .map(
+                  (d) => DimensionLineState(
+                    id: d['id'],
+                    x1: d['x1'].toDouble(),
+                    y1: d['y1'].toDouble(),
+                    x2: d['x2'].toDouble(),
+                    y2: d['y2'].toDouble(),
+                    value: d['value'] ?? '',
+                    offset: d['offset']?.toDouble() ?? 0.5,
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['levelMarks'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            levelMarks: (data['levelMarks'] as List)
+                .map(
+                  (l) => LevelMarkState(
+                    id: l['id'],
+                    x: l['x'].toDouble(),
+                    y: l['y'].toDouble(),
+                    level: l['level'].toDouble(),
+                    description: l['description'],
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['columns'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            columns: (data['columns'] as List)
+                .map(
+                  (c) => ColumnState(
+                    id: c['id'],
+                    x: c['x'].toDouble(),
+                    y: c['y'].toDouble(),
+                    width: c['width'].toDouble(),
+                    height: c['height'].toDouble(),
+                    material: c['material'] ?? 'reinforcedConcrete',
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['engineeringSystems'] != null) {
+          final esJson = data['engineeringSystems'];
+          fullEditorState = fullEditorState.copyWith(
+            engineeringSystems: EngineeringSystemsState(
+              heating: esJson['heating'] != null
+                  ? HeatingSystemState(
+                      type: esJson['heating']['type'] ?? 'radiators',
+                      radiatorCount: esJson['heating']['radiatorCount'] ?? 0,
+                      pipeLength:
+                          esJson['heating']['pipeLength']?.toDouble() ?? 0,
+                      boilerPower:
+                          esJson['heating']['boilerPower']?.toDouble() ?? 0,
+                      hasWarmFloor: esJson['heating']['hasWarmFloor'] ?? false,
+                      warmFloorArea:
+                          esJson['heating']['warmFloorArea']?.toDouble() ?? 0,
+                    )
+                  : null,
+              waterSupply: esJson['waterSupply'] != null
+                  ? WaterSupplyState(
+                      coldPipeLength:
+                          esJson['waterSupply']['coldPipeLength']?.toDouble() ??
+                          0,
+                      hotPipeLength:
+                          esJson['waterSupply']['hotPipeLength']?.toDouble() ??
+                          0,
+                      fixtureCount: esJson['waterSupply']['fixtureCount'] ?? 0,
+                      hasWaterHeater:
+                          esJson['waterSupply']['hasWaterHeater'] ?? false,
+                      waterHeaterVolume:
+                          esJson['waterSupply']['waterHeaterVolume']
+                              ?.toDouble() ??
+                          0,
+                    )
+                  : null,
+              electrical: esJson['electrical'] != null
+                  ? ElectricalState(
+                      cableLength:
+                          esJson['electrical']['cableLength']?.toDouble() ?? 0,
+                      socketCount: esJson['electrical']['socketCount'] ?? 0,
+                      switchCount: esJson['electrical']['switchCount'] ?? 0,
+                      lightPointCount:
+                          esJson['electrical']['lightPointCount'] ?? 0,
+                      breakerCount: esJson['electrical']['breakerCount'] ?? 0,
+                      hasRCD: esJson['electrical']['hasRCD'] ?? false,
+                      hasGrounding:
+                          esJson['electrical']['hasGrounding'] ?? false,
+                      hasLightningProtection:
+                          esJson['electrical']['hasLightningProtection'] ??
+                          false,
+                      hasSmartHome:
+                          esJson['electrical']['hasSmartHome'] ?? false,
+                    )
+                  : null,
+              ventilation: esJson['ventilation'] != null
+                  ? VentilationState(
+                      type: esJson['ventilation']['type'] ?? 'natural',
+                      exhaustPoints:
+                          esJson['ventilation']['exhaustPoints'] ?? 0,
+                      supplyPoints: esJson['ventilation']['supplyPoints'] ?? 0,
+                      ductLength:
+                          esJson['ventilation']['ductLength']?.toDouble() ?? 0,
+                      hasRecuperator:
+                          esJson['ventilation']['hasRecuperator'] ?? false,
+                    )
+                  : null,
+              sewage: esJson['sewage'] != null
+                  ? SewageState(
+                      pipeLength:
+                          esJson['sewage']['pipeLength']?.toDouble() ?? 0,
+                      fixtureCount: esJson['sewage']['fixtureCount'] ?? 0,
+                      hasSeptic: esJson['sewage']['hasSeptic'] ?? false,
+                      septicType: esJson['sewage']['septicType'],
+                    )
+                  : null,
+            ),
+          );
+        }
+
+        if (data['outdoorElements'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            outdoorElements: (data['outdoorElements'] as List)
+                .map(
+                  (o) => OutdoorElementState(
+                    id: o['id'],
+                    type: o['type'],
+                    x: o['x'].toDouble(),
+                    y: o['y'].toDouble(),
+                    width: o['width']?.toDouble() ?? 0,
+                    height: o['height']?.toDouble() ?? 0,
+                    material: o['material'],
+                    properties: Map<String, dynamic>.from(
+                      o['properties'] ?? {},
+                    ),
+                  ),
+                )
+                .toList(),
+          );
+        }
+
+        if (data['floors'] != null) {
+          fullEditorState = fullEditorState.copyWith(
+            floors: (data['floors'] as List)
+                .map(
+                  (f) => FloorState(
+                    id: f['id'],
+                    name: f['name'],
+                    floorHeight: f['floorHeight'].toDouble(),
+                    floorLevel: f['floorLevel'].toDouble(),
+                    floorIndex: f['floorIndex'],
+                  ),
+                )
+                .toList(),
+            currentFloorIndex: data['currentFloorIndex'] ?? 0,
+          );
+        }
 
         setState(() {
           _plan = savedPlan;
@@ -568,121 +1140,135 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         return true;
       },
       child: Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: AppDesign.appBarGradient,
-            boxShadow: AppDesign.appBarShadow,
-          ),
-          child: AppBar(
-            title: Text('План: ${widget.order.workType.title}'),
-            actions: [
-              if (_aiOptimizer.isAvailable)
-                IconButton(
-                  icon: Icon(_isAIOptimized ? Icons.check_circle : Icons.auto_awesome),
-                  color: _isAIOptimized ? Colors.green : null,
-                  onPressed: _optimizeWithAI,
-                  tooltip: 'AI Оптимизация',
-                ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: _generatePlan,
-                tooltip: 'Перегенерировать',
-              ),
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: _plan != null ? () => _sharePlan() : null,
-                tooltip: 'Поделиться',
-              ),
-              IconButton(
-                icon: const Icon(Icons.engineering),
-                onPressed: _plan != null ? () => _generateConstructionDrawing() : null,
-                tooltip: 'Строительный чертёж',
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Тулбар редактора
-          if (_editorState != null)
-            EditorToolbar(
-              isEditing: _isEditing,
-              canUndo: _undoRedo.canUndo,
-              canRedo: _undoRedo.canRedo,
-              isValid: _validateEditor().isValid,
-              validation: _validateEditor(),
-              onToggleEdit: _toggleEditMode,
-              onUndo: _undo,
-              onRedo: _redo,
-              onAddRoom: _addRoom,
-              onAddDoor: _addDoor,
-              onAddWindow: _addWindow,
-              onAddRadiator: _addRadiator,
-              onAddPlumbing: _addPlumbing,
-              onAddElectrical: _addElectrical,
-              onReset: _resetPlan,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: AppDesign.appBarGradient,
+              boxShadow: AppDesign.appBarShadow,
             ),
-          // AI кнопка
-          if (!_isEditing)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _isGenerating ? null : _generateAIFloorPlan,
-                      icon: _isGenerating
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation(Colors.white),
-                              ),
-                            )
-                          : const Icon(Icons.auto_awesome, size: 18),
-                      label: Text(
-                        _isAIFloorPlanGenerated
-                            ? '🤖 AI-план готов (пересоздать)'
-                            : '🤖 AI-генерация из замера',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppDesign.deepSteelBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
+            child: AppBar(
+              title: Text('План: ${widget.order.workType.title}'),
+              actions: [
+                if (_aiOptimizer.isAvailable)
+                  IconButton(
+                    icon: Icon(
+                      _isAIOptimized ? Icons.check_circle : Icons.auto_awesome,
                     ),
+                    color: _isAIOptimized ? Colors.green : null,
+                    onPressed: _optimizeWithAI,
+                    tooltip: 'AI Оптимизация',
                   ),
-                ],
-              ),
-            ),
-          Expanded(child: _buildBody()),
-        ],
-      ),
-      floatingActionButton: _isEditing
-          ? null
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FloatingActionButton(
-                  heroTag: 'zoom_in',
-                  onPressed: () => setState(() => _zoom = (_zoom + 0.2).clamp(0.5, 5.0)),
-                  backgroundColor: AppDesign.accentTeal,
-                  child: const Icon(Icons.zoom_in, color: Colors.white),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _generatePlan,
+                  tooltip: 'Перегенерировать',
                 ),
-                const SizedBox(height: 8),
-                FloatingActionButton(
-                  heroTag: 'zoom_out',
-                  onPressed: () => setState(() => _zoom = (_zoom - 0.2).clamp(0.5, 5.0)),
-                  backgroundColor: AppDesign.accentTeal,
-                  child: const Icon(Icons.zoom_out, color: Colors.white),
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: _plan != null ? () => _sharePlan() : null,
+                  tooltip: 'Поделиться',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.engineering),
+                  onPressed: _plan != null
+                      ? () => _generateConstructionDrawing()
+                      : null,
+                  tooltip: 'Строительный чертёж',
                 ),
               ],
             ),
-    ),
+          ),
+        ),
+        body: Column(
+          children: [
+            // Тулбар редактора
+            if (_editorState != null)
+              EditorToolbar(
+                isEditing: _isEditing,
+                canUndo: _undoRedo.canUndo,
+                canRedo: _undoRedo.canRedo,
+                isValid: _validateEditor().isValid,
+                validation: _validateEditor(),
+                onToggleEdit: _toggleEditMode,
+                onUndo: _undo,
+                onRedo: _redo,
+                onAddRoom: _addRoom,
+                onAddDoor: _addDoor,
+                onAddWindow: _addWindow,
+                onAddRadiator: _addRadiator,
+                onAddPlumbing: _addPlumbing,
+                onAddElectrical: _addElectrical,
+                onReset: _resetPlan,
+              ),
+            // Панель конструктива
+            if (_editorState != null && _isEditing)
+              ConstructionPanel(
+                state: _editorState!,
+                onChanged: _onEditorChanged,
+              ),
+            // AI кнопка
+            if (!_isEditing)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _isGenerating ? null : _generateAIFloorPlan,
+                        icon: _isGenerating
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Icon(Icons.auto_awesome, size: 18),
+                        label: Text(
+                          _isAIFloorPlanGenerated
+                              ? '🤖 AI-план готов (пересоздать)'
+                              : '🤖 AI-генерация из замера',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppDesign.deepSteelBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            Expanded(child: _buildBody()),
+          ],
+        ),
+        floatingActionButton: _isEditing
+            ? null
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton(
+                    heroTag: 'zoom_in',
+                    onPressed: () =>
+                        setState(() => _zoom = (_zoom + 0.2).clamp(0.5, 5.0)),
+                    backgroundColor: AppDesign.accentTeal,
+                    child: const Icon(Icons.zoom_in, color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  FloatingActionButton(
+                    heroTag: 'zoom_out',
+                    onPressed: () =>
+                        setState(() => _zoom = (_zoom - 0.2).clamp(0.5, 5.0)),
+                    backgroundColor: AppDesign.accentTeal,
+                    child: const Icon(Icons.zoom_out, color: Colors.white),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 
@@ -698,9 +1284,15 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           children: [
             Icon(Icons.error_outline, size: 64, color: AppDesign.midBlueGray),
             const SizedBox(height: 16),
-            Text('Недостаточно данных для генерации', style: AppDesign.subtitleStyle),
+            Text(
+              'Недостаточно данных для генерации',
+              style: AppDesign.subtitleStyle,
+            ),
             const SizedBox(height: 8),
-            Text('Заполните размеры в чек-листе', style: AppDesign.captionStyle),
+            Text(
+              'Заполните размеры в чек-листе',
+              style: AppDesign.captionStyle,
+            ),
           ],
         ),
       );
@@ -712,7 +1304,8 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         _buildComplianceBar(),
 
         // Warnings
-        if (_plan!.allWarnings.isNotEmpty && !_isEditing) _buildWarningsBanner(),
+        if (_plan!.allWarnings.isNotEmpty && !_isEditing)
+          _buildWarningsBanner(),
 
         // План с зумом или редактор
         Expanded(
@@ -758,7 +1351,11 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   /// Полоса compliance
   Widget _buildComplianceBar() {
     final score = _plan!.complianceScore;
-    final color = score > 0.8 ? Colors.green : score > 0.5 ? Colors.orange : Colors.red;
+    final color = score > 0.8
+        ? Colors.green
+        : score > 0.5
+        ? Colors.orange
+        : Colors.red;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -793,10 +1390,7 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
             ),
           ),
           const SizedBox(width: 8),
-          Text(
-            '${_plan!.roomCount} комн.',
-            style: AppDesign.captionStyle,
-          ),
+          Text('${_plan!.roomCount} комн.', style: AppDesign.captionStyle),
         ],
       ),
     );
@@ -810,18 +1404,24 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: _plan!.allWarnings
-            .map((w) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.warning_amber, size: 16, color: Colors.amber),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(w, style: const TextStyle(fontSize: 12)),
-                      ),
-                    ],
-                  ),
-                ))
+            .map(
+              (w) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber,
+                      size: 16,
+                      color: Colors.amber,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(w, style: const TextStyle(fontSize: 12)),
+                    ),
+                  ],
+                ),
+              ),
+            )
             .toList(),
       ),
     );
@@ -862,9 +1462,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     if (_plan == null) return;
 
     try {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Генерация PDF...')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Генерация PDF...')));
 
       final file = await PdfGenerator.generateFloorPlanPdf(widget.order);
 
@@ -878,9 +1478,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка экспорта: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Ошибка экспорта: $e')));
     }
   }
 
@@ -910,11 +1510,12 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         );
       }
 
-      final file = await ConstructionDrawingGenerator.generateFullDrawingPackage(
-        plan: _plan!,
-        order: widget.order,
-        projectName: 'Проект — ${widget.order.clientName}',
-      );
+      final file =
+          await ConstructionDrawingGenerator.generateFullDrawingPackage(
+            plan: _plan!,
+            order: widget.order,
+            projectName: 'Проект — ${widget.order.clientName}',
+          );
 
       if (!mounted) return;
 
@@ -926,9 +1527,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка генерации чертежа: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Ошибка генерации чертежа: $e')));
     }
   }
 
@@ -936,9 +1537,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   void _optimizeWithAI() {
     if (_plan == null) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('AI оптимизация...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('AI оптимизация...')));
 
     final optimizedPlan = _ruleEngine.optimize(_plan!);
 
@@ -1138,9 +1739,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     // Очищаем сохранённый план из Order
     _savePlanToOrder(); // сохраняем пустой/сброшенный
     _generatePlan();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('План сброшен')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('План сброшен')));
   }
 }
 

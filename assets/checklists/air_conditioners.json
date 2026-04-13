@@ -3,6 +3,20 @@
   "title": "Замер кондиционеров",
   "fields": [
     {
+      "id": "floor_length",
+      "type": "number",
+      "label": "Длина помещения (мм)",
+      "hint": "мм",
+      "required": false
+    },
+    {
+      "id": "floor_width",
+      "type": "number",
+      "label": "Ширина помещения (мм)",
+      "hint": "мм",
+      "required": false
+    },
+    {
       "id": "room_area",
       "type": "number",
       "label": "Площадь помещения (м²)",

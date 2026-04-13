@@ -61,7 +61,8 @@ class PriceItem {
   }
 
   factory PriceItem.fromMap(Map<String, dynamic> map) {
-    final itemId = map['item_id'] as String?;
+    // Поддерживаем оба варианта: 'item_id' (из БД) и 'id' (из JSON)
+    final itemId = (map['item_id'] as String?) ?? (map['id'] as String?);
     final name = map['name'] as String?;
     final unit = map['unit'] as String?;
     final priceVal = map['price'];

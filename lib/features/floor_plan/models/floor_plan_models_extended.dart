@@ -6,30 +6,30 @@ import 'dart:math' as math;
 // ============================================================================
 
 enum RoomType {
-  kitchen('Кухня', minArea: 8.0, icon: 'КУХ'),
-  livingRoom('Гостиная', minArea: 16.0, icon: 'ГОСТ'),
-  bedroom('Спальня', minArea: 12.0, icon: 'СПАЛ'),
-  bathroom('Ванная', minArea: 3.5, icon: 'ВАН'),
-  toilet('Туалет', minArea: 1.2, icon: 'ТУАЛ'),
-  hallway('Коридор', minArea: 0, icon: 'КОР'),
-  balcony('Балкон/Лоджия', minArea: 0, icon: 'БАЛК'),
-  storage('Кладовая', minArea: 2.0, icon: 'КЛАД'),
-  office('Кабинет', minArea: 9.0, icon: 'КАБ'),
-  childrenRoom('Детская', minArea: 12.0, icon: 'ДЕТ'),
-  garage('Гараж', minArea: 18.0, icon: 'ГАР'),
-  boilerRoom('Котельная', minArea: 6.0, icon: 'КОТ'),
-  terrace('Терраса', minArea: 0, icon: 'ТЕР'),
-  attic('Мансарда', minArea: 12.0, icon: 'МАН'),
-  basement('Подвал', minArea: 0, icon: 'ПОД'),
-  wardrobe('Гардеробная', minArea: 3.0, icon: 'ГАРД'),
-  laundry('Прачечная', minArea: 4.0, icon: 'ПРАЧ'),
-  pantry('Кладовая пищевая', minArea: 2.0, icon: 'КЛ.П'),
-  workshop('Мастерская', minArea: 10.0, icon: 'МАСТ'),
-  sauna('Сауна/Баня', minArea: 4.0, icon: 'САУН'),
-  pool('Бассейн', minArea: 15.0, icon: 'БАСС'),
-  gym('Спортзал', minArea: 12.0, icon: 'СПОРТ'),
-  cinema('Домашний кинотеатр', minArea: 15.0, icon: 'КИНО'),
-  elevator('Лифт', minArea: 0, icon: 'ЛИФТ');
+  kitchen('Кухня', minArea: 8.0, icon: '🍳'),
+  livingRoom('Гостиная', minArea: 16.0, icon: '🛋️'),
+  bedroom('Спальня', minArea: 12.0, icon: '🛏️'),
+  bathroom('Ванная', minArea: 3.5, icon: '🚿'),
+  toilet('Туалет', minArea: 1.2, icon: '🚽'),
+  hallway('Коридор', minArea: 0, icon: '🚶'),
+  balcony('Балкон/Лоджия', minArea: 0, icon: '🌿'),
+  storage('Кладовая', minArea: 2.0, icon: '📦'),
+  office('Кабинет', minArea: 9.0, icon: '💼'),
+  childrenRoom('Детская', minArea: 12.0, icon: '🧸'),
+  garage('Гараж', minArea: 18.0, icon: '🚗'),
+  boilerRoom('Котельная', minArea: 6.0, icon: '🔥'),
+  terrace('Терраса', minArea: 0, icon: '🏡'),
+  attic('Мансарда', minArea: 12.0, icon: '🏠'),
+  basement('Подвал', minArea: 0, icon: '🏚️'),
+  wardrobe('Гардеробная', minArea: 3.0, icon: '👔'),
+  laundry('Прачечная', minArea: 4.0, icon: '🧺'),
+  pantry('Кладовая пищевая', minArea: 2.0, icon: '🍎'),
+  workshop('Мастерская', minArea: 10.0, icon: '🔧'),
+  sauna('Сауна/Баня', minArea: 4.0, icon: '♨️'),
+  pool('Бассейн', minArea: 15.0, icon: '🏊'),
+  gym('Спортзал', minArea: 12.0, icon: '💪'),
+  cinema('Домашний кинотеатр', minArea: 15.0, icon: '🎬'),
+  elevator('Лифт', minArea: 0, icon: '🛗');
 
   final String label;
   final double minArea;
@@ -37,13 +37,8 @@ enum RoomType {
 
   const RoomType(this.label, {required this.minArea, required this.icon});
 
-  bool get isLiving => [
-    bedroom,
-    livingRoom,
-    childrenRoom,
-    office,
-    kitchen,
-  ].contains(this);
+  bool get isLiving =>
+      [bedroom, livingRoom, childrenRoom, office, kitchen].contains(this);
 
   bool get isService => [
     bathroom,
@@ -57,14 +52,8 @@ enum RoomType {
     elevator,
   ].contains(this);
 
-  bool get isTechnical => [
-    boilerRoom,
-    sauna,
-    pool,
-    workshop,
-    cinema,
-    gym,
-  ].contains(this);
+  bool get isTechnical =>
+      [boilerRoom, sauna, pool, workshop, cinema, gym].contains(this);
 }
 
 // ============================================================================
@@ -118,9 +107,7 @@ class Wall extends Equatable {
     this.exteriorFinishing = FinishingType.none,
   });
 
-  double get length => math.sqrt(
-    (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1),
-  );
+  double get length => math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 
   double get area => length * height;
 
@@ -161,8 +148,16 @@ class Wall extends Equatable {
 
   @override
   List<Object?> get props => [
-    x1, y1, x2, y2, thickness, type, material, height,
-    isLoadBearing, insulationThickness,
+    x1,
+    y1,
+    x2,
+    y2,
+    thickness,
+    type,
+    material,
+    height,
+    isLoadBearing,
+    insulationThickness,
   ];
 }
 
@@ -292,8 +287,14 @@ class Ceiling extends Equatable {
 
   @override
   List<Object?> get props => [
-    type, material, thickness, area, insulationThickness,
-    hasSoundproofing, hasWaterproofing, floorLevel,
+    type,
+    material,
+    thickness,
+    area,
+    insulationThickness,
+    hasSoundproofing,
+    hasWaterproofing,
+    floorLevel,
   ];
 }
 
@@ -377,9 +378,17 @@ class Foundation extends Equatable {
 
   @override
   List<Object?> get props => [
-    type, width, depth, height, embedmentDepth,
-    concreteGrade, concreteClass, reinforcement,
-    hasWaterproofing, hasInsulation, hasDrainage,
+    type,
+    width,
+    depth,
+    height,
+    embedmentDepth,
+    concreteGrade,
+    concreteClass,
+    reinforcement,
+    hasWaterproofing,
+    hasInsulation,
+    hasDrainage,
     sandCushionThickness,
   ];
 }
@@ -468,8 +477,11 @@ class ReinforcementInfo extends Equatable {
 
   @override
   List<Object?> get props => [
-    mainBarDiameter, mainBarsCount, stirrupDiameter,
-    stirrupSpacing, rebarClass,
+    mainBarDiameter,
+    mainBarsCount,
+    stirrupDiameter,
+    stirrupSpacing,
+    rebarClass,
   ];
 }
 
@@ -532,9 +544,17 @@ class Roof extends Equatable {
 
   @override
   List<Object?> get props => [
-    type, area, slopeAngle, roofingMaterial, rafters,
-    insulation, hasWaterproofingMembrane, hasVaporBarrier,
-    gutter, hasSnowRetention, snowRetentionCount,
+    type,
+    area,
+    slopeAngle,
+    roofingMaterial,
+    rafters,
+    insulation,
+    hasWaterproofingMembrane,
+    hasVaporBarrier,
+    gutter,
+    hasSnowRetention,
+    snowRetentionCount,
   ];
 }
 
@@ -564,7 +584,8 @@ enum RoofMaterial {
   final String label;
   final double weightPerM2;
   final int lifespan;
-  const RoofMaterial(this.label, {
+  const RoofMaterial(
+    this.label, {
     required this.weightPerM2,
     required this.lifespan,
   });
@@ -603,8 +624,12 @@ class RafterSystem extends Equatable {
 
   @override
   List<Object?> get props => [
-    spacing, sectionWidth, sectionHeight,
-    length, count, material,
+    spacing,
+    sectionWidth,
+    sectionHeight,
+    length,
+    count,
+    material,
   ];
 }
 
@@ -623,8 +648,13 @@ class RoofInsulation {
   final double thickness;
   final InsulationMaterial material;
 
-  const RoofInsulation({this.thickness = 0.2, this.material = InsulationMaterial.mineralWool});
-  const RoofInsulation.none() : thickness = 0, material = InsulationMaterial.mineralWool;
+  const RoofInsulation({
+    this.thickness = 0.2,
+    this.material = InsulationMaterial.mineralWool,
+  });
+  const RoofInsulation.none()
+    : thickness = 0,
+      material = InsulationMaterial.mineralWool;
 
   double get thermalResistance => thickness / material.thermalConductivity;
 }
@@ -641,7 +671,8 @@ enum InsulationMaterial {
   final String label;
   final double thermalConductivity;
   final double density;
-  const InsulationMaterial(this.label, {
+  const InsulationMaterial(
+    this.label, {
     required this.thermalConductivity,
     required this.density,
   });
@@ -703,8 +734,12 @@ class EngineeringSystems extends Equatable {
 
   @override
   List<Object?> get props => [
-    heating, waterSupply, sewage,
-    ventilation, electrical, gas,
+    heating,
+    waterSupply,
+    sewage,
+    ventilation,
+    electrical,
+    gas,
   ];
 }
 
@@ -727,8 +762,12 @@ class HeatingSystem extends Equatable {
 
   @override
   List<Object?> get props => [
-    type, radiatorCount, pipeLength, boilerPower,
-    hasWarmFloor, warmFloorArea,
+    type,
+    radiatorCount,
+    pipeLength,
+    boilerPower,
+    hasWarmFloor,
+    warmFloorArea,
   ];
 }
 
@@ -760,8 +799,11 @@ class WaterSupplySystem extends Equatable {
 
   @override
   List<Object?> get props => [
-    coldPipeLength, hotPipeLength, fixtureCount,
-    hasWaterHeater, waterHeaterVolume,
+    coldPipeLength,
+    hotPipeLength,
+    fixtureCount,
+    hasWaterHeater,
+    waterHeaterVolume,
   ];
 }
 
@@ -809,7 +851,11 @@ class VentilationSystem extends Equatable {
 
   @override
   List<Object?> get props => [
-    type, exhaustPoints, supplyPoints, ductLength, hasRecuperator,
+    type,
+    exhaustPoints,
+    supplyPoints,
+    ductLength,
+    hasRecuperator,
   ];
 }
 
@@ -849,9 +895,15 @@ class ElectricalSystem extends Equatable {
 
   @override
   List<Object?> get props => [
-    cableLength, socketCount, switchCount, lightPointCount,
-    breakerCount, hasRCD, hasGrounding,
-    hasLightningProtection, hasSmartHome,
+    cableLength,
+    socketCount,
+    switchCount,
+    lightPointCount,
+    breakerCount,
+    hasRCD,
+    hasGrounding,
+    hasLightningProtection,
+    hasSmartHome,
   ];
 }
 
@@ -869,7 +921,12 @@ class GasSupplySystem extends Equatable {
   });
 
   @override
-  List<Object?> get props => [pipeLength, applianceCount, hasGasMeter, hasGasBoiler];
+  List<Object?> get props => [
+    pipeLength,
+    applianceCount,
+    hasGasMeter,
+    hasGasBoiler,
+  ];
 }
 
 // ============================================================================
@@ -1082,7 +1139,14 @@ class Window extends Equatable {
 
   @override
   List<Object?> get props => [
-    x, y, width, height, sillHeight, type, profile, glassUnit,
+    x,
+    y,
+    width,
+    height,
+    sillHeight,
+    type,
+    profile,
+    glassUnit,
   ];
 
   Window copyWith({
@@ -1235,7 +1299,8 @@ class Room extends Equatable {
   double get volume => area * ceilingHeight;
   double get effectiveArea => netArea ?? area;
 
-  bool get isAreaCompliant => type.minArea == 0 || effectiveArea >= type.minArea;
+  bool get isAreaCompliant =>
+      type.minArea == 0 || effectiveArea >= type.minArea;
   bool get hasNaturalLight => windows.isNotEmpty;
 
   bool get isLightCompliant =>
@@ -1256,9 +1321,12 @@ class Room extends Equatable {
   List<String> get warnings {
     final result = <String>[];
     if (!isAreaCompliant) {
-      result.add('${type.label}: ${effectiveArea.toStringAsFixed(1)}м² < ${type.minArea}м²');
+      result.add(
+        '${type.label}: ${effectiveArea.toStringAsFixed(1)}м² < ${type.minArea}м²',
+      );
     }
-    if (!isLightCompliant) result.add('${type.label}: нет естественного освещения');
+    if (!isLightCompliant)
+      result.add('${type.label}: нет естественного освещения');
     if (type == RoomType.kitchen && !hasVentilation) {
       result.add('${type.label}: нет вентиляции');
     }
@@ -1318,10 +1386,27 @@ class Room extends Equatable {
 
   @override
   List<Object?> get props => [
-    type, x, y, width, height, ceilingHeight, roomNumber, floorLevel,
-    netArea, doors, windows, walls, columns, niches, radiators,
-    plumbingFixtures, electricalPoints, hasBalconyAccess, hasVentilation,
-    heating, ventilation,
+    type,
+    x,
+    y,
+    width,
+    height,
+    ceilingHeight,
+    roomNumber,
+    floorLevel,
+    netArea,
+    doors,
+    windows,
+    walls,
+    columns,
+    niches,
+    radiators,
+    plumbingFixtures,
+    electricalPoints,
+    hasBalconyAccess,
+    hasVentilation,
+    heating,
+    ventilation,
   ];
 }
 
@@ -1581,7 +1666,8 @@ class FloorPlan extends Equatable {
 
   double get calculatedLivingArea => rooms
       .where(
-        (r) => r.type == RoomType.bedroom ||
+        (r) =>
+            r.type == RoomType.bedroom ||
             r.type == RoomType.livingRoom ||
             r.type == RoomType.childrenRoom ||
             r.type == RoomType.office,
@@ -1590,15 +1676,16 @@ class FloorPlan extends Equatable {
 
   double get complianceScore {
     if (rooms.isEmpty) return 0.0;
-    return rooms.map((r) => r.complianceScore)
-        .reduce((a, b) => a + b) / rooms.length;
+    return rooms.map((r) => r.complianceScore).reduce((a, b) => a + b) /
+        rooms.length;
   }
 
   List<String> get allWarnings => rooms.expand((r) => r.warnings).toList();
 
   int get roomCount => rooms
       .where(
-        (r) => r.type == RoomType.bedroom ||
+        (r) =>
+            r.type == RoomType.bedroom ||
             r.type == RoomType.livingRoom ||
             r.type == RoomType.kitchen ||
             r.type == RoomType.childrenRoom ||
@@ -1645,7 +1732,8 @@ class FloorPlan extends Equatable {
     double loss = 0;
     final deltaT = 40; // разница температур (внутри - снаружи)
     for (final wall in walls.where((w) => w.type == WallType.exterior)) {
-      final rValue = wall.material.calcRValue(wall.thickness) +
+      final rValue =
+          wall.material.calcRValue(wall.thickness) +
           wall.insulationThickness / 0.04; // утеплитель
       loss += wall.area / rValue * deltaT;
     }
@@ -1716,11 +1804,29 @@ class FloorPlan extends Equatable {
 
   @override
   List<Object?> get props => [
-    rooms, totalWidth, totalHeight, objectType, drawingVersion,
-    drawingNumber, scale, drawingDate, walls, columns, axisLines,
-    dimensionLines, levelMarks, foundation, ceilings, roof,
-    engineeringSystems, buildingFootprint, totalArea, livingArea,
-    floorHeight, notes, exposition,
+    rooms,
+    totalWidth,
+    totalHeight,
+    objectType,
+    drawingVersion,
+    drawingNumber,
+    scale,
+    drawingDate,
+    walls,
+    columns,
+    axisLines,
+    dimensionLines,
+    levelMarks,
+    foundation,
+    ceilings,
+    roof,
+    engineeringSystems,
+    buildingFootprint,
+    totalArea,
+    livingArea,
+    floorHeight,
+    notes,
+    exposition,
   ];
 }
 

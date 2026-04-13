@@ -3,6 +3,20 @@
   "title": "Замер окон",
   "fields": [
     {
+      "id": "floor_length",
+      "type": "number",
+      "label": "Длина помещения (мм)",
+      "hint": "мм",
+      "required": false
+    },
+    {
+      "id": "floor_width",
+      "type": "number",
+      "label": "Ширина помещения (мм)",
+      "hint": "мм",
+      "required": false
+    },
+    {
       "id": "width",
       "type": "number",
       "label": "Ширина проёма (мм)",

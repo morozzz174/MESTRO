@@ -4,7 +4,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/order.dart';
-import '../features/floor_plan/models/floor_plan_models.dart';
+import '../features/floor_plan/models/floor_plan_models_extended.dart'
+    hide Column;
 import '../features/floor_plan/engine/floor_plan_rule_engine.dart';
 
 class PdfGenerator {
@@ -828,7 +829,7 @@ class PdfGenerator {
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(4),
                           child: pw.Text(
-                            '${room.type.icon} ${room.type.label}',
+                            room.type.label,
                             style: pw.TextStyle(fontSize: 10, font: font),
                           ),
                         ),
@@ -988,6 +989,48 @@ class PdfGenerator {
         case RoomType.childrenRoom:
           fillColor = '#fff3e0';
           break;
+        case RoomType.garage:
+          fillColor = '#cfd8dc';
+          break;
+        case RoomType.boilerRoom:
+          fillColor = '#ffcdd2';
+          break;
+        case RoomType.terrace:
+          fillColor = '#c8e6c9';
+          break;
+        case RoomType.attic:
+          fillColor = '#e1bee7';
+          break;
+        case RoomType.basement:
+          fillColor = '#eeeeee';
+          break;
+        case RoomType.wardrobe:
+          fillColor = '#ffe0b2';
+          break;
+        case RoomType.laundry:
+          fillColor = '#b2ebf2';
+          break;
+        case RoomType.pantry:
+          fillColor = '#d7ccc8';
+          break;
+        case RoomType.workshop:
+          fillColor = '#ffccbc';
+          break;
+        case RoomType.sauna:
+          fillColor = '#ffab91';
+          break;
+        case RoomType.pool:
+          fillColor = '#81d4fa';
+          break;
+        case RoomType.gym:
+          fillColor = '#ef9a9a';
+          break;
+        case RoomType.cinema:
+          fillColor = '#9fa8da';
+          break;
+        case RoomType.elevator:
+          fillColor = '#b0bec5';
+          break;
       }
 
       // Комната
@@ -1021,11 +1064,11 @@ class PdfGenerator {
         );
       }
 
-      // Название комнаты
+      // Название комнаты (без icon, т.к. кириллица не поддерживается в SVG)
       final centerX = x + w / 2;
       final centerY = y + h / 2;
       buffer.writeln(
-        '<text x="$centerX" y="$centerY" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#333">${room.type.icon} ${room.type.label}</text>',
+        '<text x="$centerX" y="$centerY" text-anchor="middle" dominant-baseline="middle" font-size="12" fill="#333">${room.type.label}</text>',
       );
 
       // Площадь

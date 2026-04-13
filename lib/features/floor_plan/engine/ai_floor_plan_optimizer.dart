@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import '../../../services/app_logger.dart';
-import '../models/floor_plan_models.dart';
+import '../models/floor_plan_models_extended.dart';
 
 /// AI-оптимизатор планировки на основе TFLite
 ///
@@ -27,7 +27,10 @@ class AIFloorPlanOptimizer {
       _isInitialized = true;
       _isModelLoaded = false; // fallback mode
 
-      AppLogger.info('AIOptimizer', 'AI оптимизатор: fallback mode (Rule Engine)');
+      AppLogger.info(
+        'AIOptimizer',
+        'AI оптимизатор: fallback mode (Rule Engine)',
+      );
     } catch (e, st) {
       AppLogger.error('AIOptimizer', 'Ошибка инициализации AI', e, st);
       _isInitialized = true;
@@ -41,7 +44,10 @@ class AIFloorPlanOptimizer {
   /// Иначе возвращает план без изменений (Rule Engine уже применил правила).
   FloorPlan optimize(FloorPlan basicPlan) {
     if (!_isModelLoaded) {
-      AppLogger.info('AIOptimizer', 'Оптимизация пропущена — используется Rule Engine');
+      AppLogger.info(
+        'AIOptimizer',
+        'Оптимизация пропущена — используется Rule Engine',
+      );
       return basicPlan;
     }
 
@@ -101,10 +107,15 @@ class AIFloorPlanOptimizer {
 
       // Если AI вернул валидные позиции — используем их
       if (offset + 1 < output.length) {
-        optimizedRooms.add(room.copyWith(
-          x: output[offset].clamp(0.0, original.totalWidth - room.width),
-          y: output[offset + 1].clamp(0.0, original.totalHeight - room.height),
-        ));
+        optimizedRooms.add(
+          room.copyWith(
+            x: output[offset].clamp(0.0, original.totalWidth - room.width),
+            y: output[offset + 1].clamp(
+              0.0,
+              original.totalHeight - room.height,
+            ),
+          ),
+        );
       } else {
         optimizedRooms.add(room);
       }

@@ -2,16 +2,16 @@ import 'package:equatable/equatable.dart';
 
 /// Тип помещения
 enum RoomType {
-  kitchen('Кухня', minArea: 8.0, icon: 'КУХ'),
-  livingRoom('Гостиная', minArea: 16.0, icon: 'ГОСТ'),
-  bedroom('Спальня', minArea: 12.0, icon: 'СПАЛ'),
-  bathroom('Ванная', minArea: 3.5, icon: 'ВАН'),
-  toilet('Туалет', minArea: 1.2, icon: 'ТУАЛ'),
-  hallway('Коридор', minArea: 0, icon: 'КОР'),
-  balcony('Балкон/Лоджия', minArea: 0, icon: 'БАЛК'),
-  storage('Кладовая', minArea: 2.0, icon: 'КЛАД'),
-  office('Кабинет', minArea: 9.0, icon: 'КАБ'),
-  childrenRoom('Детская', minArea: 12.0, icon: 'ДЕТ');
+  kitchen('Кухня', minArea: 8.0, icon: '🍳'),
+  livingRoom('Гостиная', minArea: 16.0, icon: '🛋️'),
+  bedroom('Спальня', minArea: 12.0, icon: '🛏️'),
+  bathroom('Ванная', minArea: 3.5, icon: '🚿'),
+  toilet('Туалет', minArea: 1.2, icon: '🚽'),
+  hallway('Коридор', minArea: 0, icon: '🚶'),
+  balcony('Балкон/Лоджия', minArea: 0, icon: '🌿'),
+  storage('Кладовая', minArea: 2.0, icon: '📦'),
+  office('Кабинет', minArea: 9.0, icon: '💼'),
+  childrenRoom('Детская', minArea: 12.0, icon: '🧸');
 
   final String label;
   final double minArea; // минимальная площадь по СНиП (м²)

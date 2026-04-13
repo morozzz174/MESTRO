@@ -2,7 +2,8 @@ import 'package:uuid/uuid.dart';
 import '../models/ai_insight.dart';
 import '../models/order.dart';
 import '../models/checklist_config.dart';
-import '../features/floor_plan/models/floor_plan_models.dart';
+import '../features/floor_plan/models/floor_plan_models_extended.dart'
+    hide Column;
 import 'ai_floor_plan_generator.dart';
 
 /// Офлайн AI-агент для анализа данных замеров
@@ -51,24 +52,24 @@ class SmartChecklistAnalyzer {
   }
 
   // ===== 1. Проверка обязательных полей =====
-  List<AIInsight> _checkRequiredFields(
-    Order order,
-    ChecklistConfig config,
-  ) {
+  List<AIInsight> _checkRequiredFields(Order order, ChecklistConfig config) {
     final insights = <AIInsight>[];
     final data = order.checklistData;
 
     for (final field in config.fields) {
       if (field.required && !data.containsKey(field.id)) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.missingData,
-          priority: AIInsightPriority.high,
-          title: 'Не заполнено обязательное поле',
-          description: 'Поле "${field.label}" обязательно для заполнения',
-          suggestion: 'Заполните поле "${field.label}" для корректного расчёта',
-          affectedField: field.id,
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.missingData,
+            priority: AIInsightPriority.high,
+            title: 'Не заполнено обязательное поле',
+            description: 'Поле "${field.label}" обязательно для заполнения',
+            suggestion:
+                'Заполните поле "${field.label}" для корректного расчёта',
+            affectedField: field.id,
+          ),
+        );
       }
     }
 
@@ -170,16 +171,18 @@ class SmartChecklistAnalyzer {
     final height = (data['height'] as num?)?.toDouble();
     if (width != null && height != null) {
       if (width > height * 3) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.medium,
-          title: 'Несоответствие размеров',
-          description:
-              'Ширина ($width мм) более чем в 3 раза превышает высоту '
-              '($height мм). Убедитесь, что поля не перепутаны.',
-          suggestion: 'Проверьте: ширина и высота не перепутаны местами?',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.medium,
+            title: 'Несоответствие размеров',
+            description:
+                'Ширина ($width мм) более чем в 3 раза превышает высоту '
+                '($height мм). Убедитесь, что поля не перепутаны.',
+            suggestion: 'Проверьте: ширина и высота не перепутаны местами?',
+          ),
+        );
       }
     }
 
@@ -190,16 +193,18 @@ class SmartChecklistAnalyzer {
       final expectedArea = (perimeter / 1000) * (perimeter / 1000) / 4;
       final ratio = houseArea / expectedArea;
       if (ratio < 0.3 || ratio > 3) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.medium,
-          title: 'Площадь не соответствует периметру',
-          description:
-              'Площадь дома ($houseArea м²) сильно отличается от ожидаемой '
-              'по периметру (${expectedArea.toStringAsFixed(1)} м²). '
-              'Это нормально для сложных форм, но стоит проверить.',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.medium,
+            title: 'Площадь не соответствует периметру',
+            description:
+                'Площадь дома ($houseArea м²) сильно отличается от ожидаемой '
+                'по периметру (${expectedArea.toStringAsFixed(1)} м²). '
+                'Это нормально для сложных форм, но стоит проверить.',
+          ),
+        );
       }
     }
 
@@ -208,17 +213,19 @@ class SmartChecklistAnalyzer {
     final foundWidth = (data['foundation_width'] as num?)?.toDouble();
     if (foundDepth != null && foundWidth != null) {
       if (foundDepth > foundWidth * 2) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.high,
-          title: 'Глубина фундамента превышает ширину',
-          description:
-              'Глубина заложения ($foundDepth мм) значительно больше ширины '
-              '($foundWidth мм). Это возможно для свайных фундаментов, но '
-              'стоит проверить.',
-          suggestion: 'Убедитесь, что значения указаны в мм, а не в см/м',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.high,
+            title: 'Глубина фундамента превышает ширину',
+            description:
+                'Глубина заложения ($foundDepth мм) значительно больше ширины '
+                '($foundWidth мм). Это возможно для свайных фундаментов, но '
+                'стоит проверить.',
+            suggestion: 'Убедитесь, что значения указаны в мм, а не в см/м',
+          ),
+        );
       }
     }
 
@@ -226,15 +233,17 @@ class SmartChecklistAnalyzer {
     final roofArea = (data['roof_area'] as num?)?.toDouble();
     if (roofArea != null && houseArea != null) {
       if (roofArea > houseArea * 2.5) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.medium,
-          title: 'Площадь кровли значительно больше площади дома',
-          description:
-              'Площадь кровли ($roofArea м²) более чем в 2.5 раза превышает '
-              'площадь дома ($houseArea м²). Проверьте данные.',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.medium,
+            title: 'Площадь кровли значительно больше площади дома',
+            description:
+                'Площадь кровли ($roofArea м²) более чем в 2.5 раза превышает '
+                'площадь дома ($houseArea м²). Проверьте данные.',
+          ),
+        );
       }
     }
 
@@ -242,22 +251,23 @@ class SmartChecklistAnalyzer {
     final trenchDepth = (data['trench_depth'] as num?)?.toDouble();
     final trenchWidth = (data['trench_width'] as num?)?.toDouble();
     if (trenchDepth != null && trenchWidth != null) {
-      final depthM = trenchWidth < 100
-          ? trenchDepth
-          : trenchDepth; // если в мм
-      final widthM =
-          trenchWidth > 100 ? trenchWidth / 1000 : trenchWidth; // нормализация
+      final depthM = trenchWidth < 100 ? trenchDepth : trenchDepth; // если в мм
+      final widthM = trenchWidth > 100
+          ? trenchWidth / 1000
+          : trenchWidth; // нормализация
       if (depthM > widthM * 5) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.high,
-          title: 'Траншея очень глубокая и узкая',
-          description:
-              'Глубина траншеи ($trenchDepth м) в ${depthM ~/ widthM} раз '
-              'больше ширины (${trenchWidth} мм). Требуется укрепление стен.',
-          suggestion: 'Убедитесь в безопасности котлована такой глубины',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.high,
+            title: 'Траншея очень глубокая и узкая',
+            description:
+                'Глубина траншеи ($trenchDepth м) в ${depthM ~/ widthM} раз '
+                'больше ширины (${trenchWidth} мм). Требуется укрепление стен.',
+            suggestion: 'Убедитесь в безопасности котлована такой глубины',
+          ),
+        );
       }
     }
 
@@ -295,45 +305,51 @@ class SmartChecklistAnalyzer {
 
     if (range != null) {
       if (cost < range.$1) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.costAdvice,
-          priority: AIInsightPriority.low,
-          title: 'Стоимость ниже типовой',
-          description:
-              'Расчётная стоимость ${cost.toStringAsFixed(0)} ₽ ниже '
-              'типичного минимума для этого типа работ (${range.$1.toStringAsFixed(0)} ₽)',
-          suggestion:
-              'Возможно, не все позиции учтены. Проверьте полноту замера.',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.costAdvice,
+            priority: AIInsightPriority.low,
+            title: 'Стоимость ниже типовой',
+            description:
+                'Расчётная стоимость ${cost.toStringAsFixed(0)} ₽ ниже '
+                'типичного минимума для этого типа работ (${range.$1.toStringAsFixed(0)} ₽)',
+            suggestion:
+                'Возможно, не все позиции учтены. Проверьте полноту замера.',
+          ),
+        );
       } else if (cost > range.$2) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.costAdvice,
-          priority: AIInsightPriority.medium,
-          title: 'Стоимость выше типовой',
-          description:
-              'Расчётная стоимость ${cost.toStringAsFixed(0)} ₽ превышает '
-              'типовой максимум (${range.$2.toStringAsFixed(0)} ₽)',
-          suggestion:
-              'Проверьте количество позиций и цены. Возможно, стоит '
-              'предложить клиенту альтернативные материалы.',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.costAdvice,
+            priority: AIInsightPriority.medium,
+            title: 'Стоимость выше типовой',
+            description:
+                'Расчётная стоимость ${cost.toStringAsFixed(0)} ₽ превышает '
+                'типовой максимум (${range.$2.toStringAsFixed(0)} ₽)',
+            suggestion:
+                'Проверьте количество позиций и цены. Возможно, стоит '
+                'предложить клиенту альтернативные материалы.',
+          ),
+        );
       }
     }
 
     // Проверка: стоимость 0 при заполненных данных
     if (cost == 0 && order.checklistData.isNotEmpty) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.error,
-        priority: AIInsightPriority.critical,
-        title: 'Стоимость не рассчитана',
-        description:
-            'Данные замера заполнены, но стоимость равна 0 ₽. '
-            'Возможно, прайс-лист не загружен или формулы не настроены.',
-        suggestion: 'Проверьте прайс-лист и формулы расчёта',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.error,
+          priority: AIInsightPriority.critical,
+          title: 'Стоимость не рассчитана',
+          description:
+              'Данные замера заполнены, но стоимость равна 0 ₽. '
+              'Возможно, прайс-лист не загружен или формулы не настроены.',
+          suggestion: 'Проверьте прайс-лист и формулы расчёта',
+        ),
+      );
     }
 
     return insights;
@@ -376,43 +392,49 @@ class SmartChecklistAnalyzer {
     final depth = (data['foundation_depth'] as num?)?.toDouble() ?? 0;
 
     if (depth > 1500) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.recommendation,
-        priority: AIInsightPriority.medium,
-        title: 'Глубокий фундамент',
-        description:
-            'Глубина заложения ${depth} мм — это ниже глубины промерзания '
-            'для большинства регионов. Убедитесь, что тип фундамента выбран верно.',
-        suggestion:
-            'Для глубин > 1.5м рассмотрите свайный фундамент вместо ленточного',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Глубокий фундамент',
+          description:
+              'Глубина заложения ${depth} мм — это ниже глубины промерзания '
+              'для большинства регионов. Убедитесь, что тип фундамента выбран верно.',
+          suggestion:
+              'Для глубин > 1.5м рассмотрите свайный фундамент вместо ленточного',
+        ),
+      );
     }
 
     if (data['has_reinforcement'] == false && depth > 500) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.warning,
-        priority: AIInsightPriority.high,
-        title: 'Фундамент без армирования',
-        description:
-            'Глубина фундамента ${depth} мм, но армирование не указано. '
-            'Для глубин > 500 мм армирование обязательно по СНиП.',
-        suggestion: 'Добавьте армирование для обеспечения прочности',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Фундамент без армирования',
+          description:
+              'Глубина фундамента ${depth} мм, но армирование не указано. '
+              'Для глубин > 500 мм армирование обязательно по СНиП.',
+          suggestion: 'Добавьте армирование для обеспечения прочности',
+        ),
+      );
     }
 
     if (data['has_waterproofing'] == false) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.recommendation,
-        priority: AIInsightPriority.low,
-        title: 'Рекомендуется гидроизоляция',
-        description:
-            'Гидроизоляция фундамента не указана. Она защищает от грунтовых '
-            'вод и продлевает срок службы.',
-        suggestion: 'Добавьте гидроизоляцию — это 5-10% стоимости фундамента',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.low,
+          title: 'Рекомендуется гидроизоляция',
+          description:
+              'Гидроизоляция фундамента не указана. Она защищает от грунтовых '
+              'вод и продлевает срок службы.',
+          suggestion: 'Добавьте гидроизоляцию — это 5-10% стоимости фундамента',
+        ),
+      );
     }
 
     return insights;
@@ -421,30 +443,33 @@ class SmartChecklistAnalyzer {
   List<AIInsight> _analyzeHouseConstruction(Map<String, dynamic> data) {
     final insights = <AIInsight>[];
 
-    if (data['has_basement'] == true &&
-        data['foundation_type'] == null) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.missingData,
-        priority: AIInsightPriority.high,
-        title: 'Подвал без типа фундамента',
-        description:
-            'Указан подвал, но не выбран тип фундамента. Для подвала '
-            'необходим ленточный фундамент глубокого заложения.',
-        suggestion: 'Укажите тип фундамента с учётом подвала',
-      ));
+    if (data['has_basement'] == true && data['foundation_type'] == null) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.missingData,
+          priority: AIInsightPriority.high,
+          title: 'Подвал без типа фундамента',
+          description:
+              'Указан подвал, но не выбран тип фундамента. Для подвала '
+              'необходим ленточный фундамент глубокого заложения.',
+          suggestion: 'Укажите тип фундамента с учётом подвала',
+        ),
+      );
     }
 
     if (data['has_garage'] == true) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.tip,
-        priority: AIInsightPriority.low,
-        title: 'Гараж в проекте',
-        description:
-            'Наличие гаража увеличивает площадь фундамента и нагрузку '
-            'на несущие конструкции. Убедитесь, что фундамент рассчитан.',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.tip,
+          priority: AIInsightPriority.low,
+          title: 'Гараж в проекте',
+          description:
+              'Наличие гаража увеличивает площадь фундамента и нагрузку '
+              'на несущие конструкции. Убедитесь, что фундамент рассчитан.',
+        ),
+      );
     }
 
     return insights;
@@ -456,16 +481,18 @@ class SmartChecklistAnalyzer {
     if (data['has_armo_poyas'] == false) {
       final material = data['wall_material'] as String?;
       if (material != null && material.contains('Газоблок')) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.high,
-          title: 'Армопояс обязателен для газоблока',
-          description:
-              'Для стен из газобетона армопояс обязателен по СНиП. '
-              'Он распределяет нагрузку от перекрытий.',
-          suggestion: 'Добавьте армопояс над каждым этажом',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.high,
+            title: 'Армопояс обязателен для газоблока',
+            description:
+                'Для стен из газобетона армопояс обязателен по СНиП. '
+                'Он распределяет нагрузку от перекрытий.',
+            suggestion: 'Добавьте армопояс над каждым этажом',
+          ),
+        );
       }
     }
 
@@ -476,17 +503,19 @@ class SmartChecklistAnalyzer {
     final insights = <AIInsight>[];
 
     if (data['has_insulation'] == false) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.recommendation,
-        priority: AIInsightPriority.medium,
-        title: 'Рекомендуется утепление фасада',
-        description:
-            'Утепление фасада снижает теплопотери на 30-40% и повышает '
-            'комфорт проживания. Окупается за 3-5 лет.',
-        suggestion:
-            'Добавьте утепление — минвата 100мм или пенополистирол 80мм',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Рекомендуется утепление фасада',
+          description:
+              'Утепление фасада снижает теплопотери на 30-40% и повышает '
+              'комфорт проживания. Окупается за 3-5 лет.',
+          suggestion:
+              'Добавьте утепление — минвата 100мм или пенополистирол 80мм',
+        ),
+      );
     }
 
     return insights;
@@ -496,41 +525,47 @@ class SmartChecklistAnalyzer {
     final insights = <AIInsight>[];
 
     if (data['has_insulation'] == false) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.warning,
-        priority: AIInsightPriority.high,
-        title: 'Кровля без утепления',
-        description:
-            'Утепление кровли критически важно для жилого дома. '
-            'Без него теплопотери через крышу составляют до 25%.',
-        suggestion: 'Добавьте утепление минватой 200мм',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Кровля без утепления',
+          description:
+              'Утепление кровли критически важно для жилого дома. '
+              'Без него теплопотери через крышу составляют до 25%.',
+          suggestion: 'Добавьте утепление минватой 200мм',
+        ),
+      );
     }
 
     if (data['has_waterproofing_membrane'] == false) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.warning,
-        priority: AIInsightPriority.high,
-        title: 'Нет гидроизоляционной мембраны',
-        description:
-            'Гидроизоляционная мембрана защищает утеплитель и стропила '
-            'от конденсата и протечек.',
-        suggestion: 'Добавьте гидро-ветрозащитную мембрану',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Нет гидроизоляционной мембраны',
+          description:
+              'Гидроизоляционная мембрана защищает утеплитель и стропила '
+              'от конденсата и протечек.',
+          suggestion: 'Добавьте гидро-ветрозащитную мембрану',
+        ),
+      );
     }
 
     if (data['has_gutter'] == false) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.recommendation,
-        priority: AIInsightPriority.medium,
-        title: 'Рекомендуется водосточная система',
-        description:
-            'Водосток защищает фундамент и фасад от размывания. '
-            'Особенно важен при отмостке менее 1м.',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Рекомендуется водосточная система',
+          description:
+              'Водосток защищает фундамент и фасад от размывания. '
+              'Особенно важен при отмостке менее 1м.',
+        ),
+      );
     }
 
     return insights;
@@ -540,17 +575,18 @@ class SmartChecklistAnalyzer {
     final insights = <AIInsight>[];
 
     if (data['has_antikorrosion'] == false) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.warning,
-        priority: AIInsightPriority.high,
-        title: 'Нет антикоррозийной обработки',
-        description:
-            'Металлоконструкции без антикоррозийной защиты быстро ржавеют. '
-            'Срок службы снижается в 3-5 раз.',
-        suggestion:
-            'Добавьте грунтовку + покраску или горячее цинкование',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Нет антикоррозийной обработки',
+          description:
+              'Металлоконструкции без антикоррозийной защиты быстро ржавеют. '
+              'Срок службы снижается в 3-5 раз.',
+          suggestion: 'Добавьте грунтовку + покраску или горячее цинкование',
+        ),
+      );
     }
 
     return insights;
@@ -573,29 +609,33 @@ class SmartChecklistAnalyzer {
     if (networkType != null && depth > 0) {
       final minDepth = minDepths[networkType];
       if (minDepth != null && depth < minDepth) {
-        insights.add(AIInsight(
-          id: _uuid.v4(),
-          type: AIInsightType.warning,
-          priority: AIInsightPriority.high,
-          title: 'Траншея слишком мелкая',
-          description:
-              'Глубина $depth м для $networkType ниже нормы ($minDepth м). '
-              'Риск промерзания/повреждения.',
-          suggestion: 'Увеличьте глубину до $minDepth м минимум',
-        ));
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.high,
+            title: 'Траншея слишком мелкая',
+            description:
+                'Глубина $depth м для $networkType ниже нормы ($minDepth м). '
+                'Риск промерзания/повреждения.',
+            suggestion: 'Увеличьте глубину до $minDepth м минимум',
+          ),
+        );
       }
     }
 
     if (data['has_wells'] == false && depth > 1.5) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.recommendation,
-        priority: AIInsightPriority.medium,
-        title: 'Рекомендуются смотровые колодцы',
-        description:
-            'При глубине заложения > 1.5м и длине > 50м необходимы '
-            'смотровые колодцы для обслуживания.',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Рекомендуются смотровые колодцы',
+          description:
+              'При глубине заложения > 1.5м и длине > 50м необходимы '
+              'смотровые колодцы для обслуживания.',
+        ),
+      );
     }
 
     return insights;
@@ -607,31 +647,36 @@ class SmartChecklistAnalyzer {
     final data = order.checklistData;
 
     // Если есть фото — похвалить
-    final photoFields =
-        data.entries.where((e) => e.value.toString().contains('photo'));
+    final photoFields = data.entries.where(
+      (e) => e.value.toString().contains('photo'),
+    );
     if (photoFields.isEmpty && data.isNotEmpty) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.tip,
-        priority: AIInsightPriority.low,
-        title: 'Добавьте фотографии',
-        description:
-            'Фотофиксация объекта поможет при составлении коммерческого '
-            'предложения и защитит от споров с клиентом.',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.tip,
+          priority: AIInsightPriority.low,
+          title: 'Добавьте фотографии',
+          description:
+              'Фотофиксация объекта поможет при составлении коммерческого '
+              'предложения и защитит от споров с клиентом.',
+        ),
+      );
     }
 
     // Заметки
     if (order.notes == null || order.notes!.isEmpty) {
-      insights.add(AIInsight(
-        id: _uuid.v4(),
-        type: AIInsightType.tip,
-        priority: AIInsightPriority.low,
-        title: 'Добавьте заметки',
-        description:
-            'Заметки к замеру помогут вспомнить детали объекта при '
-            'составлении предложения.',
-      ));
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.tip,
+          priority: AIInsightPriority.low,
+          title: 'Добавьте заметки',
+          description:
+              'Заметки к замеру помогут вспомнить детали объекта при '
+              'составлении предложения.',
+        ),
+      );
     }
 
     return insights;
@@ -643,20 +688,22 @@ class SmartChecklistAnalyzer {
       return 'Данные замера заполнены корректно. Критических проблем не обнаружено.';
     }
 
-    final critical =
-        insights.where((i) => i.priority == AIInsightPriority.critical).length;
-    final high =
-        insights.where((i) => i.priority == AIInsightPriority.high).length;
-    final medium =
-        insights.where((i) => i.priority == AIInsightPriority.medium).length;
+    final critical = insights
+        .where((i) => i.priority == AIInsightPriority.critical)
+        .length;
+    final high = insights
+        .where((i) => i.priority == AIInsightPriority.high)
+        .length;
+    final medium = insights
+        .where((i) => i.priority == AIInsightPriority.medium)
+        .length;
 
     final parts = <String>[];
     if (critical > 0) parts.add('$critical критических');
     if (high > 0) parts.add('$high важных');
     if (medium > 0) parts.add('$medium предупреждений');
 
-    return
-        'Найдено ${insights.length} замечаний: ${parts.join(', ')}. '
+    return 'Найдено ${insights.length} замечаний: ${parts.join(', ')}. '
         'Рекомендуем исправить критические и важные проблемы перед отправкой.';
   }
 
