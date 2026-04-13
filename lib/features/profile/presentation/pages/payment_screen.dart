@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../services/payment_service.dart';
 import '../../../../services/subscription_service.dart';
@@ -447,15 +448,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
       children: [
         const Divider(),
         TextButton(
-          onPressed: () {
-            // TODO: Открыть оферту
-          },
+          onPressed: () => _showDocumentDialog('Публичная оферта', 'assets/offer.md'),
           child: const Text('Публичная оферта'),
         ),
         TextButton(
-          onPressed: () {
-            // TODO: Открыть политику возврата
-          },
+          onPressed: () => _showDocumentDialog('Политика конфиденциальности', 'assets/privacy_policy.md'),
+          child: const Text('Политика конфиденциальности'),
+        ),
+        TextButton(
+          onPressed: () => _showDocumentDialog('Политика возврата', 'assets/refund_policy.md'),
           child: const Text('Политика возврата'),
         ),
         const SizedBox(height: 8),
@@ -466,6 +467,63 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _showDocumentDialog(String title, String assetPath) async {
+    try {
+      final text = await rootBundle.loadString(assetPath);
+      if (!mounted) return;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) => DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          maxChildSize: 0.95,
+          minChildSize: 0.5,
+          builder: (_, controller) => Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: controller,
+                  padding: const EdgeInsets.all(16),
+                  child: SelectableText(
+                    text,
+                    style: const TextStyle(fontSize: 14, height: 1.6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка загрузки документа: $e')),
+      );
+    }
   }
 
   Widget _buildActiveStatus() {

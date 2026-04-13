@@ -81,3 +81,6 @@ flutter:
     - assets/fonts/
     - assets/models/
     - assets/icon/
+    - assets/offer.md
+    - assets/privacy_policy.md
+    - assets/refund_policy.md
