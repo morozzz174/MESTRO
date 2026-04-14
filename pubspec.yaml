@@ -81,3 +81,5 @@ flutter:
     - assets/fonts/
     - assets/models/
     - assets/icon/
+    - assets/consent_text.txt
+    - assets/offer.md
