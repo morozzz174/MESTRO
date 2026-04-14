@@ -72,6 +72,39 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  /// Показать диалог о необходимости Премиум
+  void _showPremiumDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Требуется Премиум'),
+          ],
+        ),
+        content: const Text(
+          'Эта функция доступна только для подписчиков Премиум.\n\n'
+          'Получите доступ ко всем возможностям приложения.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Позже'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, '/subscription');
+            },
+            child: const Text('Оформить Премиум'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Смена аватара пользователя
   Future<void> _changeAvatar() async {
     final picker = ImagePicker();
@@ -351,7 +384,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 AppDesign.separator(),
                 ListTile(
-                  leading: Icon(Icons.person_outline, size: 20, color: AppDesign.midBlueGray),
+                  leading: Icon(
+                    Icons.person_outline,
+                    size: 20,
+                    color: AppDesign.midBlueGray,
+                  ),
                   title: Text('ФИО', style: AppDesign.captionStyle),
                   subtitle: Text(_user!.fullName ?? 'Не указано'),
                   trailing: IconButton(
@@ -463,9 +500,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
         // Премиум подписка
         InkWell(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
-          ),
+          onTap: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const SubscriptionScreen())),
           borderRadius: BorderRadius.circular(AppDesign.radiusCard),
           child: Container(
             decoration: BoxDecoration(
@@ -487,18 +524,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: (_isPremium
-                              ? const Color(0xFF4CAF50)
-                              : AppDesign.primaryDark)
-                          .withOpacity(0.15),
+                      color:
+                          (_isPremium
+                                  ? const Color(0xFF4CAF50)
+                                  : AppDesign.primaryDark)
+                              .withOpacity(0.15),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
                     child: Icon(
-                      _isPremium
-                          ? Icons.workspace_premium
-                          : Icons.lock_outline,
+                      _isPremium ? Icons.workspace_premium : Icons.lock_outline,
                       color: _isPremium
                           ? const Color(0xFF4CAF50)
                           : AppDesign.primaryDark,
@@ -513,9 +549,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           _isPremium ? 'Премиум активен' : 'Премиум подписка',
                           style: AppDesign.subtitleStyle.copyWith(
-                            color: _isPremium
-                                ? const Color(0xFF4CAF50)
-                                : null,
+                            color: _isPremium ? const Color(0xFF4CAF50) : null,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -632,67 +666,108 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Text('Управление данными', style: AppDesign.subtitleStyle),
                 const SizedBox(height: AppDesign.spacing16),
-                // Экспорт в Excel
+                // Экспорт в Excel (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppDesign.accentTeal.withOpacity(0.12),
+                      color: _isPremium
+                          ? AppDesign.accentTeal.withOpacity(0.12)
+                          : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.table_chart,
-                      color: AppDesign.accentTeal,
+                      color: _isPremium ? AppDesign.accentTeal : Colors.grey,
                     ),
                   ),
-                  title: const Text('Экспорт в Excel'),
-                  subtitle: const Text('Выгрузка заявок с ценами'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _exportToExcel,
+                  title: Text(
+                    'Экспорт в Excel',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  subtitle: Text(
+                    _isPremium
+                        ? 'Выгрузка заявок с ценами'
+                        : 'Доступно в Премиум',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  trailing: Icon(
+                    _isPremium ? Icons.chevron_right : Icons.lock,
+                    color: _isPremium ? null : Colors.grey,
+                  ),
+                  onTap: _isPremium
+                      ? _exportToExcel
+                      : () => _showPremiumDialog(context),
                 ),
                 AppDesign.separator(),
-                // Резервная копия
+                // Резервная копия (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppDesign.deepSteelBlue.withOpacity(0.12),
+                      color: _isPremium
+                          ? AppDesign.deepSteelBlue.withOpacity(0.12)
+                          : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.cloud_upload,
-                      color: AppDesign.deepSteelBlue,
+                      color: _isPremium ? AppDesign.deepSteelBlue : Colors.grey,
                     ),
                   ),
-                  title: const Text('Резервная копия'),
-                  subtitle: const Text('Экспорт базы данных'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _exportDatabase,
+                  title: Text(
+                    'Резервная копия',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  subtitle: Text(
+                    _isPremium ? 'Экспорт базы данных' : 'Доступно в Премиум',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  trailing: Icon(
+                    _isPremium ? Icons.chevron_right : Icons.lock,
+                    color: _isPremium ? null : Colors.grey,
+                  ),
+                  onTap: _isPremium
+                      ? _exportDatabase
+                      : () => _showPremiumDialog(context),
                 ),
                 AppDesign.separator(),
-                // Восстановление
+                // Восстановление (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppDesign.midBlueGray.withOpacity(0.12),
+                      color: _isPremium
+                          ? AppDesign.midBlueGray.withOpacity(0.12)
+                          : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.cloud_download,
-                      color: AppDesign.midBlueGray,
+                      color: _isPremium ? AppDesign.midBlueGray : Colors.grey,
                     ),
                   ),
-                  title: const Text('Восстановить из копии'),
-                  subtitle: const Text('Импорт базы данных'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _importDatabase,
+                  title: Text(
+                    'Восстановить из копии',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  subtitle: Text(
+                    _isPremium ? 'Импорт базы данных' : 'Доступно в Премиум',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  trailing: Icon(
+                    _isPremium ? Icons.chevron_right : Icons.lock,
+                    color: _isPremium ? null : Colors.grey,
+                  ),
+                  onTap: _isPremium
+                      ? _importDatabase
+                      : () => _showPremiumDialog(context),
                 ),
               ],
             ),

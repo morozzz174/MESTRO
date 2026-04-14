@@ -153,15 +153,35 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                             ),
                             const SizedBox(height: 12),
                             _FeatureRow(
-                              icon: Icons.description_rounded,
-                              title: 'Чертежи и планы',
-                              desc: 'Генерация планов помещений по ГОСТ',
+                              icon: Icons.architecture_rounded,
+                              title: 'Планы и чертежи',
+                              desc:
+                                  'Планы помещений, фасады, разрезы, спецификации',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.construction_rounded,
+                              title: 'Конструктив здания',
+                              desc:
+                                  'Стены, фундамент, кровля, перекрытия, инженерия',
                             ),
                             const SizedBox(height: 12),
                             _FeatureRow(
                               icon: Icons.camera_enhance_rounded,
                               title: 'Фотофиксация',
                               desc: 'Фото с аннотациями и геотегами',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.mic_rounded,
+                              title: 'Голосовой ввод',
+                              desc: 'Диктуйте замеры — AI заполнит все поля',
+                            ),
+                            const SizedBox(height: 12),
+                            _FeatureRow(
+                              icon: Icons.picture_as_pdf_rounded,
+                              title: 'PDF и Excel отчёты',
+                              desc: 'Коммерческие предложения и прайс-листы',
                             ),
                             const SizedBox(height: 12),
                             _FeatureRow(
@@ -195,7 +215,9 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                             backgroundColor: const Color(0xFF00B4D8),
                             foregroundColor: Colors.white,
                             elevation: 4,
-                            shadowColor: const Color(0xFF00B4D8).withOpacity(0.4),
+                            shadowColor: const Color(
+                              0xFF00B4D8,
+                            ).withOpacity(0.4),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -302,9 +324,7 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                       onRegistered: () {
                         Navigator.of(ctx).pop();
                         Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (_) => const HomePage(),
-                          ),
+                          MaterialPageRoute(builder: (_) => const HomePage()),
                           (route) => false,
                         );
                       },
@@ -435,8 +455,7 @@ class _RegistrationFormState extends State<_RegistrationForm> {
               },
             ),
             isActive: _currentStep >= 0,
-            state:
-                _currentStep > 0 ? StepState.complete : StepState.indexed,
+            state: _currentStep > 0 ? StepState.complete : StepState.indexed,
           ),
           Step(
             title: const Text('Профиль'),
@@ -448,8 +467,7 @@ class _RegistrationFormState extends State<_RegistrationForm> {
               },
             ),
             isActive: _currentStep >= 1,
-            state:
-                _currentStep > 1 ? StepState.complete : StepState.indexed,
+            state: _currentStep > 1 ? StepState.complete : StepState.indexed,
           ),
           Step(
             title: const Text('Готово'),
@@ -562,10 +580,7 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
           const SizedBox(height: 8),
           Text(
             'Вам поступит входящий звонок. Оператор продиктует код — введите его выше.',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 16),
           Row(
@@ -589,16 +604,14 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
             padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               _errorMessage!,
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontSize: 13,
-              ),
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
             ),
           ),
 
         ElevatedButton.icon(
-          onPressed:
-              _isLoading ? null : (_codeSent ? _verifyCode : _requestCall),
+          onPressed: _isLoading
+              ? null
+              : (_codeSent ? _verifyCode : _requestCall),
           icon: _isLoading
               ? const SizedBox(
                   width: 18,
@@ -1061,19 +1074,13 @@ class _SuccessStep extends StatelessWidget {
         const SizedBox(height: 16),
         const Text(
           'Регистрация завершена!',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         Text(
           'Теперь вы можете создавать заявки и проводить замеры.',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 24),
         ElevatedButton.icon(

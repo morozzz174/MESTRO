@@ -5,6 +5,7 @@ import '../../../../services/price_list_service.dart';
 import '../../../../utils/cost_calculator.dart';
 import '../../../../services/app_logger.dart';
 import '../../../../services/price_list_excel_service.dart';
+import '../../../../services/subscription_service.dart';
 
 /// Экран выбора типа работ для редактирования прайса
 class PriceListScreen extends StatelessWidget {
@@ -112,6 +113,18 @@ class PriceListScreen extends StatelessWidget {
   }
 
   Future<void> _exportToExcel(BuildContext context) async {
+    // Проверяем премиум
+    final isPremium = await SubscriptionService().isPremiumActive();
+    if (!isPremium && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Экспорт в Excel доступен только для Премиум'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       const SnackBar(
@@ -135,6 +148,18 @@ class PriceListScreen extends StatelessWidget {
   }
 
   Future<void> _importFromExcel(BuildContext context) async {
+    // Проверяем премиум
+    final isPremium = await SubscriptionService().isPremiumActive();
+    if (!isPremium && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Импорт из Excel доступен только для Премиум'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       const SnackBar(
@@ -601,6 +626,7 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
                                 SizedBox(
                                   width: 100,
                                   child: TextField(
+                                    key: ValueKey('price_${item.id}'),
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.right,
                                     decoration: InputDecoration(
@@ -623,6 +649,9 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
                                       if (newPrice != null && newPrice >= 0) {
                                         _updatePrice(item.id, newPrice);
                                       }
+                                    },
+                                    onEditingComplete: () {
+                                      FocusScope.of(context).unfocus();
                                     },
                                   ),
                                 ),

@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/order.dart';
+import '../services/app_logger.dart';
 import '../features/floor_plan/models/floor_plan_models_extended.dart'
     hide Column;
 import '../features/floor_plan/engine/floor_plan_rule_engine.dart';
@@ -12,17 +13,18 @@ class PdfGenerator {
   /// Загрузить шрифт с поддержкой кириллицы из assets
   static Future<pw.Font> _loadFont(String assetName) async {
     try {
-      final data = await rootBundle.load('assets/fonts/$assetName');
-      return pw.Font.ttf(data);
+      // Используем Roboto с гарантированной поддержкой кириллицы
+      final data = await rootBundle.load('assets/fonts/roboto_cyrillic.ttf');
+      return pw.Font.ttf(data.buffer.asByteData());
     } catch (e) {
-      // Fallback: встроенный шрифт (может не поддерживать кириллицу)
+      AppLogger.warn('PdfGenerator', 'Шрифт не найден: $e');
       return pw.Font.helvetica();
     }
   }
 
   static Future<File> generateProposal(Order order) async {
-    final font = await _loadFont('arial.ttf');
-    final fontBold = await _loadFont('arial_bold.ttf');
+    final font = await _loadFont('roboto_cyrillic.ttf');
+    final fontBold = await _loadFont('roboto_cyrillic.ttf');
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd.MM.yyyy HH:mm', 'ru');
     final currencyFormat = NumberFormat.currency(
@@ -625,8 +627,8 @@ class PdfGenerator {
 
   /// Генерация PDF плана помещения (для Floor Plan)
   static Future<File> generateFloorPlanPdf(Order order) async {
-    final font = await _loadFont('arial.ttf');
-    final fontBold = await _loadFont('arial_bold.ttf');
+    final font = await _loadFont('roboto_cyrillic.ttf');
+    final fontBold = await _loadFont('roboto_cyrillic.ttf');
     final pdf = pw.Document();
 
     final currencyFormat = NumberFormat.currency(

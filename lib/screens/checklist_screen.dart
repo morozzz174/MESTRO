@@ -20,7 +20,7 @@ import '../utils/app_design.dart';
 import '../utils/condition_evaluator.dart';
 import '../utils/location_helper.dart';
 import '../services/voice_input_service.dart';
-import '../features/voice/presentation/widgets/voice_input_button.dart';
+import '../features/voice/presentation/widgets/voice_input_banner.dart';
 import '../features/checklists_list/presentation/widgets/checklist_client_info.dart';
 import '../features/checklists_list/presentation/widgets/checklist_field_widget.dart';
 import '../features/checklists_list/presentation/widgets/checklist_photos_section.dart';
@@ -43,6 +43,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   final _formKey = GlobalKey<FormState>();
   late ChecklistActionsManager _actionsManager;
   final _photosSectionKey = GlobalKey<ChecklistPhotosSectionState>();
+  bool _showVoiceBanner = false;
 
   @override
   void initState() {
@@ -67,22 +68,40 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: BlocBuilder<ChecklistBloc, ChecklistState>(
-        builder: (context, state) {
-          if (state is ChecklistLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          BlocBuilder<ChecklistBloc, ChecklistState>(
+            builder: (context, state) {
+              if (state is ChecklistLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (state is ChecklistLoaded) {
-            return _buildForm(context, state);
-          }
+              if (state is ChecklistLoaded) {
+                return _buildForm(context, state);
+              }
 
-          if (state is ChecklistError) {
-            return Center(child: Text('Ошибка: ${state.message}'));
-          }
+              if (state is ChecklistError) {
+                return Center(child: Text('Ошибка: ${state.message}'));
+              }
 
-          return const SizedBox.shrink();
-        },
+              return const SizedBox.shrink();
+            },
+          ),
+          // Компактный баннер голосового ввода
+          if (_showVoiceBanner)
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: VoiceInputBanner(
+                onResult: (text) {
+                  setState(() => _showVoiceBanner = false);
+                  _applyVoiceInput(text);
+                },
+                onClose: () => setState(() => _showVoiceBanner = false),
+              ),
+            ),
+        ],
       ),
       bottomNavigationBar: _BottomActions(
         onCalculate: _calculateCost,
@@ -334,13 +353,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     );
   }
 
-  Future<void> _showVoiceInput() async {
-    await VoiceInputDialog.show(
-      context,
-      onResult: (text) {
-        _applyVoiceInput(text);
-      },
-    );
+  void _showVoiceInput() {
+    setState(() => _showVoiceBanner = true);
   }
 
   void _applyVoiceInput(String text) {
