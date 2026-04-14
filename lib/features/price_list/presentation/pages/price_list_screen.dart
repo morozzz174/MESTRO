@@ -644,7 +644,7 @@ class _PriceEditScreenState extends State<PriceEditScreen> {
                                     controller: TextEditingController(
                                       text: item.price.toInt().toString(),
                                     ),
-                                    onSubmitted: (value) {
+                                    onChanged: (value) {
                                       final newPrice = double.tryParse(value);
                                       if (newPrice != null && newPrice >= 0) {
                                         _updatePrice(item.id, newPrice);

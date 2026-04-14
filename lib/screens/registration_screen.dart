@@ -252,87 +252,33 @@ class _RegistrationScreenState extends State<RegistrationScreen>
   }
 
   void _showRegistration(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.92,
-        minChildSize: 0.5,
-        maxChildSize: 0.98,
-        builder: (_, controller) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    // Полноэкранный мастер регистрации вместо bottom sheet
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (ctx) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Регистрация'),
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
           ),
-          child: Column(
-            children: [
-              // Ручка для свайпа
-              Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 8),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  controller: controller,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  children: [
-                    // Заголовок формы
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.person_add,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Регистрация',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _RegistrationForm(
-                      currentStep: _currentStep,
-                      verifiedPhone: _verifiedPhone,
-                      onStepChanged: (step, phone) {
-                        setState(() {
-                          _currentStep = step;
-                          _verifiedPhone = phone;
-                        });
-                      },
-                      onRegistered: () {
-                        Navigator.of(ctx).pop();
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(builder: (_) => const HomePage()),
-                          (route) => false,
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          body: _RegistrationForm(
+            currentStep: _currentStep,
+            verifiedPhone: _verifiedPhone,
+            onStepChanged: (step, phone) {
+              setState(() {
+                _currentStep = step;
+                _verifiedPhone = phone;
+              });
+            },
+            onRegistered: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const HomePage()),
+                (route) => false,
+              );
+            },
           ),
         ),
       ),
