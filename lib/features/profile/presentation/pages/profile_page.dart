@@ -574,56 +574,111 @@ class _ProfilePageState extends State<ProfilePage> {
 
         const SizedBox(height: AppDesign.spacing16),
 
-        // Настройки уведомлений
-        Container(
-          decoration: AppDesign.cardDecoration,
-          child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.notifications_active,
-                      color: AppDesign.accentTeal,
-                    ),
-                    const SizedBox(width: AppDesign.spacing8),
-                    Text('Уведомления', style: AppDesign.subtitleStyle),
-                  ],
-                ),
-                const SizedBox(height: AppDesign.spacing16),
-                _InfoRow(
-                  icon: Icons.alarm,
-                  label: 'За 1 час до замера',
-                  value: 'Локальное ✓',
-                ),
-                AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.alarm,
-                  label: 'За 30 мин до замера',
-                  value: 'Локальное ✓',
-                ),
-                AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.sms,
-                  label: 'Клиенту за 24 часа',
-                  value: 'SMS (настр.)',
-                ),
-                AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.sms,
-                  label: 'Клиенту за 2 часа',
-                  value: 'SMS (настр.)',
-                ),
-                const SizedBox(height: AppDesign.spacing12),
-                Text(
-                  'Для SMS-уведомлений укажите API ключ в настройках приложения.',
-                  style: AppDesign.captionStyle.copyWith(
-                    fontStyle: FontStyle.italic,
+        // Настройки уведомлений (только для премиума)
+        GestureDetector(
+          onTap: !_isPremium ? () => _showPremiumDialog(context) : null,
+          child: Container(
+            decoration: AppDesign.cardDecoration,
+            child: Padding(
+              padding: const EdgeInsets.all(AppDesign.spacing16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.notifications_active,
+                        color: _isPremium ? AppDesign.accentTeal : Colors.grey,
+                      ),
+                      const SizedBox(width: AppDesign.spacing8),
+                      Text(
+                        'Уведомления',
+                        style: AppDesign.subtitleStyle.copyWith(
+                          color: _isPremium ? null : Colors.grey,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!_isPremium)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.orange.shade200),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.lock,
+                                size: 12,
+                                color: Colors.orange,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Премиум',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppDesign.spacing16),
+                  _InfoRow(
+                    icon: Icons.alarm,
+                    label: 'За 1 час до замера',
+                    value: _isPremium ? 'Локальное ✓' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  AppDesign.separator(),
+                  _InfoRow(
+                    icon: Icons.alarm,
+                    label: 'За 30 мин до замера',
+                    value: _isPremium ? 'Локальное ✓' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  AppDesign.separator(),
+                  _InfoRow(
+                    icon: Icons.sms,
+                    label: 'Клиенту за 24 часа',
+                    value: _isPremium ? 'SMS (настр.)' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  AppDesign.separator(),
+                  _InfoRow(
+                    icon: Icons.sms,
+                    label: 'Клиенту за 2 часа',
+                    value: _isPremium ? 'SMS (настр.)' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  if (_isPremium) ...[
+                    const SizedBox(height: AppDesign.spacing12),
+                    Text(
+                      'Для SMS-уведомлений укажите API ключ в настройках приложения.',
+                      style: AppDesign.captionStyle.copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: AppDesign.spacing12),
+                    Text(
+                      'Доступно в Премиум подписке',
+                      style: AppDesign.captionStyle.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
@@ -805,11 +860,13 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Color? valueColor;
 
   const _InfoRow({
     required this.icon,
     required this.label,
     required this.value,
+    this.valueColor,
   });
 
   @override
@@ -826,7 +883,10 @@ class _InfoRow extends StatelessWidget {
               children: [
                 Text(label, style: AppDesign.captionStyle),
                 const SizedBox(height: AppDesign.spacing4),
-                Text(value, style: AppDesign.bodyStyle),
+                Text(
+                  value,
+                  style: AppDesign.bodyStyle.copyWith(color: valueColor),
+                ),
               ],
             ),
           ),

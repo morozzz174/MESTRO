@@ -24,9 +24,9 @@ class ConstructionDrawingGenerator {
     try {
       final pdf = pw.Document();
 
-      // Шрифты — используем Roboto с поддержкой кириллицы
-      final regular = await _loadFont('roboto_cyrillic.ttf');
-      final bold = await _loadFont('roboto_cyrillic.ttf');
+      // Шрифты — используем Noto Sans с полной поддержкой кириллицы
+      final regular = await _loadFont('noto_sans_cyrillic.ttf');
+      final bold = await _loadFont('noto_sans_cyrillic.ttf');
 
       pdf.addPage(
         pw.MultiPage(

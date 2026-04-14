@@ -13,8 +13,8 @@ class PdfGenerator {
   /// Загрузить шрифт с поддержкой кириллицы из assets
   static Future<pw.Font> _loadFont(String assetName) async {
     try {
-      // Используем Roboto с гарантированной поддержкой кириллицы
-      final data = await rootBundle.load('assets/fonts/roboto_cyrillic.ttf');
+      // Используем Noto Sans с гарантированной поддержкой кириллицы (Google Fonts)
+      final data = await rootBundle.load('assets/fonts/noto_sans_cyrillic.ttf');
       return pw.Font.ttf(data.buffer.asByteData());
     } catch (e) {
       AppLogger.warn('PdfGenerator', 'Шрифт не найден: $e');
@@ -23,8 +23,8 @@ class PdfGenerator {
   }
 
   static Future<File> generateProposal(Order order) async {
-    final font = await _loadFont('roboto_cyrillic.ttf');
-    final fontBold = await _loadFont('roboto_cyrillic.ttf');
+    final font = await _loadFont('noto_sans_cyrillic.ttf');
+    final fontBold = await _loadFont('noto_sans_cyrillic.ttf');
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd.MM.yyyy HH:mm', 'ru');
     final currencyFormat = NumberFormat.currency(
@@ -627,8 +627,8 @@ class PdfGenerator {
 
   /// Генерация PDF плана помещения (для Floor Plan)
   static Future<File> generateFloorPlanPdf(Order order) async {
-    final font = await _loadFont('roboto_cyrillic.ttf');
-    final fontBold = await _loadFont('roboto_cyrillic.ttf');
+    final font = await _loadFont('noto_sans_cyrillic.ttf');
+    final fontBold = await _loadFont('noto_sans_cyrillic.ttf');
     final pdf = pw.Document();
 
     final currencyFormat = NumberFormat.currency(
