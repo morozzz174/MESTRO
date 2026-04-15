@@ -168,7 +168,7 @@ class PdfGenerator {
           ],
 
           // Floor Plan — генерация плана помещения на основе замеров
-          ..._buildFloorPlanSection(order, smallStyle),
+          ..._buildFloorPlanSection(order, smallStyle, font, fontBold),
         ],
         footer: (context) => pw.Container(
           alignment: pw.Alignment.center,
@@ -1349,6 +1349,8 @@ class PdfGenerator {
   static List<pw.Widget> _buildFloorPlanSection(
     Order order,
     pw.TextStyle smallStyle,
+    pw.Font font,
+    pw.Font fontBold,
   ) {
     final cd = order.checklistData;
 
@@ -1370,7 +1372,11 @@ class PdfGenerator {
       pw.SizedBox(height: 20),
       pw.Text(
         'План помещения',
-        style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        style: pw.TextStyle(
+          fontSize: 18,
+          fontWeight: pw.FontWeight.bold,
+          font: fontBold,
+        ),
       ),
       pw.SizedBox(height: 10),
       pw.Container(
@@ -1392,6 +1398,7 @@ class PdfGenerator {
                   style: pw.TextStyle(
                     fontSize: 12,
                     fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
                   ),
                 ),
               ],
@@ -1401,7 +1408,10 @@ class PdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text('Тип помещения:', style: smallStyle),
-                pw.Text(plan.objectType.label),
+                pw.Text(
+                  _floorPlanTypeLabel(plan.objectType),
+                  style: pw.TextStyle(font: font),
+                ),
               ],
             ),
             pw.SizedBox(height: 4),
@@ -1411,7 +1421,10 @@ class PdfGenerator {
                 pw.Text('Площадь:', style: smallStyle),
                 pw.Text(
                   '${plan.totalArea.toStringAsFixed(1)} м²',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
+                  ),
                 ),
               ],
             ),
@@ -1423,6 +1436,7 @@ class PdfGenerator {
                   padding: const pw.EdgeInsets.only(left: 12, top: 2),
                   child: pw.Text(
                     '• ${room.type.label} (${room.area.toStringAsFixed(1)} м²)',
+                    style: pw.TextStyle(font: font),
                   ),
                 ),
               ),
