@@ -10,14 +10,26 @@ import '../features/floor_plan/models/floor_plan_models_extended.dart'
 import '../features/floor_plan/engine/floor_plan_rule_engine.dart';
 
 class PdfGenerator {
-  /// Загрузить шрифт с поддержкой кириллицы из assets
+  static pw.Font? _cachedFont;
+
+  /// Загрузить шрифт с поддержкой кириллицы
   static Future<pw.Font> _loadFont(String assetName) async {
+    if (_cachedFont != null) return _cachedFont!;
+
     try {
-      // Используем Noto Sans с гарантированной поддержкой кириллицы (Google Fonts)
-      final data = await rootBundle.load('assets/fonts/noto_sans_cyrillic.ttf');
-      return pw.Font.ttf(data.buffer.asByteData());
+      final data = await rootBundle.load('assets/fonts/$assetName');
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
+      _cachedFont = pw.Font.ttf(bytes.buffer.asByteData());
+      AppLogger.info(
+        'PdfGenerator',
+        'Шрифт $assetName загружен (${bytes.length} байт)',
+      );
+      return _cachedFont!;
     } catch (e) {
-      AppLogger.warn('PdfGenerator', 'Шрифт не найден: $e');
+      AppLogger.error('PdfGenerator', 'Ошибка загрузки шрифта', e);
       return pw.Font.helvetica();
     }
   }
