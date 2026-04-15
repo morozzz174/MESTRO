@@ -195,9 +195,7 @@ class PdfGenerator {
               );
             }),
           ],
-
-          // Floor Plan — генерация плана помещения на основе замеров
-          ..._buildFloorPlanSection(order, smallStyle, font, fontBold),
+          // Floor Plan убран отсюда — генерируется отдельным PDF файлом
         ],
         footer: (context) => pw.Container(
           alignment: pw.Alignment.center,
