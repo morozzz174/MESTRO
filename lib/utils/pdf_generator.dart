@@ -11,9 +11,13 @@ import '../features/floor_plan/engine/floor_plan_rule_engine.dart';
 
 class PdfGenerator {
   static pw.Font? _cachedFont;
+  static pw.Font? _cachedFontBold;
 
   /// Загрузить шрифт с поддержкой кириллицы
   static Future<pw.Font> _loadFont(String assetName) async {
+    // Возвращаем кэшированный шрифт если есть
+    if (assetName.contains('bold') && _cachedFontBold != null)
+      return _cachedFontBold!;
     if (_cachedFont != null) return _cachedFont!;
 
     try {
@@ -22,21 +26,34 @@ class PdfGenerator {
         data.offsetInBytes,
         data.lengthInBytes,
       );
-      _cachedFont = pw.Font.ttf(bytes.buffer.asByteData());
+      final font = pw.Font.ttf(bytes.buffer.asByteData());
+
+      if (assetName.contains('bold')) {
+        _cachedFontBold = font;
+      } else {
+        _cachedFont = font;
+      }
+
       AppLogger.info(
         'PdfGenerator',
         'Шрифт $assetName загружен (${bytes.length} байт)',
       );
-      return _cachedFont!;
-    } catch (e) {
-      AppLogger.error('PdfGenerator', 'Ошибка загрузки шрифта', e);
+      return font;
+    } catch (e, st) {
+      AppLogger.error(
+        'PdfGenerator',
+        'Ошибка загрузки шрифта $assetName',
+        e,
+        st,
+      );
       return pw.Font.helvetica();
     }
   }
 
   static Future<File> generateProposal(Order order) async {
-    final font = await _loadFont('noto_sans_cyrillic.ttf');
-    final fontBold = await _loadFont('noto_sans_cyrillic.ttf');
+    // Используем arial.ttf — он содержит кириллицу
+    final font = await _loadFont('arial.ttf');
+    final fontBold = await _loadFont('arial_bold.ttf');
     final pdf = pw.Document();
     final dateFormat = DateFormat('dd.MM.yyyy HH:mm', 'ru');
     final currencyFormat = NumberFormat.currency(
