@@ -71,7 +71,10 @@ class EditorToolbar extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isEditing ? AppDesign.accentTeal : null,
                     foregroundColor: isEditing ? Colors.white : null,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -88,62 +91,75 @@ class EditorToolbar extends StatelessWidget {
                     tooltip: 'Повторить',
                   ),
                   const SizedBox(width: 8),
-                  // Кнопки добавления элементов
-                  _ElementButton(
-                    icon: Icons.meeting_room,
-                    label: 'Комната',
-                    color: Colors.blue,
-                    onPressed: onAddRoom,
-                  ),
-                  const SizedBox(width: 4),
-                  _ElementButton(
-                    icon: Icons.door_front_door,
-                    label: 'Дверь',
-                    color: Colors.brown,
-                    onPressed: onAddDoor,
-                  ),
-                  const SizedBox(width: 4),
-                  _ElementButton(
-                    icon: Icons.window,
-                    label: 'Окно',
-                    color: Colors.cyan,
-                    onPressed: onAddWindow,
-                  ),
-                  const SizedBox(width: 4),
-                  _ElementButton(
-                    icon: Icons.thermostat,
-                    label: 'Радиатор',
-                    color: Colors.red,
-                    onPressed: onAddRadiator,
-                  ),
-                  const SizedBox(width: 4),
-                  _ElementButton(
-                    icon: Icons.plumbing,
-                    label: 'Сантехника',
-                    color: Colors.teal,
-                    onPressed: onAddPlumbing,
-                  ),
-                  const SizedBox(width: 4),
-                  _ElementButton(
-                    icon: Icons.electrical_services,
-                    label: 'Электрика',
-                    color: Colors.amber,
-                    onPressed: onAddElectrical,
-                  ),
-                  const SizedBox(width: 4),
-                  // Сбросить
-                  IconButton(
-                    onPressed: onReset,
-                    icon: const Icon(Icons.refresh),
-                    tooltip: 'Сбросить',
+                  // Кнопки добавления элементов с горизонтальной прокруткой
+                  Expanded(
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _ElementButton(
+                            icon: Icons.meeting_room,
+                            label: 'Комната',
+                            color: Colors.blue,
+                            onPressed: onAddRoom,
+                          ),
+                          const SizedBox(width: 4),
+                          _ElementButton(
+                            icon: Icons.door_front_door,
+                            label: 'Дверь',
+                            color: Colors.brown,
+                            onPressed: onAddDoor,
+                          ),
+                          const SizedBox(width: 4),
+                          _ElementButton(
+                            icon: Icons.window,
+                            label: 'Окно',
+                            color: Colors.cyan,
+                            onPressed: onAddWindow,
+                          ),
+                          const SizedBox(width: 4),
+                          _ElementButton(
+                            icon: Icons.thermostat,
+                            label: 'Радиатор',
+                            color: Colors.red,
+                            onPressed: onAddRadiator,
+                          ),
+                          const SizedBox(width: 4),
+                          _ElementButton(
+                            icon: Icons.plumbing,
+                            label: 'Сантехника',
+                            color: Colors.teal,
+                            onPressed: onAddPlumbing,
+                          ),
+                          const SizedBox(width: 4),
+                          _ElementButton(
+                            icon: Icons.electrical_services,
+                            label: 'Электрика',
+                            color: Colors.amber,
+                            onPressed: onAddElectrical,
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: onReset,
+                            icon: const Icon(Icons.refresh),
+                            tooltip: 'Сбросить',
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
                 const Spacer(),
                 // Валидация
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: isValid ? Colors.green.shade50 : Colors.orange.shade50,
+                    color: isValid
+                        ? Colors.green.shade50
+                        : Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isValid ? Colors.green : Colors.orange,
@@ -209,7 +225,10 @@ class _ElementButton extends StatelessWidget {
 }
 
 /// Диалог добавления комнаты
-Future<RoomState?> showAddRoomDialog(BuildContext context, EditorState state) async {
+Future<RoomState?> showAddRoomDialog(
+  BuildContext context,
+  EditorState state,
+) async {
   final types = [
     ('kitchen', 'Кухня', '🍳'),
     ('livingRoom', 'Гостиная', '🛋️'),
@@ -249,7 +268,9 @@ Future<RoomState?> showAddRoomDialog(BuildContext context, EditorState state) as
           child: const Text('Отмена'),
         ),
         ElevatedButton(
-          onPressed: selectedType != null ? () => Navigator.of(ctx).pop(selectedType) : null,
+          onPressed: selectedType != null
+              ? () => Navigator.of(ctx).pop(selectedType)
+              : null,
           child: const Text('Добавить'),
         ),
       ],
@@ -286,7 +307,12 @@ Future<DoorState?> showAddDoorDialog(BuildContext context) async {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildRadio('internal', 'Межкомнатная', setDialogState, selectedType),
+            _buildRadio(
+              'internal',
+              'Межкомнатная',
+              setDialogState,
+              selectedType,
+            ),
             _buildRadio('entrance', 'Входная', setDialogState, selectedType),
             _buildRadio('balcony', 'Балконная', setDialogState, selectedType),
           ],
@@ -330,7 +356,12 @@ Future<WindowState?> showAddWindowDialog(BuildContext context) async {
           children: [
             _buildRadio('standard', 'Обычное', setDialogState, selectedType),
             _buildRadio('balcony', 'Балконное', setDialogState, selectedType),
-            _buildRadio('french', 'Французское (в пол)', setDialogState, selectedType),
+            _buildRadio(
+              'french',
+              'Французское (в пол)',
+              setDialogState,
+              selectedType,
+            ),
           ],
         ),
         actions: [
@@ -371,7 +402,12 @@ Future<RadiatorState?> showAddRadiatorDialog(BuildContext context) async {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildRadio('panel', 'Панельный', setDialogState, selectedType),
-            _buildRadio('sectional', 'Секционный', setDialogState, selectedType),
+            _buildRadio(
+              'sectional',
+              'Секционный',
+              setDialogState,
+              selectedType,
+            ),
             _buildRadio('convector', 'Конвектор', setDialogState, selectedType),
           ],
         ),
@@ -401,7 +437,9 @@ Future<RadiatorState?> showAddRadiatorDialog(BuildContext context) async {
 }
 
 /// Диалог добавления сантехники
-Future<PlumbingFixtureState?> showAddPlumbingDialog(BuildContext context) async {
+Future<PlumbingFixtureState?> showAddPlumbingDialog(
+  BuildContext context,
+) async {
   String selectedType = 'sink';
 
   final result = await showDialog<bool>(
@@ -412,11 +450,41 @@ Future<PlumbingFixtureState?> showAddPlumbingDialog(BuildContext context) async 
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildRadioWithIcon('sink', 'Раковина', '🚰', setDialogState, selectedType),
-            _buildRadioWithIcon('toilet', 'Унитаз', '🚽', setDialogState, selectedType),
-            _buildRadioWithIcon('bathtub', 'Ванна', '🛁', setDialogState, selectedType),
-            _buildRadioWithIcon('shower', 'Душ', '🚿', setDialogState, selectedType),
-            _buildRadioWithIcon('washingMachine', 'Стиральная машина', '🧺', setDialogState, selectedType),
+            _buildRadioWithIcon(
+              'sink',
+              'Раковина',
+              '🚰',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'toilet',
+              'Унитаз',
+              '🚽',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'bathtub',
+              'Ванна',
+              '🛁',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'shower',
+              'Душ',
+              '🚿',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'washingMachine',
+              'Стиральная машина',
+              '🧺',
+              setDialogState,
+              selectedType,
+            ),
           ],
         ),
         actions: [
@@ -444,7 +512,9 @@ Future<PlumbingFixtureState?> showAddPlumbingDialog(BuildContext context) async 
 }
 
 /// Диалог добавления электрики
-Future<ElectricalPointState?> showAddElectricalDialog(BuildContext context) async {
+Future<ElectricalPointState?> showAddElectricalDialog(
+  BuildContext context,
+) async {
   String selectedType = 'socket';
 
   final result = await showDialog<bool>(
@@ -455,10 +525,34 @@ Future<ElectricalPointState?> showAddElectricalDialog(BuildContext context) asyn
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildRadioWithIcon('socket', 'Розетка', '🔌', setDialogState, selectedType),
-            _buildRadioWithIcon('switch', 'Выключатель', '💡', setDialogState, selectedType),
-            _buildRadioWithIcon('lightPoint', 'Точка освещения', '💡', setDialogState, selectedType),
-            _buildRadioWithIcon('internetSocket', 'Интернет/ТВ', '🌐', setDialogState, selectedType),
+            _buildRadioWithIcon(
+              'socket',
+              'Розетка',
+              '🔌',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'switch',
+              'Выключатель',
+              '💡',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'lightPoint',
+              'Точка освещения',
+              '💡',
+              setDialogState,
+              selectedType,
+            ),
+            _buildRadioWithIcon(
+              'internetSocket',
+              'Интернет/ТВ',
+              '🌐',
+              setDialogState,
+              selectedType,
+            ),
           ],
         ),
         actions: [
@@ -486,7 +580,12 @@ Future<ElectricalPointState?> showAddElectricalDialog(BuildContext context) asyn
 }
 
 /// Радио кнопка
-Widget _buildRadio(String value, String label, Function(void Function()) setState, String groupValue) {
+Widget _buildRadio(
+  String value,
+  String label,
+  Function(void Function()) setState,
+  String groupValue,
+) {
   return RadioListTile<String>(
     title: Text(label),
     value: value,
@@ -499,7 +598,13 @@ Widget _buildRadio(String value, String label, Function(void Function()) setStat
 }
 
 /// Радио кнопка с иконкой
-Widget _buildRadioWithIcon(String value, String label, String icon, Function(void Function()) setState, String groupValue) {
+Widget _buildRadioWithIcon(
+  String value,
+  String label,
+  String icon,
+  Function(void Function()) setState,
+  String groupValue,
+) {
   return RadioListTile<String>(
     title: Text('$icon $label'),
     value: value,

@@ -1037,3 +1037,504 @@ class FloorPlanPainter extends CustomPainter {
         oldDelegate.editorState != editorState;
   }
 }
+
+/// 2.5D Изометрический Painter для плана этажа
+class IsoPlanPainter extends CustomPainter {
+  final FloorPlan plan;
+  final double pixelsPerMeter;
+  final EditorState? editorState;
+  final double wallHeight; // Высота стен для 3D эффекта (в метрах)
+
+  IsoPlanPainter(
+    this.plan,
+    this.pixelsPerMeter, {
+    this.editorState,
+    this.wallHeight = 2.7,
+  });
+
+  // Изометрические константы (30° угол)
+  static const double isoAngle = 0.5236; // 30° в радианах
+  static const double cosAngle = 0.866; // cos(30°)
+  static const double sinAngle = 0.5; // sin(30°)
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Фон
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = Colors.grey.shade100,
+    );
+
+    // Центрируем план
+    final centerX = size.width / 2;
+    final centerY = size.height / 2 - 50;
+
+    // Рисуем в порядке: от дальних к ближним (z-sorting)
+    _drawFloor(canvas, centerX, centerY);
+
+    if (editorState != null) {
+      _drawWalls3D(canvas, centerX, centerY);
+      _drawFoundation3D(canvas, centerX, centerY);
+    }
+
+    // Рисуем комнаты
+    for (final room in plan.rooms) {
+      _drawRoom3D(canvas, room, centerX, centerY);
+    }
+
+    // Рисуем свободные элементы
+    if (editorState != null) {
+      _drawFreeElements3D(canvas, centerX, centerY);
+    }
+
+    // Легенда
+    _drawIsoLegend(canvas, size);
+  }
+
+  /// Конвертация 2D координат в изометрические
+  Offset isoTransform(
+    double x,
+    double y,
+    double z,
+    double centerX,
+    double centerY,
+  ) {
+    final px = (x - y) * cosAngle * pixelsPerMeter;
+    final py = (x + y) * sinAngle * pixelsPerMeter - z * pixelsPerMeter;
+    return Offset(centerX + px, centerY + py);
+  }
+
+  void _drawFloor(Canvas canvas, double centerX, double centerY) {
+    final p = Paint()
+      ..color = Colors.grey.shade200
+      ..style = PaintingStyle.fill;
+
+    final outlinePaint = Paint()
+      ..color = Colors.grey.shade400
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    // Вершины пола в 2D
+    final p1 = isoTransform(0, 0, 0, centerX, centerY);
+    final p2 = isoTransform(plan.totalWidth, 0, 0, centerX, centerY);
+    final p3 = isoTransform(
+      plan.totalWidth,
+      plan.totalHeight,
+      0,
+      centerX,
+      centerY,
+    );
+    final p4 = isoTransform(0, plan.totalHeight, 0, centerX, centerY);
+
+    final path = Path()
+      ..moveTo(p1.dx, p1.dy)
+      ..lineTo(p2.dx, p2.dy)
+      ..lineTo(p3.dx, p3.dy)
+      ..lineTo(p4.dx, p4.dy)
+      ..close();
+
+    canvas.drawPath(path, p);
+    canvas.drawPath(path, outlinePaint);
+
+    // Сетка на полу
+    _drawIsoGrid(canvas, centerX, centerY);
+  }
+
+  void _drawIsoGrid(Canvas canvas, double centerX, double centerY) {
+    final gridPaint = Paint()
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 0.5;
+
+    // Вертикальные линии
+    for (double x = 0; x <= plan.totalWidth; x += 1) {
+      final p1 = isoTransform(x, 0, 0, centerX, centerY);
+      final p2 = isoTransform(x, plan.totalHeight, 0, centerX, centerY);
+      canvas.drawLine(p1, p2, gridPaint);
+    }
+
+    // Горизонтальные линии
+    for (double y = 0; y <= plan.totalHeight; y += 1) {
+      final p1 = isoTransform(0, y, 0, centerX, centerY);
+      final p2 = isoTransform(plan.totalWidth, y, 0, centerX, centerY);
+      canvas.drawLine(p1, p2, gridPaint);
+    }
+  }
+
+  void _drawRoom3D(Canvas canvas, Room room, double centerX, double centerY) {
+    // Рисуем только название комнаты на полу
+    final center = isoTransform(
+      room.x + room.width / 2,
+      room.y + room.height / 2,
+      0,
+      centerX,
+      centerY,
+    );
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: _getRoomLabel(room.type),
+        style: TextStyle(
+          color: Colors.grey.shade700,
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    // Рисуем тень под текстом
+    textPainter.paint(
+      canvas,
+      Offset(
+        center.dx - textPainter.width / 2,
+        center.dy - textPainter.height / 2,
+      ),
+    );
+
+    // Рисуем двери
+    for (final door in room.doors) {
+      _drawDoor3D(canvas, room, door, centerX, centerY);
+    }
+
+    // Рисуем окна
+    for (final window in room.windows) {
+      _drawWindow3D(canvas, room, window, centerX, centerY);
+    }
+  }
+
+  void _drawDoor3D(
+    Canvas canvas,
+    Room room,
+    Door door,
+    double centerX,
+    double centerY,
+  ) {
+    final doorPaint = Paint()
+      ..color = Colors.brown.shade600
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    // Проём двери на полу
+    final x = room.x + door.x;
+    final y = room.y + door.y;
+    final p1 = isoTransform(x, y, 0, centerX, centerY);
+    final p2 = isoTransform(x + door.width, y, 0, centerX, centerY);
+
+    canvas.drawLine(p1, p2, doorPaint);
+  }
+
+  void _drawWindow3D(
+    Canvas canvas,
+    Room room,
+    Window window,
+    double centerX,
+    double centerY,
+  ) {
+    final windowPaint = Paint()
+      ..color = Colors.cyan.shade400
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    final x = room.x + window.x;
+    final y = room.y + window.y;
+    final p1 = isoTransform(x, y, 0, centerX, centerY);
+    final p2 = isoTransform(x + window.width, y, 0, centerX, centerY);
+
+    canvas.drawLine(p1, p2, windowPaint);
+  }
+
+  void _drawWalls3D(Canvas canvas, double centerX, double centerY) {
+    if (editorState == null) return;
+
+    for (final wall in editorState!.walls) {
+      final h = wall.height > 0 ? wall.height : wallHeight;
+
+      // Определяем цвет стены
+      Color wallColor;
+      if (wall.type == 'exterior') {
+        wallColor = Colors.grey.shade400;
+      } else if (wall.type == 'foundation') {
+        wallColor = Colors.brown.shade400;
+      } else if (wall.isLoadBearing) {
+        wallColor = Colors.grey.shade500;
+      } else {
+        wallColor = Colors.grey.shade300;
+      }
+
+      final lightColor = wallColor.withValues(alpha: 0.7);
+      final darkColor = wallColor.withValues(alpha: 0.9);
+
+      // Верхняя грань стены
+      final topLeft = isoTransform(wall.x1, wall.y1, h, centerX, centerY);
+      final topRight = isoTransform(wall.x2, wall.y2, h, centerX, centerY);
+
+      // Нижняя грань стены
+      final bottomLeft = isoTransform(wall.x1, wall.y1, 0, centerX, centerY);
+      final bottomRight = isoTransform(wall.x2, wall.y2, 0, centerX, centerY);
+
+      // Толщина стены
+      final thickness = (wall.thickness * pixelsPerMeter).clamp(4.0, 15.0);
+
+      // Определяем направление стены
+      final dx = wall.x2 - wall.x1;
+      final dy = wall.y2 - wall.y1;
+      final isHorizontal = dx.abs() > dy.abs();
+
+      // Рисуем боковые грани
+      final sidePaint = Paint()
+        ..color = darkColor
+        ..style = PaintingStyle.fill;
+
+      final path = Path();
+      if (isHorizontal) {
+        // Ближняя грань (к зрителю)
+        path.moveTo(topRight.dx, topRight.dy);
+        path.lineTo(bottomRight.dx, bottomRight.dy);
+        path.lineTo(
+          bottomRight.dx - thickness,
+          bottomRight.dy + thickness * 0.5,
+        );
+        path.lineTo(topRight.dx - thickness, topRight.dy + thickness * 0.5);
+        path.close();
+      } else {
+        // Ближняя грань
+        path.moveTo(topRight.dx, topRight.dy);
+        path.lineTo(bottomRight.dx, bottomRight.dy);
+        path.lineTo(
+          bottomRight.dx + thickness,
+          bottomRight.dy + thickness * 0.5,
+        );
+        path.lineTo(topRight.dx + thickness, topRight.dy + thickness * 0.5);
+        path.close();
+      }
+      canvas.drawPath(path, sidePaint);
+
+      // Рисуем верхнюю грань
+      final topPaint = Paint()
+        ..color = lightColor
+        ..style = PaintingStyle.fill;
+
+      final topPath = Path()
+        ..moveTo(topLeft.dx, topLeft.dy)
+        ..lineTo(topRight.dx, topRight.dy)
+        ..lineTo(topRight.dx - thickness, topRight.dy + thickness * 0.5)
+        ..lineTo(topLeft.dx - thickness, topLeft.dy + thickness * 0.5)
+        ..close();
+
+      canvas.drawPath(topPath, topPaint);
+
+      // Контур стены
+      final outlinePaint = Paint()
+        ..color = wallColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+
+      canvas.drawLine(topLeft, topRight, outlinePaint);
+      canvas.drawLine(bottomLeft, bottomRight, outlinePaint);
+    }
+  }
+
+  void _drawFoundation3D(Canvas canvas, double centerX, double centerY) {
+    if (editorState?.foundation == null) return;
+
+    final f = editorState!.foundation!;
+    final h = 0.3; // Фиксированная высота фундамента
+
+    final centerDx = (plan.totalWidth - f.width) / 2;
+    final centerDy = (plan.totalHeight - f.depth) / 2;
+
+    final p1 = isoTransform(centerDx, centerDy, -h, centerX, centerY);
+    final p2 = isoTransform(centerDx + f.width, centerDy, -h, centerX, centerY);
+    final p3 = isoTransform(
+      centerDx + f.width,
+      centerDy + f.depth,
+      -h,
+      centerX,
+      centerY,
+    );
+    final p4 = isoTransform(centerDx, centerDy + f.depth, -h, centerX, centerY);
+
+    final p5 = isoTransform(centerDx, centerDy, 0, centerX, centerY);
+    final p6 = isoTransform(centerDx + f.width, centerDy, 0, centerX, centerY);
+    final p7 = isoTransform(
+      centerDx + f.width,
+      centerDy + f.depth,
+      0,
+      centerX,
+      centerY,
+    );
+    final p8 = isoTransform(centerDx, centerDy + f.depth, 0, centerX, centerY);
+
+    final fillPaint = Paint()
+      ..color = Colors.brown.shade300.withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+
+    final outlinePaint = Paint()
+      ..color = Colors.brown.shade600
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    // Верхняя грань
+    final topPath = Path()
+      ..moveTo(p1.dx, p1.dy)
+      ..lineTo(p2.dx, p2.dy)
+      ..lineTo(p3.dx, p3.dy)
+      ..lineTo(p4.dx, p4.dy)
+      ..close();
+    canvas.drawPath(topPath, fillPaint);
+    canvas.drawPath(topPath, outlinePaint);
+
+    // Боковые грани
+    _drawIsoSide(canvas, p1, p2, p6, p5, Colors.brown.shade400, outlinePaint);
+    _drawIsoSide(canvas, p2, p3, p7, p6, Colors.brown.shade300, outlinePaint);
+  }
+
+  void _drawIsoSide(
+    Canvas canvas,
+    Offset p1,
+    Offset p2,
+    Offset p3,
+    Offset p4,
+    Color color,
+    Paint outline,
+  ) {
+    final paint = Paint()
+      ..color = color.withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+
+    final path = Path()
+      ..moveTo(p1.dx, p1.dy)
+      ..lineTo(p2.dx, p2.dy)
+      ..lineTo(p3.dx, p3.dy)
+      ..lineTo(p4.dx, p4.dy)
+      ..close();
+
+    canvas.drawPath(path, paint);
+    canvas.drawPath(path, outline);
+  }
+
+  void _drawFreeElements3D(Canvas canvas, double centerX, double centerY) {
+    // Рисуем радиаторы
+    for (final radiator in editorState!.radiators) {
+      _drawRadiator3D(canvas, radiator, centerX, centerY);
+    }
+
+    // Рисуем сантехнику
+    for (final fixture in editorState!.plumbingFixtures) {
+      _drawPlumbing3D(canvas, fixture, centerX, centerY);
+    }
+
+    // Рисуем электрику
+    for (final point in editorState!.electricalPoints) {
+      _drawElectrical3D(canvas, point, centerX, centerY);
+    }
+  }
+
+  void _drawRadiator3D(Canvas canvas, RadiatorState r, double cx, double cy) {
+    final pos = isoTransform(r.x, r.y, 0, cx, cy);
+    final h = 0.6;
+
+    final topPoint = isoTransform(r.x, r.y, h, cx, cy);
+
+    final paint = Paint()
+      ..color = Colors.red.shade300
+      ..style = PaintingStyle.fill;
+
+    final outline = Paint()
+      ..color = Colors.red.shade600
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    final path = Path()
+      ..moveTo(pos.dx, pos.dy)
+      ..lineTo(topPoint.dx, topPoint.dy);
+
+    // Рисуем несколько секций
+    for (int i = 0; i < 6; i++) {
+      final offset = i * 3.0;
+      path.lineTo(pos.dx + offset, pos.dy - h * 0.3);
+    }
+
+    canvas.drawPath(path, paint);
+    canvas.drawPath(path, outline);
+  }
+
+  void _drawPlumbing3D(
+    Canvas canvas,
+    PlumbingFixtureState f,
+    double cx,
+    double cy,
+  ) {
+    final pos = isoTransform(f.x, f.y, 0, cx, cy);
+    final paint = Paint()
+      ..color = Colors.teal.shade300
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(pos, 8, paint);
+  }
+
+  void _drawElectrical3D(
+    Canvas canvas,
+    ElectricalPointState p,
+    double cx,
+    double cy,
+  ) {
+    final pos = isoTransform(p.x, p.y, 0, cx, cy);
+    final paint = Paint()
+      ..color = Colors.amber.shade600
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(pos, 4, paint);
+  }
+
+  String _getRoomLabel(RoomType type) {
+    switch (type) {
+      case RoomType.kitchen:
+        return 'Кухня';
+      case RoomType.livingRoom:
+        return 'Гостиная';
+      case RoomType.bedroom:
+        return 'Спальня';
+      case RoomType.childrenRoom:
+        return 'Детская';
+      case RoomType.bathroom:
+        return 'Ванная';
+      case RoomType.toilet:
+        return 'Туалет';
+      case RoomType.hallway:
+        return 'Коридор';
+      case RoomType.balcony:
+        return 'Балкон';
+      case RoomType.storage:
+        return 'Кладовая';
+      case RoomType.office:
+        return 'Кабинет';
+      default:
+        return 'Комната';
+    }
+  }
+
+  void _drawIsoLegend(Canvas canvas, Size size) {
+    final legendPaint = TextPainter(
+      text: const TextSpan(
+        text: '2.5D Вид',
+        style: TextStyle(
+          color: Colors.grey,
+          fontSize: 10,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    legendPaint.paint(canvas, Offset(10, size.height - 20));
+  }
+
+  @override
+  bool shouldRepaint(covariant IsoPlanPainter oldDelegate) {
+    return oldDelegate.plan != plan ||
+        oldDelegate.pixelsPerMeter != pixelsPerMeter ||
+        oldDelegate.editorState != editorState ||
+        oldDelegate.wallHeight != wallHeight;
+  }
+}

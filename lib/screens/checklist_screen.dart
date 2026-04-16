@@ -20,6 +20,8 @@ import '../utils/app_design.dart';
 import '../utils/condition_evaluator.dart';
 import '../utils/location_helper.dart';
 import '../services/voice_input_service.dart';
+import '../services/ai_premium_agent.dart';
+import '../services/subscription_service.dart';
 import '../features/voice/presentation/widgets/voice_input_banner.dart';
 import '../features/checklists_list/presentation/widgets/checklist_client_info.dart';
 import '../features/checklists_list/presentation/widgets/checklist_field_widget.dart';
@@ -43,6 +45,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   final _formKey = GlobalKey<FormState>();
   late ChecklistActionsManager _actionsManager;
   final _photosSectionKey = GlobalKey<ChecklistPhotosSectionState>();
+  final _subscriptionService = SubscriptionService();
   bool _showVoiceBanner = false;
 
   @override
@@ -357,83 +360,100 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     setState(() => _showVoiceBanner = true);
   }
 
-  void _applyVoiceInput(String text) {
-    final service = VoiceInputService();
-    final data = service.extractData(text);
+  void _applyVoiceInput(String text) async {
+    final voiceService = VoiceInputService();
+    final premiumAgent = AIPremiumAgent();
 
-    if (!data.hasData) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Не удалось распознать параметры. Текст: "$text"'),
-          duration: const Duration(seconds: 3),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
+    // Извлекаем структурированные данные для типа работ
+    final voiceData = voiceService.extractDataForWorkType(
+      text,
+      _order.workType.checklistFile,
+    );
+
+    // Применяем данные через AI-агент (Premium функция)
+    final result = premiumAgent.applyVoiceDataToOrder(_order, voiceData);
+    final appliedOrder = result['order'] as Order;
+    final appliedFields = result['appliedFields'] as List<String>;
+
+    // Генерируем заметки через AI (Premium функция)
+    final generatedNotes = premiumAgent.generateSurveyorNotes(
+      text,
+      appliedOrder,
+    );
+
+    // Формируем итоговые заметки
+    String finalNotes = appliedOrder.notes ?? '';
+    if (generatedNotes.isNotEmpty) {
+      finalNotes = finalNotes.isEmpty
+          ? generatedNotes
+          : '$finalNotes\n$generatedNotes';
     }
 
-    // Обновляем поля Order
-    if (data.notes != null && data.notes!.isNotEmpty) {
-      final currentNotes = _order.notes ?? '';
-      final newNotes = currentNotes.isEmpty
-          ? data.notes!
-          : '$currentNotes; ${data.notes}';
-      setState(() => _order = _order.copyWith(notes: newNotes));
-    }
+    setState(() {
+      _order = appliedOrder.copyWith(notes: finalNotes);
+    });
 
     // Обновляем поля чек-листа через BLoC
     final bloc = context.read<ChecklistBloc>();
-    if (data.windowWidth != null) {
-      bloc.add(UpdateField('width', data.windowWidth.toString()));
-    }
-    if (data.windowHeight != null) {
-      bloc.add(UpdateField('height', data.windowHeight.toString()));
-    }
-    if (data.area != null) {
-      bloc.add(UpdateField('area', data.area.toString()));
-    }
-    if (data.windowCount != null) {
-      bloc.add(UpdateField('window_count', data.windowCount.toString()));
-    }
-    if (data.windowType != null) {
-      bloc.add(UpdateField('window_type', data.windowType));
-    }
-    if (data.hasSill) {
-      bloc.add(UpdateField('has_sill', 'true'));
-    }
-    if (data.hasSlopes) {
-      bloc.add(UpdateField('has_slopes', 'true'));
-    }
-    if (data.hasMosquitoNet) {
-      bloc.add(UpdateField('mosquito_net', 'true'));
+    for (final field in appliedFields) {
+      if (voiceData.containsKey(field)) {
+        final value = voiceData[field];
+        if (value is bool) {
+          bloc.add(UpdateField(field, value.toString()));
+        } else {
+          bloc.add(UpdateField(field, value.toString()));
+        }
+      }
     }
 
-    // Уведомление пользователя
     if (!mounted) return;
+
+    // Формируем сообщение о применённых данных
+    final data = voiceService.extractData(text);
+    String message = 'Данные заполнены';
+    if (appliedFields.isNotEmpty) {
+      message = 'Заполнено ${appliedFields.length} полей';
+    } else if (data.hasData) {
+      message = 'Данные заполнены';
+    } else {
+      message = 'Добавлены заметки';
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Данные заполнены'),
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.green.shade300,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(message),
               ],
             ),
-            if (data.toString().isNotEmpty) ...[
+            if (appliedFields.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(
-                data.toString(),
-                style: const TextStyle(fontSize: 12, color: Colors.white70),
+                appliedFields.take(5).join(', ') +
+                    (appliedFields.length > 5 ? '...' : ''),
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade300),
+              ),
+            ],
+            if (generatedNotes.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                '✓ Заметки сгенерированы AI',
+                style: TextStyle(fontSize: 11, color: Colors.amber.shade300),
               ),
             ],
           ],
         ),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: Colors.green.shade800,
         duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
       ),
@@ -540,11 +560,150 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
   }
 
   Future<void> _generatePdf() async {
+    // AI-валидация КП для Premium пользователей
+    final isPremium = await _subscriptionService.isPremiumActive();
+    if (isPremium && mounted) {
+      try {
+        final config = await ChecklistLoader.load(
+          _order.workType.checklistFile,
+        );
+        final agent = AIPremiumAgent();
+        final report = agent.validateCommercialProposal(_order, config);
+
+        if (report.errorCount > 0 || report.warningCount > 0) {
+          final proceed = await _showAIValidationDialog(report);
+          if (!proceed) return;
+        }
+      } catch (e) {
+        debugPrint('[ChecklistScreen] AI validation skipped: $e');
+      }
+    }
+
     _actionsManager.order = _order;
     await _actionsManager.generatePdf();
     if (mounted) {
       setState(() => _order = _actionsManager.order);
     }
+  }
+
+  Future<bool> _showAIValidationDialog(AIValidationReport report) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(
+                  report.errorCount > 0 ? Icons.warning : Icons.info_outline,
+                  color: report.errorCount > 0 ? Colors.orange : Colors.blue,
+                ),
+                const SizedBox(width: 8),
+                const Text('AI-проверка КП'),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Заполненность: ${report.completenessScore.toStringAsFixed(0)}%',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        LinearProgressIndicator(
+                          value: report.completenessScore / 100,
+                          backgroundColor: Colors.grey[300],
+                          valueColor: AlwaysStoppedAnimation(
+                            report.completenessScore > 70
+                                ? Colors.green
+                                : Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (report.errorCount > 0) ...[
+                    Text(
+                      '⚠️ Ошибки (${report.errorCount}):',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...report.issues
+                        .where((i) => i.type == AIIssueType.error)
+                        .take(3)
+                        .map(
+                          (i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '• ${i.message}',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
+                  ],
+                  if (report.warningCount > 0) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      '⚠️ Предупреждения (${report.warningCount}):',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...report.issues
+                        .where((i) => i.type == AIIssueType.warning)
+                        .take(3)
+                        .map(
+                          (i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '• ${i.message}',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                        ),
+                  ],
+                  const SizedBox(height: 12),
+                  Text(
+                    report.summary,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Отмена'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Всё равно отправить'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
   }
 }
 

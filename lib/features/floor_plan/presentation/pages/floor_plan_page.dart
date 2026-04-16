@@ -45,6 +45,7 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   bool _isAIOptimized = false;
   bool _isAIFloorPlanGenerated = false;
   bool _isEditing = false;
+  bool _is25DMode = false;
   bool _isPanelExpanded = true;
   double _panelHeight = 380;
   final TransformationController _transformationController =
@@ -1434,6 +1435,19 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Кнопка переключения 2D/2.5D
+                  FloatingActionButton(
+                    heroTag: 'view_mode',
+                    onPressed: () => setState(() => _is25DMode = !_is25DMode),
+                    backgroundColor: _is25DMode
+                        ? Colors.orange
+                        : AppDesign.deepSteelBlue,
+                    child: Icon(
+                      _is25DMode ? Icons.view_in_ar : Icons.view_quilt,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   FloatingActionButton(
                     heroTag: 'zoom_in',
                     onPressed: () =>
@@ -1510,14 +1524,28 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                         padding: const EdgeInsets.all(40),
                         child: CustomPaint(
                           size: Size(
-                            _plan!.totalWidth * 50 * _zoom,
-                            _plan!.totalHeight * 50 * _zoom,
+                            (_is25DMode
+                                    ? (_plan!.totalWidth + _plan!.totalHeight) *
+                                          40
+                                    : _plan!.totalWidth * 50) *
+                                _zoom,
+                            (_is25DMode
+                                    ? (_plan!.totalWidth + _plan!.totalHeight) *
+                                          25
+                                    : _plan!.totalHeight * 50) *
+                                _zoom,
                           ),
-                          painter: FloorPlanPainter(
-                            _plan!,
-                            50 * _zoom,
-                            editorState: _editorState,
-                          ),
+                          painter: _is25DMode
+                              ? IsoPlanPainter(
+                                  _plan!,
+                                  40 * _zoom,
+                                  editorState: _editorState,
+                                )
+                              : FloorPlanPainter(
+                                  _plan!,
+                                  50 * _zoom,
+                                  editorState: _editorState,
+                                ),
                         ),
                       ),
                     ),

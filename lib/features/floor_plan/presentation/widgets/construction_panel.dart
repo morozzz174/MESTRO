@@ -58,43 +58,59 @@ class _ConstructionPanelState extends State<ConstructionPanel>
                 colors: [AppDesign.deepSteelBlue, AppDesign.accentTeal],
               ),
             ),
-            child: Row(
+            child: Column(
               children: [
-                const Icon(Icons.construction, color: Colors.white, size: 20),
-                const SizedBox(width: 8),
-                const Text(
-                  'Конструктив',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const Spacer(),
-                TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: Colors.white,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.white70,
-                  labelStyle: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  tabs: const [
-                    Tab(text: 'Стены', icon: Icon(Icons.wallpaper, size: 16)),
-                    Tab(
-                      text: 'Фундамент',
-                      icon: Icon(Icons.foundation, size: 16),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.construction,
+                      color: Colors.white,
+                      size: 20,
                     ),
-                    Tab(text: 'Кровля', icon: Icon(Icons.roofing, size: 16)),
-                    Tab(text: 'Перекрытия', icon: Icon(Icons.layers, size: 16)),
-                    Tab(
-                      text: 'Инженерия',
-                      icon: Icon(Icons.plumbing, size: 16),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Конструктив',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
                     ),
-                    Tab(text: 'Оси', icon: Icon(Icons.grid_on, size: 16)),
+                    const Spacer(),
                   ],
+                ),
+                const SizedBox(height: 8),
+                // TabBar с горизонтальной прокруткой
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: TabBar(
+                    controller: _tabController,
+                    isScrollable: true,
+                    indicatorColor: Colors.white,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white70,
+                    labelStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    tabs: const [
+                      Tab(text: 'Стены', icon: Icon(Icons.wallpaper, size: 16)),
+                      Tab(
+                        text: 'Фундамент',
+                        icon: Icon(Icons.foundation, size: 16),
+                      ),
+                      Tab(text: 'Кровля', icon: Icon(Icons.roofing, size: 16)),
+                      Tab(
+                        text: 'Перекрытия',
+                        icon: Icon(Icons.layers, size: 16),
+                      ),
+                      Tab(
+                        text: 'Инженерия',
+                        icon: Icon(Icons.plumbing, size: 16),
+                      ),
+                      Tab(text: 'Оси', icon: Icon(Icons.grid_on, size: 16)),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -263,13 +279,17 @@ class _ConstructionPanelState extends State<ConstructionPanel>
 
   void _addWall() {
     final id = const Uuid().v4();
+    final wallCount = widget.state.walls.length;
     final newWall = WallState(
       id: id,
       x1: 0,
-      y1: 0,
+      y1: wallCount * 0.5,
       x2: widget.state.totalWidth,
-      y2: 0,
+      y2: wallCount * 0.5,
+      thickness: 0.25,
       type: 'exterior',
+      material: 'brick',
+      height: 2.7,
     );
     widget.onChanged(
       widget.state.copyWith(walls: [...widget.state.walls, newWall]),
@@ -540,7 +560,27 @@ class _ConstructionPanelState extends State<ConstructionPanel>
 
   void _addFoundation() {
     widget.onChanged(
-      widget.state.copyWith(foundation: FoundationState(id: const Uuid().v4())),
+      widget.state.copyWith(
+        foundation: FoundationState(
+          id: const Uuid().v4(),
+          type: 'strip',
+          width: 0.4,
+          depth: 1.2,
+          height: 0.5,
+          embedmentDepth: 1.2,
+          concreteGrade: 'М300',
+          concreteClass: 'B22_5',
+          mainBarDiameter: 12,
+          mainBarsCount: 4,
+          stirrupDiameter: 8,
+          stirrupSpacing: 200,
+          rebarClass: 'A500C',
+          hasWaterproofing: false,
+          hasInsulation: false,
+          hasDrainage: false,
+          sandCushionThickness: 0.2,
+        ),
+      ),
     );
   }
 
@@ -702,7 +742,27 @@ class _ConstructionPanelState extends State<ConstructionPanel>
 
   void _addRoof() {
     widget.onChanged(
-      widget.state.copyWith(roof: RoofState(id: const Uuid().v4())),
+      widget.state.copyWith(
+        roof: RoofState(
+          id: const Uuid().v4(),
+          type: 'gable',
+          area: 100,
+          slopeAngle: 30,
+          roofingMaterial: 'metalTile',
+          rafterSpacing: 600,
+          rafterSectionWidth: 50,
+          rafterSectionHeight: 200,
+          rafterLength: 5,
+          rafterCount: 10,
+          rafterMaterial: 'pine',
+          insulationThickness: 0.2,
+          insulationMaterial: 'mineralWool',
+          hasWaterproofingMembrane: false,
+          hasVaporBarrier: false,
+          hasSnowRetention: false,
+          snowRetentionCount: 0,
+        ),
+      ),
     );
   }
 
@@ -861,7 +921,17 @@ class _ConstructionPanelState extends State<ConstructionPanel>
       widget.state.copyWith(
         ceilings: [
           ...widget.state.ceilings,
-          CeilingState(id: id),
+          CeilingState(
+            id: id,
+            type: 'monolithic',
+            material: 'concreteSlab',
+            thickness: 0.2,
+            area: 100,
+            insulationThickness: 0,
+            hasSoundproofing: false,
+            hasWaterproofing: false,
+            floorLevel: widget.state.ceilings.length,
+          ),
         ],
       ),
     );
@@ -1550,6 +1620,11 @@ class _ConstructionPanelState extends State<ConstructionPanel>
   void _addAxisLine() {
     final n = widget.state.axisLines.length + 1;
     final label = n <= 26 ? String.fromCharCode(64 + n) : '$n';
+    final yOffset = (n - 1) * 2.0; // Смещение для каждой новой оси
+
+    // Чередуем горизонтальные и вертикальные оси
+    final isHorizontal = n % 2 == 1;
+
     widget.onChanged(
       widget.state.copyWith(
         axisLines: [
@@ -1557,10 +1632,10 @@ class _ConstructionPanelState extends State<ConstructionPanel>
           AxisLineState(
             id: const Uuid().v4(),
             label: label,
-            x1: 0,
-            y1: 0,
-            x2: widget.state.totalWidth,
-            y2: 0,
+            x1: isHorizontal ? 0 : yOffset,
+            y1: isHorizontal ? yOffset : 0,
+            x2: isHorizontal ? widget.state.totalWidth : yOffset,
+            y2: isHorizontal ? yOffset : widget.state.totalHeight,
           ),
         ],
       ),
