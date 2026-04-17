@@ -1,0 +1,182 @@
+{
+  "work_type": "fences",
+  "title": "Замер заборов",
+  "fields": [
+    {
+      "id": "fence_length",
+      "type": "number",
+      "label": "Общая длина забора (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "fence_height",
+      "type": "number",
+      "label": "Высота забора (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "fence_type",
+      "type": "select",
+      "label": "Тип забора",
+      "required": true,
+      "options": ["профнастил", "штакетник_металлический", "штакетник_деревянный", "деревянный_сплошной", "сетка_рабица", "секционный", "кирпичный", "бетонный", "кованый"]
+    },
+    {
+      "id": "section_count",
+      "type": "number",
+      "label": "Количество секций",
+      "hint": "шт"
+    },
+    {
+      "id": "gate_count",
+      "type": "number",
+      "label": "Количество ворот",
+      "hint": "шт"
+    },
+    {
+      "id": "gate_width",
+      "type": "number",
+      "label": "Ширина ворот (м)",
+      "hint": "м",
+      "condition": {
+        "field": "gate_count",
+        "operator": "greater_than",
+        "value": 0
+      }
+    },
+    {
+      "id": "gate_type",
+      "type": "select",
+      "label": "Тип ворот",
+      "options": ["распашные", "откатные", "секционные", "роллетные"],
+      "condition": {
+        "field": "gate_count",
+        "operator": "greater_than",
+        "value": 0
+      }
+    },
+    {
+      "id": "gate_automat",
+      "type": "boolean",
+      "label": "Автоматика на ворота",
+      "condition": {
+        "field": "gate_count",
+        "operator": "greater_than",
+        "value": 0
+      }
+    },
+    {
+      "id": "gate_opening",
+      "type": "boolean",
+      "label": "Калитка с отдельным проходом",
+      "condition": {
+        "field": "gate_count",
+        "operator": "greater_than",
+        "value": 0
+      }
+    },
+    {
+      "id": "walk_gate_count",
+      "type": "number",
+      "label": "Количество калиток",
+      "hint": "шт"
+    },
+    {
+      "id": "walk_gate_width",
+      "type": "number",
+      "label": "Ширина калитки (м)",
+      "hint": "м",
+      "condition": {
+        "field": "walk_gate_count",
+        "operator": "greater_than",
+        "value": 0
+      }
+    },
+    {
+      "id": "post_material",
+      "type": "select",
+      "label": "Материал столбов",
+      "options": ["металлические", "кирпичные", "бетонные", "деревянные"]
+    },
+    {
+      "id": "post_section_size",
+      "type": "number",
+      "label": "Размер сечения столба (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "post_distance",
+      "type": "number",
+      "label": "Шаг столбов (м)",
+      "hint": "м"
+    },
+    {
+      "id": "foundation_type",
+      "type": "select",
+      "label": "Тип фундамента",
+      "options": ["ленточный", "столбчатый", "бетонные площадки", "нет"]
+    },
+    {
+      "id": "has_capstones",
+      "type": "boolean",
+      "label": "Колпаки на столбы"
+    },
+    {
+      "id": "has_lags",
+      "type": "boolean",
+      "label": "Лаги (поперечины)"
+    },
+    {
+      "id": "lags_count",
+      "type": "number",
+      "label": "Количество лаг",
+      "hint": "шт",
+      "condition": {
+        "field": "has_lags",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "color",
+      "type": "text",
+      "label": "Цвет (RAL)",
+      "hint": "например: RAL 8017"
+    },
+    {
+      "id": "has_grounding",
+      "type": "boolean",
+      "label": "Заземление"
+    },
+    {
+      "id": "terrain_type",
+      "type": "select",
+      "label": "Тип рельефа",
+      "options": ["ровный", "уклон", "перепад_высот"]
+    },
+    {
+      "id": "height_difference",
+      "type": "number",
+      "label": "Перепад высот (м)",
+      "hint": "м",
+      "condition": {
+        "field": "terrain_type",
+        "operator": "equals",
+        "value": "перепад_высот"
+      }
+    },
+    {
+      "id": "existing_fence",
+      "type": "boolean",
+      "label": "Демонтаж старого забора"
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

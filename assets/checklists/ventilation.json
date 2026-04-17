@@ -1,0 +1,240 @@
+{
+  "work_type": "ventilation",
+  "title": "Замер вентиляции",
+  "fields": [
+    {
+      "id": "system_type",
+      "type": "select",
+      "label": "Тип системы",
+      "required": true,
+      "options": ["приточная", "вытяжная", "приточно-вытяжная", "местная", "общеобменная"]
+    },
+    {
+      "id": "purpose",
+      "type": "select",
+      "label": "Назначение",
+      "required": true,
+      "options": ["жилое помещение", "офис", "производство", "склад", "общепит", "магазин", "спортзал"]
+    },
+    {
+      "id": "building_type",
+      "type": "select",
+      "label": "Тип объекта",
+      "options": ["квартира", "частный дом", "офисное здание", "промышленное", "торговый центр"]
+    },
+    {
+      "id": "total_area",
+      "type": "number",
+      "label": "Общая площадь (м²)",
+      "required": true,
+      "hint": "м²"
+    },
+    {
+      "id": "ceiling_height",
+      "type": "number",
+      "label": "Высота потолка (м)",
+      "hint": "м"
+    },
+    {
+      "id": "rooms_count",
+      "type": "number",
+      "label": "Количество помещений",
+      "hint": "шт"
+    },
+    {
+      "id": "has_air_handling_unit",
+      "type": "boolean",
+      "label": "Приточная установка (ПУ)"
+    },
+    {
+      "id": "ahu_capacity",
+      "type": "number",
+      "label": "Производительность ПУ (м³/ч)",
+      "hint": "м³/ч",
+      "condition": {
+        "field": "has_air_handling_unit",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_heat_recovery",
+      "type": "boolean",
+      "label": "Рекуперация тепла"
+    },
+    {
+      "id": "has_cooling",
+      "type": "boolean",
+      "label": "Охлаждение"
+    },
+    {
+      "id": "cooling_type",
+      "type": "select",
+      "label": "Тип охлаждения",
+      "options": ["фреоновый", "водяной", "чеиллер", "VRF"],
+      "condition": {
+        "field": "has_cooling",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_heating",
+      "type": "boolean",
+      "label": "Подогрев воздуха"
+    },
+    {
+      "id": "heater_type",
+      "type": "select",
+      "label": "Тип нагревателя",
+      "options": ["водяной", "электрический", "газовый"],
+      "condition": {
+        "field": "has_heating",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_filter",
+      "type": "boolean",
+      "label": "Фильтрация"
+    },
+    {
+      "id": "filter_class",
+      "type": "select",
+      "label": "Класс фильтра",
+      "options": ["G", "F", "H", "HEPA"],
+      "condition": {
+        "field": "has_filter",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "duct_type",
+      "type": "select",
+      "label": "Тип воздуховодов",
+      "options": ["круглые", "прямоугольные", "гибкие", "из оцинковки", "из нержавейки"]
+    },
+    {
+      "id": "duct_material",
+      "type": "select",
+      "label": "Материал",
+      "options": ["оцинкованная сталь", "нержавеющая сталь", "пластик", "алюминиевая фольга"]
+    },
+    {
+      "id": "duct_insulation",
+      "type": "boolean",
+      "label": "Теплоизоляция воздуховодов"
+    },
+    {
+      "id": "air_diffusers_count",
+      "type": "number",
+      "label": "Количество диффузоров",
+      "hint": "шт"
+    },
+    {
+      "id": "grilles_count",
+      "type": "number",
+      "label": "Количество решёток",
+      "hint": "шт"
+    },
+    {
+      "id": "has_exhaust_hood",
+      "type": "boolean",
+      "label": "Вытяжной зонт (кухня/производство)"
+    },
+    {
+      "id": "hood_size",
+      "type": "text",
+      "label": "Размер зонта",
+      "hint": "например: 1200х900 мм",
+      "condition": {
+        "field": "has_exhaust_hood",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_fan",
+      "type": "boolean",
+      "label": "Вытяжной вентилятор"
+    },
+    {
+      "id": "fan_count",
+      "type": "number",
+      "label": "Количество вентиляторов",
+      "hint": "шт",
+      "condition": {
+        "field": "has_fan",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "fan_type",
+      "type": "select",
+      "label": "Тип вентилятора",
+      "options": ["канальный", "осевой", "центробежный", "крышный"],
+      "condition": {
+        "field": "has_fan",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_control_system",
+      "type": "boolean",
+      "label": "Система управления"
+    },
+    {
+      "id": "control_type",
+      "type": "select",
+      "label": "Тип управления",
+      "options": ["ручное", "автоматическое", "щит управления", "Smart дом"],
+      "condition": {
+        "field": "has_control_system",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_sensors",
+      "type": "boolean",
+      "label": "Датчики"
+    },
+    {
+      "id": "sensors",
+      "type": "text",
+      "label": "Тип датчиков",
+      "hint": "температура, влажность, CO2, движение",
+      "condition": {
+        "field": "has_sensors",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_silencer",
+      "type": "boolean",
+      "label": "Шумоглушители"
+    },
+    {
+      "id": "has_damper",
+      "type": "boolean",
+      "label": "Заслонки (клапаны)"
+    },
+    {
+      "id": "installation_location",
+      "type": "select",
+      "label": "Место установки",
+      "options": ["чердак", "подвал", "техническое помещение", "кровля"]
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

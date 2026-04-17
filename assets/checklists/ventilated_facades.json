@@ -1,0 +1,248 @@
+{
+  "work_type": "ventilated_facades",
+  "title": "Замер вентфасадов",
+  "fields": [
+    {
+      "id": "building_type",
+      "type": "select",
+      "label": "Тип здания",
+      "required": true,
+      "options": ["жилое", "офисное", "промышленное", "торговый центр", "административное"]
+    },
+    {
+      "id": "total_area",
+      "type": "number",
+      "label": "Общая площадь фасада (м²)",
+      "required": true,
+      "hint": "м²"
+    },
+    {
+      "id": "facade_type",
+      "type": "select",
+      "label": "Тип вентфасада",
+      "required": true,
+      "options": ["каменные панели", "керамогранит", "металлокассеты", "фиброцемент", "композит", "дерево", "термопанели"]
+    },
+    {
+      "id": "has_insulation",
+      "type": "boolean",
+      "label": "Утепление"
+    },
+    {
+      "id": "insulation_type",
+      "type": "select",
+      "label": "Утеплитель",
+      "options": ["минеральная вата", "пенополистирол", "PIR", "базальтовая вата"],
+      "condition": {
+        "field": "has_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "insulation_thickness",
+      "type": "number",
+      "label": "Толщина утеплителя (мм)",
+      "hint": "мм",
+      "condition": {
+        "field": "has_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_waterproofing",
+      "type": "boolean",
+      "label": "Ветрозащита"
+    },
+    {
+      "id": "wall_material",
+      "type": "select",
+      "label": "Материал основания стены",
+      "options": ["кирпич", "бетон", "блоки", "дерево", "металл"]
+    },
+    {
+      "id": "wall_condition",
+      "type": "select",
+      "label": "Состояние стены",
+      "options": ["новое", "требует ремонта", "усиление"]
+    },
+    {
+      "id": "fixing_type",
+      "type": "select",
+      "label": "Тип крепления",
+      "options": ["кронштейн+профиль", "кляммер", "заклёпки", "саморезы"]
+    },
+    {
+      "id": "profile_type",
+      "type": "select",
+      "label": "Профиль",
+      "options": ["оцинкованная сталь", "нержавеющая сталь", "алюминий"]
+    },
+    {
+      "id": "panel_size",
+      "type": "text",
+      "label": "Размер панелей",
+      "hint": "например: 600х1200 мм"
+    },
+    {
+      "id": "panel_thickness",
+      "type": "number",
+      "label": "Толщина облицовки (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "color",
+      "type": "text",
+      "label": "Цвет (RAL)",
+      "hint": "например: RAL 7004"
+    },
+    {
+      "id": "has_window_frames",
+      "type": "boolean",
+      "label": "Обновление оконных откосов"
+    },
+    {
+      "id": "window_count",
+      "type": "number",
+      "label": "Количество окон",
+      "hint": "шт",
+      "condition": {
+        "field": "has_window_frames",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_balconies",
+      "type": "boolean",
+      "label": "Обшивка балконов"
+    },
+    {
+      "id": "balcony_count",
+      "type": "number",
+      "label": "Количество балконов",
+      "hint": "шт",
+      "condition": {
+        "field": "has_balconies",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_cornice",
+      "type": "boolean",
+      "label": "Обновление карниза"
+    },
+    {
+      "id": "cornice_length",
+      "type": "number",
+      "label": "Длина карниза (м)",
+      "hint": "м",
+      "condition": {
+        "field": "has_cornice",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_plinth",
+      "type": "boolean",
+      "label": "Цоколь"
+    },
+    {
+      "id": "plinth_height",
+      "type": "number",
+      "label": "Высота цоколя (м)",
+      "hint": "м",
+      "condition": {
+        "field": "has_plinth",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "plinth_material",
+      "type": "select",
+      "label": "Материал цоколя",
+      "options": ["керамогранит", "камень", "бетон", "металлокассета"],
+      "condition": {
+        "field": "has_plinth",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_decor",
+      "type": "boolean",
+      "label": "Декор/архитектурные элементы"
+    },
+    {
+      "id": "decor_elements",
+      "type": "text",
+      "label": "Тип декора",
+      "hint": "например: молдинги, русты",
+      "condition": {
+        "field": "has_decor",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "floors_count",
+      "type": "number",
+      "label": "Этажность",
+      "hint": "этажей"
+    },
+    {
+      "id": "building_height",
+      "type": "number",
+      "label": "Высота здания (м)",
+      "hint": "м"
+    },
+    {
+      "id": "has_scaffolding",
+      "type": "boolean",
+      "label": "Требуется строительные леса"
+    },
+    {
+      "id": "scaffolding_area",
+      "type": "number",
+      "label": "Площадь лесов (м²)",
+      "hint": "м²",
+      "condition": {
+        "field": "has_scaffolding",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_crane",
+      "type": "boolean",
+      "label": "Подъёмник/кран"
+    },
+    {
+      "id": "access_type",
+      "type": "select",
+      "label": "Доступ к фасаду",
+      "options": ["с земли", "леса", "автовышка", "промышленный альпинизм"]
+    },
+    {
+      "id": "existing_finish",
+      "type": "select",
+      "label": "Существующая отделка",
+      "options": ["штукатурка", "краска", "плитка", "сайдинг", "нет"]
+    },
+    {
+      "id": "needs_demolition",
+      "type": "boolean",
+      "label": "Демонтаж старой отделки"
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

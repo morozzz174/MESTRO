@@ -1,0 +1,33 @@
+{
+  "work_type": "canopies",
+  "title": "Прайс-лист: Навесы и беседки",
+  "items": [
+    { "id": "canopy_per_m2", "name": "Навес/беседка за м²", "unit": "м²", "price": 3500 },
+    { "id": "structure_per_unit", "name": "Конструкция (каркас)", "unit": "шт", "price": 15000 },
+    { "id": "post_installation", "name": "Установка столбов", "unit": "шт", "price": 2500 },
+    { "id": "metal_post", "name": "Столб металлический", "unit": "шт", "price": 3500 },
+    { "id": "wood_post", "name": "Столб деревянный", "unit": "шт", "price": 2000 },
+    { "id": "brick_post", "name": "Столб кирпичный", "unit": "шт", "price": 8000 },
+    { "id": "roof_metal", "name": "Кровля металлочерепица за м²", "unit": "м²", "price": 1200 },
+    { "id": "roof_profnastil", "name": "Кровля профнастил за м²", "unit": "м²", "price": 800 },
+    { "id": "roof_soft", "name": "Кровля мягкая черепица за м²", "unit": "м²", "price": 1500 },
+    { "id": "roof_polycarbonate", "name": "Кровля поликарбонат за м²", "unit": "м²", "price": 900 },
+    { "id": "roof_ondulin", "name": "Кровля ондулин за м²", "unit": "м²", "price": 700 },
+    { "id": "roof_tent", "name": "Тентовая кровля", "unit": "м²", "price": 500 },
+    { "id": "frame_metal", "name": "Каркас металлический", "unit": "м²", "price": 1800 },
+    { "id": "frame_wood", "name": "Каркас деревянный", "unit": "м²", "price": 1200 },
+    { "id": "foundation_strip", "name": "Фундамент ленточный за п.м.", "unit": "п.м.", "price": 3500 },
+    { "id": "foundation_column", "name": "Фундамент столбчатый", "unit": "шт", "price": 2000 },
+    { "id": "foundation_slab", "name": "Фундамент плита за м²", "unit": "м²", "price": 2500 },
+    { "id": "foundation_screw", "name": "Свайно-винтовой фундамент", "unit": "шт", "price": 3000 },
+    { "id": "wall_install", "name": "Монтаж стен", "unit": "м²", "price": 800 },
+    { "id": "floor_wood", "name": "Пол деревянный за м²", "unit": "м²", "price": 900 },
+    { "id": "floor_terrace", "name": "Террасная доска за м²", "unit": "м²", "price": 1400 },
+    { "id": "floor_tile", "name": "Пол плитка за м²", "unit": "м²", "price": 1100 },
+    { "id": "floor_concrete", "name": "Пол бетон за м²", "unit": "м²", "price": 600 },
+    { "id": "lighting_install", "name": "Освещение", "unit": "точка", "price": 1500 },
+    { "id": "electrical_wiring", "name": "Электропроводка", "unit": "точка", "price": 2000 },
+    { "id": "grill_installation", "name": "Мангал/барбекю", "unit": "шт", "price": 25000 },
+    { "id": "canopy_labor", "name": "Работа", "unit": "фикс.", "price": 20000 }
+  ]
+}

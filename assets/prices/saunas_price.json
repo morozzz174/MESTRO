@@ -1,0 +1,33 @@
+{
+  "work_type": "saunas",
+  "title": "Прайс-лист: Бани",
+  "items": [
+    { "id": "sauna_per_m2", "name": "Баня (коробка) за м²", "unit": "м²", "price": 12000 },
+    { "id": "log_wall", "name": "Стены из бревна", "unit": "м³", "price": 25000 },
+    { "id": "beam_wall", "name": "Стены из бруса", "unit": "м³", "price": 18000 },
+    { "id": "block_wall", "name": "Стены из блоков", "unit": "м²", "price": 4500 },
+    { "id": "brick_wall", "name": "Стены кирпич", "unit": "м²", "price": 5500 },
+    { "id": "frame_wall", "name": "Каркасные стены", "unit": "м²", "price": 3500 },
+    { "id": "insulation", "name": "Утепление", "unit": "м²", "price": 600 },
+    { "id": "roof_construction", "name": "Кровля (стропила)", "unit": "м²", "price": 1800 },
+    { "id": "roof_metal", "name": "Кровля металлочерепица", "unit": "м²", "price": 1200 },
+    { "id": "roof_soft", "name": "Кровля мягкая черепица", "unit": "м²", "price": 1500 },
+    { "id": "foundation_strip", "name": "Фундамент ленточный", "unit": "п.м.", "price": 3500 },
+    { "id": "foundation_column", "name": "Фундамент столбчатый", "unit": "шт", "price": 2500 },
+    { "id": "foundation_slab", "name": "Фундамент плита", "unit": "м²", "price": 3000 },
+    { "id": "foundation_screw", "name": "Свайно-винтовой", "unit": "шт", "price": 3500 },
+    { "id": "heater_drov", "name": "Печь дровяная", "unit": "шт", "price": 45000 },
+    { "id": "heater_elec", "name": "Печь электрическая", "unit": "шт", "price": 25000 },
+    { "id": "heater_gas", "name": "Печь газовая", "unit": "шт", "price": 35000 },
+    { "id": "stones", "name": "Камни для печи", "unit": "кг", "price": 80 },
+    { "id": "steam_generator", "name": "Парогенератор", "unit": "шт", "price": 35000 },
+    { "id": "drain_install", "name": "Слив и трап", "unit": "компл", "price": 8000 },
+    { "id": "ventilation", "name": "Вентиляция", "unit": "компл", "price": 12000 },
+    { "id": "electrical", "name": "Электрика", "unit": "точка", "price": 1500 },
+    { "id": "lighting", "name": "Освещение", "unit": "точка", "price": 2000 },
+    { "id": "interior_finish", "name": "Внутренняя отделка вагонка", "unit": "м²", "price": 900 },
+    { "id": "benches", "name": "Полки (полок)", "unit": "м.п.", "price": 2500 },
+    { "id": "door_installation", "name": "Дверь банная", "unit": "шт", "price": 5000 },
+    { "id": "sauna_labor", "name": "Работа", "unit": "фикс.", "price": 50000 }
+  ]
+}

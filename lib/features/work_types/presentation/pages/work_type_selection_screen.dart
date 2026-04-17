@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../../models/order.dart';
 import '../../../../utils/app_design.dart';
 
-/// Экран выбора ниш (типов работ) мастера
 class WorkTypeSelectionScreen extends StatefulWidget {
   final List<String> initialSelection;
 
@@ -35,7 +34,7 @@ class _WorkTypeSelectionScreenState extends State<WorkTypeSelectionScreen> {
               },
               child: Text(
                 'Готово (${_selectedTypes.length})',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppDesign.accentTeal,
                   fontWeight: FontWeight.bold,
                 ),
@@ -70,15 +69,23 @@ class _WorkTypeSelectionScreenState extends State<WorkTypeSelectionScreen> {
                   decoration: isSelected
                       ? BoxDecoration(
                           color: AppDesign.accentTeal.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(
-                            AppDesign.radiusCard,
-                          ),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: AppDesign.accentTeal,
                             width: 2,
                           ),
                         )
-                      : AppDesign.cardDecoration,
+                      : BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.2),
+                          ),
+                        ),
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
@@ -91,7 +98,7 @@ class _WorkTypeSelectionScreenState extends State<WorkTypeSelectionScreen> {
                           }
                         });
                       },
-                      borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+                      borderRadius: BorderRadius.circular(16),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Row(
@@ -147,7 +154,9 @@ class _WorkTypeSelectionScreenState extends State<WorkTypeSelectionScreen> {
                 : () {
                     Navigator.of(context).pop(_selectedTypes.toList());
                   },
-            style: AppDesign.primaryButtonStyle,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
             child: Text(
               _selectedTypes.isEmpty
                   ? 'Выберите хотя бы одну нишу'
@@ -191,6 +200,20 @@ class _WorkTypeSelectionScreenState extends State<WorkTypeSelectionScreen> {
         return Icons.hardware;
       case WorkType.externalNetworks:
         return Icons.cable;
+      case WorkType.fences:
+        return Icons.fence;
+      case WorkType.canopies:
+        return Icons.deck;
+      case WorkType.saunas:
+        return Icons.hot_tub;
+      case WorkType.pools:
+        return Icons.pool;
+      case WorkType.garages:
+        return Icons.garage;
+      case WorkType.ventilation:
+        return Icons.air;
+      case WorkType.ventilatedFacades:
+        return Icons.layers;
     }
   }
 }

@@ -283,7 +283,9 @@ class CostCalculator {
   };
 
   /// Текущие цены (могут быть переопределены из UI)
-  static Map<String, Map<String, double>> _currentPrices = _deepCopy(basePrices);
+  static Map<String, Map<String, double>> _currentPrices = _deepCopy(
+    basePrices,
+  );
 
   static Map<String, Map<String, double>> _deepCopy(
     Map<String, Map<String, double>> source,
@@ -369,6 +371,27 @@ class CostCalculator {
         break;
       case WorkType.externalNetworks:
         total = _calculateExternalNetworks(data, prices);
+        break;
+      case WorkType.fences:
+        total = _calculateFences(data, prices);
+        break;
+      case WorkType.canopies:
+        total = _calculateCanopies(data, prices);
+        break;
+      case WorkType.saunas:
+        total = _calculateSaunas(data, prices);
+        break;
+      case WorkType.pools:
+        total = _calculatePools(data, prices);
+        break;
+      case WorkType.garages:
+        total = _calculateGarages(data, prices);
+        break;
+      case WorkType.ventilation:
+        total = _calculateVentilation(data, prices);
+        break;
+      case WorkType.ventilatedFacades:
+        total = _calculateVentilatedFacades(data, prices);
         break;
     }
 
@@ -1215,13 +1238,13 @@ class CostCalculator {
     total += concreteVolume * (prices['concrete_work'] ?? 0);
 
     // Опалубка (м²) — периметр * высота
-    final formworkArea =
-        (length + width) / 1000 * (depth + height) / 1000 * 2;
+    final formworkArea = (length + width) / 1000 * (depth + height) / 1000 * 2;
     total += formworkArea * (prices['formwork'] ?? 0);
 
     // Арматура (приблизительно: 4 продольных стержня * длина)
     if (data['has_reinforcement'] == true) {
-      final reinfLength = (length + width) / 1000 * 4 * 1.5; // 4 прутка + перехлёст
+      final reinfLength =
+          (length + width) / 1000 * 4 * 1.5; // 4 прутка + перехлёст
       total += reinfLength * (prices['reinforcement'] ?? 0);
     }
 
@@ -1344,7 +1367,8 @@ class CostCalculator {
 
     // Внутренние несущие стены
     if (data['has_internal_walls'] == true) {
-      final intWallLength = (data['internal_wall_length'] as num?)?.toDouble() ?? 0;
+      final intWallLength =
+          (data['internal_wall_length'] as num?)?.toDouble() ?? 0;
       total += intWallLength * wallHeight * (prices['internal_walls'] ?? 0);
     }
 
@@ -1529,8 +1553,7 @@ class CostCalculator {
     // Фундамент под конструкцию
     if (data['has_concrete_foundation'] == true) {
       final structWidth = (data['structure_width'] as num?)?.toDouble() ?? 0;
-      final foundationVolume =
-          structLength / 1000 * structWidth / 1000 * 0.5;
+      final foundationVolume = structLength / 1000 * structWidth / 1000 * 0.5;
       total += foundationVolume * (prices['concrete_foundation_metal'] ?? 0);
     }
 
@@ -1637,5 +1660,166 @@ class CostCalculator {
     if (str.contains('2')) return 2;
     if (str.contains('3')) return 3;
     return 1;
+  }
+
+  /// Расчёт стоимости заборов
+  static double _calculateFences(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+
+    final length = (data['fence_length'] as num?)?.toDouble() ?? 0;
+    final height = (data['fence_height'] as num?)?.toDouble() ?? 0;
+    final fenceType = data['fence_type'] as String?;
+    final sectionCount = (data['section_count'] as num?)?.toDouble() ?? 0;
+    final gateCount = (data['gate_count'] as num?)?.toDouble() ?? 0;
+    final walkGateCount = (data['walk_gate_count'] as num?)?.toDouble() ?? 0;
+
+    // Основное полотно забора (за м²)
+    if (length > 0 && height > 0 && fenceType != null) {
+      double area = length * height;
+      double pricePerArea = 0;
+
+      switch (fenceType) {
+        case 'профнастил':
+          pricePerArea = prices['profnastil_per_m2'] ?? 0;
+          break;
+        case 'штакетник_металлический':
+          pricePerArea = prices['metal_shtaketnik_per_m2'] ?? 0;
+          break;
+        case 'штакетник_деревянный':
+          pricePerArea = prices['wood_shtaketnik_per_m2'] ?? 0;
+          break;
+        case 'деревянный_сплошной':
+          pricePerArea = prices['wood_solid_per_m2'] ?? 0;
+          break;
+        case 'сетка_рабица':
+          pricePerArea = prices['rabitz_per_m2'] ?? 0;
+          break;
+        case 'секционный':
+          pricePerArea = prices['section_fence_per_m2'] ?? 0;
+          break;
+        case 'кирпичный':
+          pricePerArea = prices['brick_fence_per_m2'] ?? 0;
+          break;
+        case 'бетонный':
+          pricePerArea = prices['concrete_fence_per_m2'] ?? 0;
+          break;
+        case 'кованый':
+          pricePerArea = prices['forged_fence_per_m2'] ?? 0;
+          break;
+      }
+
+      total += area * pricePerArea;
+    }
+
+    // Секции
+    if (sectionCount > 0) {
+      total += sectionCount * (prices['section_installation'] ?? 0);
+    }
+
+    // Ворота
+    if (gateCount > 0) {
+      total += gateCount * (prices['gate_installation'] ?? 0);
+
+      final gateWidth = (data['gate_width'] as num?)?.toDouble() ?? 0;
+      if (gateWidth > 0) {
+        total += gateWidth * (prices['gate_per_meter'] ?? 0);
+      }
+
+      if (data['gate_automat'] == true) {
+        total += gateCount * (prices['gate_automation'] ?? 0);
+      }
+
+      if (data['gate_opening'] == true) {
+        total += gateCount * (prices['walk_gate_separate'] ?? 0);
+      }
+    }
+
+    // Калитки
+    if (walkGateCount > 0) {
+      total += walkGateCount * (prices['walk_gate_installation'] ?? 0);
+
+      final walkGateWidth = (data['walk_gate_width'] as num?)?.toDouble() ?? 0;
+      if (walkGateWidth > 0) {
+        total += walkGateWidth * (prices['walk_gate_per_meter'] ?? 0);
+      }
+    }
+
+    // Столбы
+    final postMaterial = data['post_material'] as String?;
+    final postDistance = (data['post_distance'] as num?)?.toDouble() ?? 0;
+    if (length > 0 && postDistance > 0) {
+      final postCount = (length / postDistance).ceil();
+      double postPrice = 0;
+
+      switch (postMaterial) {
+        case 'металлические':
+          postPrice = prices['metal_post'] ?? 0;
+          break;
+        case 'кирпичные':
+          postPrice = prices['brick_post'] ?? 0;
+          break;
+        case 'бетонные':
+          postPrice = prices['concrete_post'] ?? 0;
+          break;
+        case 'деревянные':
+          postPrice = prices['wood_post'] ?? 0;
+          break;
+      }
+
+      total += postCount * postPrice;
+    }
+
+    // Фундамент
+    final foundationType = data['foundation_type'] as String?;
+    if (foundationType != null && foundationType != 'нет') {
+      double foundationPrice = 0;
+
+      switch (foundationType) {
+        case 'ленточный':
+          foundationPrice = prices['strip_foundation_per_m'] ?? 0;
+          break;
+        case 'столбчатый':
+          foundationPrice = prices['column_foundation_per_unit'] ?? 0;
+          break;
+        case 'бетонные площадки':
+          foundationPrice = prices['concrete_pad_installation'] ?? 0;
+          break;
+      }
+
+      total += length * foundationPrice;
+    }
+
+    // Колпаки на столбы
+    if (data['has_capstones'] == true) {
+      final postDistance = (data['post_distance'] as num?)?.toDouble() ?? 0;
+      if (length > 0 && postDistance > 0) {
+        final postCount = (length / postDistance).ceil();
+        total += postCount * (prices['capstone'] ?? 0);
+      }
+    }
+
+    // Лаги
+    if (data['has_lags'] == true) {
+      final lagsCount = (data['lags_count'] as num?)?.toDouble() ?? 2;
+      total += length * lagsCount * (prices['lag_per_meter'] ?? 0);
+    }
+
+    // Заземление
+    if (data['has_grounding'] == true) {
+      total += prices['grounding_installation'] ?? 0;
+    }
+
+    // Демонтаж старого забора
+    if (data['existing_fence'] == true) {
+      total += length * (prices['fence_dismantling_per_m'] ?? 0);
+    }
+
+    // Работа
+    total += prices['fence_labor'] ?? 0;
+
+    return total;
   }
 }

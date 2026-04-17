@@ -1,0 +1,244 @@
+{
+  "work_type": "saunas",
+  "title": "Замер бань",
+  "fields": [
+    {
+      "id": "sauna_type",
+      "type": "select",
+      "label": "Тип бани",
+      "required": true,
+      "options": ["традиционная", "финская", "хамам", "римская", "японская", "комбинированная"]
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "label": "Длина (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "width",
+      "type": "number",
+      "label": "Ширина (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "height",
+      "type": "number",
+      "label": "Высота потолка (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "area",
+      "type": "number",
+      "label": "Общая площадь (м²)",
+      "hint": "м²"
+    },
+    {
+      "id": "rooms_count",
+      "type": "number",
+      "label": "Количество помещений",
+      "hint": "шт"
+    },
+    {
+      "id": "has_antichamber",
+      "type": "boolean",
+      "label": "Предбанник"
+    },
+    {
+      "id": "antichamber_area",
+      "type": "number",
+      "label": "Площадь предбанника (м²)",
+      "hint": "м²",
+      "condition": {
+        "field": "has_antichamber",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_washroom",
+      "type": "boolean",
+      "label": "Моечная"
+    },
+    {
+      "id": "washroom_area",
+      "type": "number",
+      "label": "Площадь моечной (м²)",
+      "hint": "м²",
+      "condition": {
+        "field": "has_washroom",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_parlor",
+      "type": "boolean",
+      "label": "Комната отдыха"
+    },
+    {
+      "id": "parlor_area",
+      "type": "number",
+      "label": "Площадь комнаты отдыха (м²)",
+      "hint": "м²",
+      "condition": {
+        "field": "has_parlor",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "wall_material",
+      "type": "select",
+      "label": "Материал стен",
+      "required": true,
+      "options": ["бревно", "брус", "блоки", "кирпич", "каркас"]
+    },
+    {
+      "id": "wall_thickness",
+      "type": "number",
+      "label": "Толщина стены (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "has_insulation",
+      "type": "boolean",
+      "label": "Утепление"
+    },
+    {
+      "id": "insulation_type",
+      "type": "select",
+      "label": "Утеплитель",
+      "options": ["минеральная вата", "эковата", "пенополиуретан", "базальт"],
+      "condition": {
+        "field": "has_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "roof_type",
+      "type": "select",
+      "label": "Тип кровли",
+      "options": ["односкатная", "двускатная", "четырёхскатная"]
+    },
+    {
+      "id": "roof_material",
+      "type": "select",
+      "label": "Кровля",
+      "options": ["металлочерепица", "профнастил", "мягкая черепица", "ондулин"]
+    },
+    {
+      "id": "foundation_type",
+      "type": "select",
+      "label": "Фундамент",
+      "required": true,
+      "options": ["ленточный", "столбчатый", "плита", "винтовые сваи"]
+    },
+    {
+      "id": "heater_type",
+      "type": "select",
+      "label": "Печь-каменка",
+      "required": true,
+      "options": ["дровяная", "электрическая", "газовая", "комбинированная"]
+    },
+    {
+      "id": "heater_power",
+      "type": "number",
+      "label": "Мощность печи (кВт)",
+      "hint": "кВт"
+    },
+    {
+      "id": "stone_mass",
+      "type": "number",
+      "label": "Масса камней (кг)",
+      "hint": "кг"
+    },
+    {
+      "id": "has_steam_generator",
+      "type": "boolean",
+      "label": "Парогенератор"
+    },
+    {
+      "id": "has_drain",
+      "type": "boolean",
+      "label": "Слив в моечной"
+    },
+    {
+      "id": "drain_type",
+      "type": "select",
+      "label": "Тип слива",
+      "options": ["трап", "лоток", "септик"],
+      "condition": {
+        "field": "has_drain",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "ventilation_type",
+      "type": "select",
+      "label": "Вентиляция",
+      "options": ["естественная", "принудительная", "комбинированная"]
+    },
+    {
+      "id": "has_electrical",
+      "type": "boolean",
+      "label": "Электричество"
+    },
+    {
+      "id": "electrical_points",
+      "type": "number",
+      "label": "Количество розеток",
+      "hint": "шт"
+    },
+    {
+      "id": "has_lighting",
+      "type": "boolean",
+      "label": "Освещение"
+    },
+    {
+      "id": "lighting_type",
+      "type": "select",
+      "label": "Тип освещения",
+      "options": ["обычные лампы", "светодиодная подсветка", "оптоволокно"],
+      "condition": {
+        "field": "has_lighting",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "interior_finish",
+      "type": "select",
+      "label": "Внутренняя отделка",
+      "options": ["вагонка", "блокхаус", "термодерево", "плитка", "комбинированная"]
+    },
+    {
+      "id": "benches_count",
+      "type": "number",
+      "label": "Количество полков",
+      "hint": "шт"
+    },
+    {
+      "id": "has_changing_room",
+      "type": "boolean",
+      "label": "Раздевалка"
+    },
+    {
+      "id": "terrace_type",
+      "type": "select",
+      "label": "Терраса",
+      "options": ["нет", "открытая", "закрытая"]
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

@@ -1363,6 +1363,11 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                       : null,
                   tooltip: 'Строительный чертёж',
                 ),
+                IconButton(
+                  icon: const Icon(Icons.help_outline),
+                  onPressed: _showFloorPlanHelp,
+                  tooltip: 'Инструкция',
+                ),
               ],
             ),
           ),
@@ -1829,6 +1834,146 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('Ошибка экспорта: $e')));
     }
+  }
+
+  /// Показать инструкцию по работе с Floor Plan
+  Future<void> _showFloorPlanHelp() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(20),
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                '📐 Инструкция: Floor Plan',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppDesign.deepSteelBlue,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              _buildHelpSection('🎯 Основные режимы просмотра', '''
+• 2D вид — классический план с размерами
+• 2.5D вид — изометрическая проекция со стенами
+Переключение: кнопка в правом нижнем углу'''),
+              _buildHelpSection('🤖 Создание плана через AI (Премиум)', '''
+1. Заполните данные замера в чек-листе
+2. Нажмите кнопку "🤖 AI-генерация из замера"
+3. AI автоматически создаст план на основе ваших данных
+
+Примеры данных для генерации:
+• Окна: ширина/высота проёма → размер комнаты
+• Плитка: длина/ширина помещения → план
+• Кухни: длина/ширина кухни → планировка'''),
+              _buildHelpSection('✏️ Редактор плана (создание вручную)', '''
+1. Нажмите кнопку "Редактор" в тулбаре
+2. Используйте инструменты:
+   • Комната — добавить новую комнату
+   • Дверь — добавить дверь (межкомнатная/входная/балконная)
+   • Окно — добавить окно
+   • Радиатор — добавить отопление
+   • Сантехника — раковина, унитаз, ванна, душ
+   • Электрика — розетки, выключатели, освещение
+3. Перетаскивайте элементы для позиционирования
+4. Используйте "Отменить/Повторить" для правок'''),
+              _buildHelpSection('📏 Изменение размеров', '''
+• Нажмите на комнату в режиме редактора
+• Перетащите углы для изменения размера
+• Размеры отображаются в метрах'''),
+              _buildHelpSection('✅ Валидация плана', '''
+Система автоматически проверяет:
+• Площадь комнат (по СНиП)
+• Соответствие типов помещений
+• Наличие необходимых элементов
+
+Индикатор в тулбаре показывает:
+• Зелёный — план соответствует нормам
+• Оранжевый — есть предупреждения'''),
+              _buildHelpSection('🔄 AI Оптимизация (Премиум)', '''
+Нажмите иконку "AI" в AppBar для оптимизации:
+• Расстановка комнат по СНиП
+• Эргономика пространства
+• Соответствие строительным нормам'''),
+              _buildHelpSection('📄 Экспорт чертежей', '''
+• Кнопка "Поделиться" — отправить план
+• Кнопка "Строительный чертёж" (Премиум) — полный комплект чертежей по ГОСТ'''),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppDesign.accentTeal,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'Понятно, закрыть',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHelpSection(String title, String content) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Text(
+              content.trim(),
+              style: const TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Генерация полного строительного чертежа

@@ -14,6 +14,9 @@ import 'features/home/presentation/pages/home_page.dart';
 import 'utils/cost_calculator.dart';
 import 'services/price_list_service.dart';
 import 'services/app_logger.dart';
+import 'utils/theme_provider.dart';
+import 'utils/app_theme.dart';
+import 'utils/app_design.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,20 +24,15 @@ void main() async {
   await initializeDateFormatting('ru', null);
   await NotificationService().initialize();
 
-  // Принудительная проверка/восстановление таблиц БД
   await _ensureDatabaseTables();
-
-  // Загрузка цен из БД/JSON в CostCalculator (синхронизация прайс-листа с калькулятором)
   await _initializePrices();
 
   runApp(const MestroApp());
 }
 
-/// Загружает цены из PriceListService (БД или JSON) и применяет их к CostCalculator
 Future<void> _initializePrices() async {
   try {
     final service = PriceListService();
-    // Все 15 типов работ
     final workTypes = [
       'windows',
       'doors',
@@ -51,6 +49,7 @@ Future<void> _initializePrices() async {
       'metal_structures',
       'external_networks',
       'house_construction',
+      'fences',
     ];
     int totalSynced = 0;
     for (final workType in workTypes) {
@@ -62,19 +61,16 @@ Future<void> _initializePrices() async {
     }
     AppLogger.success(
       'Main',
-      'Синхронизировано $totalSynced цен из прайс-листа (${workTypes.length} типов)',
+      'Синхронизировано $totalSynced цен из прайс-листа',
     );
   } catch (e, st) {
     AppLogger.error('Main', 'Ошибка инициализации цен', e, st);
-    // Если ошибка — используем дефолтные цены из CostCalculator.basePrices
   }
 }
 
-/// Проверяет и восстанавливает критичные таблицы
 Future<void> _ensureDatabaseTables() async {
   try {
     final db = await DatabaseHelper().database;
-    // Проверяем custom_prices
     final customPricesExists = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table' AND name='custom_prices'",
     );
@@ -82,17 +78,10 @@ Future<void> _ensureDatabaseTables() async {
       await db.execute('DROP TABLE IF EXISTS custom_prices');
       await db.execute('''
         CREATE TABLE custom_prices (
-          id TEXT PRIMARY KEY,
-          work_type TEXT NOT NULL,
-          item_id TEXT NOT NULL,
-          name TEXT NOT NULL,
-          unit TEXT NOT NULL,
-          price REAL NOT NULL,
-          formula TEXT,
-          multiply_by_count INTEGER DEFAULT 0,
-          is_custom INTEGER DEFAULT 0,
-          created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
+          id TEXT PRIMARY KEY, work_type TEXT NOT NULL, item_id TEXT NOT NULL,
+          name TEXT NOT NULL, unit TEXT NOT NULL, price REAL NOT NULL,
+          formula TEXT, multiply_by_count INTEGER DEFAULT 0, is_custom INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL, updated_at TEXT NOT NULL
         )
       ''');
       await db.execute(
@@ -102,7 +91,6 @@ Future<void> _ensureDatabaseTables() async {
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_price_unique ON custom_prices (work_type, item_id)',
       );
     }
-    // Проверяем photo_annotations
     final photoExists = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table' AND name='photo_annotations'",
     );
@@ -110,21 +98,14 @@ Future<void> _ensureDatabaseTables() async {
       await db.execute('DROP TABLE IF EXISTS photo_annotations');
       await db.execute('''
         CREATE TABLE photo_annotations (
-          id TEXT PRIMARY KEY,
-          order_id TEXT NOT NULL,
-          file_path TEXT NOT NULL,
-          annotated_path TEXT,
-          checklist_field_id TEXT,
-          latitude REAL,
-          longitude REAL,
-          timestamp TEXT NOT NULL
+          id TEXT PRIMARY KEY, order_id TEXT NOT NULL, file_path TEXT NOT NULL,
+          annotated_path TEXT, checklist_field_id TEXT, latitude REAL, longitude REAL, timestamp TEXT NOT NULL
         )
       ''');
       await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_photo_order ON photo_annotations (order_id)',
       );
     }
-    // Проверяем payments
     final paymentsExists = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table' AND name='payments'",
     );
@@ -132,12 +113,8 @@ Future<void> _ensureDatabaseTables() async {
       await db.execute('DROP TABLE IF EXISTS payments');
       await db.execute('''
         CREATE TABLE payments (
-          id TEXT PRIMARY KEY,
-          order_id TEXT NOT NULL,
-          amount REAL NOT NULL,
-          payment_date TEXT NOT NULL,
-          description TEXT,
-          created_at TEXT NOT NULL
+          id TEXT PRIMARY KEY, order_id TEXT NOT NULL, amount REAL NOT NULL,
+          payment_date TEXT NOT NULL, description TEXT, created_at TEXT NOT NULL
         )
       ''');
       await db.execute(
@@ -145,29 +122,20 @@ Future<void> _ensureDatabaseTables() async {
       );
     }
 
-    // Проверяем и добавляем недостающие колонки в orders (миграции)
     final columns = await db.rawQuery('PRAGMA table_info(orders)');
     final columnNames = columns.map((c) => c['name'] as String).toSet();
-
     final Map<String, String> missingColumns = {};
-    if (!columnNames.contains('appointment_date')) {
+    if (!columnNames.contains('appointment_date'))
       missingColumns['appointment_date'] = 'TEXT';
-    }
-    if (!columnNames.contains('appointment_end')) {
+    if (!columnNames.contains('appointment_end'))
       missingColumns['appointment_end'] = 'TEXT';
-    }
-    if (!columnNames.contains('client_phone')) {
+    if (!columnNames.contains('client_phone'))
       missingColumns['client_phone'] = 'TEXT';
-    }
-    if (!columnNames.contains('notes')) {
-      missingColumns['notes'] = 'TEXT';
-    }
-    if (!columnNames.contains('floor_plan_data')) {
+    if (!columnNames.contains('notes')) missingColumns['notes'] = 'TEXT';
+    if (!columnNames.contains('floor_plan_data'))
       missingColumns['floor_plan_data'] = 'TEXT';
-    }
-    if (!columnNames.contains('paid_amount')) {
+    if (!columnNames.contains('paid_amount'))
       missingColumns['paid_amount'] = 'REAL DEFAULT 0';
-    }
 
     for (final entry in missingColumns.entries) {
       AppLogger.info('Main', 'Добавляем колонку orders.${entry.key}');
@@ -204,37 +172,24 @@ class MestroApp extends StatelessWidget {
         BlocProvider(create: (_) => ChecklistBloc()),
         BlocProvider.value(value: calendarBloc),
       ],
-      child: MaterialApp(
-        title: 'Mestro',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-          cardTheme: CardThemeData(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          floatingActionButtonTheme: const FloatingActionButtonThemeData(
-            elevation: 4,
-          ),
+      child: ThemeProvider(
+        child: MaterialApp(
+          title: 'MESTRO',
+          debugShowCheckedModeBanner: false,
+          theme: AppDesign.lightTheme,
+          darkTheme: AppDesign.darkTheme,
+          themeMode: ThemeMode.system,
+          routes: {
+            '/registration': (_) => const RegistrationScreen(),
+            '/home': (_) => const HomePage(),
+          },
+          home: const _AppEntryPoint(),
         ),
-        routes: {
-          '/registration': (_) => const RegistrationScreen(),
-          '/home': (_) => const HomePage(),
-        },
-        home: const _AppEntryPoint(),
       ),
     );
   }
 }
 
-/// Точка входа: проверяет, зарегистрирован ли пользователь
 class _AppEntryPoint extends StatefulWidget {
   const _AppEntryPoint();
 
@@ -265,7 +220,47 @@ class _AppEntryPointState extends State<_AppEntryPoint> {
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: AppDesign.primaryGradient,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.architecture_rounded,
+                  size: 48,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'MESTRO',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Мастер, Единый Стандарт Точности Расчёта Объекта',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              const CircularProgressIndicator(),
+            ],
+          ),
+        ),
+      );
     }
 
     if (_isRegistered) {

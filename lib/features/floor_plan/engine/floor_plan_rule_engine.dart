@@ -343,6 +343,7 @@ class FloorPlanRuleEngine {
       case WorkType.roofing:
       case WorkType.metalStructures:
       case WorkType.externalNetworks:
+      case WorkType.fences:
         type = FloorPlanType.house;
         break;
       default:

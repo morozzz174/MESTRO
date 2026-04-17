@@ -81,9 +81,7 @@ flutter:
     - assets/fonts/
     - assets/models/
     - assets/icon/
-<<<<<<< HEAD
     - assets/consent_text.txt
     - assets/offer.md
     - assets/privacy_policy.md
     - assets/refund_policy.md
->>>>>>> 43462093efc9f9210746333102993c19d6f07474

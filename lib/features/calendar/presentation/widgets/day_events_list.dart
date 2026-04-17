@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../../models/order.dart';
-import '../../../../../utils/app_design.dart';
 import '../../../../../screens/checklist_screen.dart';
+import '../../../../../utils/app_design.dart';
 
 class DayEventsList extends StatelessWidget {
   final List<Order> orders;
@@ -29,7 +29,6 @@ class DayEventsList extends StatelessWidget {
       decimalDigits: 0,
     );
 
-    // Сортируем по времени
     final sortedOrders = List<Order>.from(orders)
       ..sort((a, b) {
         final aTime = a.appointmentDate ?? a.date;
@@ -40,7 +39,7 @@ class DayEventsList extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -51,18 +50,26 @@ class DayEventsList extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: AppDesign.spacing8),
+        const SizedBox(height: 8),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: sortedOrders.length,
             itemBuilder: (context, index) {
               final order = sortedOrders[index];
               final time = order.appointmentDate ?? order.date;
 
               return Container(
-                margin: const EdgeInsets.only(bottom: AppDesign.spacing8),
-                decoration: AppDesign.cardDecoration,
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
@@ -73,9 +80,9 @@ class DayEventsList extends StatelessWidget {
                         ),
                       );
                     },
-                    borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+                    borderRadius: BorderRadius.circular(16),
                     child: Padding(
-                      padding: const EdgeInsets.all(AppDesign.spacing12),
+                      padding: const EdgeInsets.all(12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -83,12 +90,14 @@ class DayEventsList extends StatelessWidget {
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: AppDesign.spacing8,
+                                  horizontal: 8,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppDesign.deepSteelBlue.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+                                  color: AppDesign.deepSteelBlue.withOpacity(
+                                    0.12,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   dateFormat.format(time),
@@ -98,7 +107,7 @@ class DayEventsList extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: AppDesign.spacing8),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   order.clientName,
@@ -110,7 +119,7 @@ class DayEventsList extends StatelessWidget {
                               _StatusBadge(status: order.status),
                             ],
                           ),
-                          const SizedBox(height: AppDesign.spacing8),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(
@@ -118,14 +127,14 @@ class DayEventsList extends StatelessWidget {
                                 size: 14,
                                 color: AppDesign.midBlueGray,
                               ),
-                              const SizedBox(width: AppDesign.spacing4),
+                              const SizedBox(width: 4),
                               Text(
                                 order.workType.title,
                                 style: AppDesign.captionStyle,
                               ),
                             ],
                           ),
-                          const SizedBox(height: AppDesign.spacing4),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               Icon(
@@ -133,7 +142,7 @@ class DayEventsList extends StatelessWidget {
                                 size: 14,
                                 color: AppDesign.midBlueGray,
                               ),
-                              const SizedBox(width: AppDesign.spacing4),
+                              const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   order.address,
@@ -145,7 +154,7 @@ class DayEventsList extends StatelessWidget {
                             ],
                           ),
                           if (order.clientPhone != null) ...[
-                            const SizedBox(height: AppDesign.spacing4),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
                                 Icon(
@@ -153,7 +162,7 @@ class DayEventsList extends StatelessWidget {
                                   size: 14,
                                   color: AppDesign.midBlueGray,
                                 ),
-                                const SizedBox(width: AppDesign.spacing4),
+                                const SizedBox(width: 4),
                                 Text(
                                   order.clientPhone!,
                                   style: AppDesign.captionStyle,
@@ -162,15 +171,15 @@ class DayEventsList extends StatelessWidget {
                             ),
                           ],
                           if (order.estimatedCost != null) ...[
-                            const SizedBox(height: AppDesign.spacing8),
+                            const SizedBox(height: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: AppDesign.spacing12,
-                                vertical: AppDesign.spacing4,
+                                horizontal: 12,
+                                vertical: 4,
                               ),
                               decoration: BoxDecoration(
                                 color: AppDesign.accentTeal.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 currencyFormat.format(order.estimatedCost),
@@ -205,10 +214,10 @@ class _StatusBadge extends StatelessWidget {
     final color = AppDesign.getOrderStatusColor(status);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDesign.spacing8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(AppDesign.radiusChip),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         status.label,
@@ -233,18 +242,18 @@ class _EmptyDay extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppDesign.spacing24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.event_busy, size: 64, color: AppDesign.warmTaupe),
-            const SizedBox(height: AppDesign.spacing16),
+            const SizedBox(height: 16),
             Text(
               'Нет замеров на ${dateFormat.format(selectedDay)}',
               textAlign: TextAlign.center,
               style: AppDesign.bodyStyle.copyWith(color: AppDesign.midBlueGray),
             ),
-            const SizedBox(height: AppDesign.spacing24),
+            const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: onNavigate != null ? () => onNavigate!(0) : null,
               icon: const Icon(Icons.add, size: 18),

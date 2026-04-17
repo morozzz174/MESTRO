@@ -4,7 +4,6 @@ import '../../../../database/database_helper.dart';
 import '../../../../models/order.dart';
 import '../../../../utils/app_design.dart';
 
-/// Экран общей статистики по заявкам и финансам
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
 
@@ -36,35 +35,43 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       final orders = await db.getAllOrders();
       final paymentStats = await db.getPaymentStatistics();
 
-      // Подсчёт по статусам
       int totalOrders = orders.length;
-      int newOrders = orders.where((o) => o.status == OrderStatus.newOrder).length;
-      int inProgress = orders.where((o) => o.status == OrderStatus.inProgress).length;
-      int completed = orders.where((o) => o.status == OrderStatus.completed).length;
-      int cancelled = orders.where((o) => o.status == OrderStatus.cancelled).length;
+      int newOrders = orders
+          .where((o) => o.status == OrderStatus.newOrder)
+          .length;
+      int inProgress = orders
+          .where((o) => o.status == OrderStatus.inProgress)
+          .length;
+      int completed = orders
+          .where((o) => o.status == OrderStatus.completed)
+          .length;
+      int cancelled = orders
+          .where((o) => o.status == OrderStatus.cancelled)
+          .length;
 
-      // Финансы
       double totalEstimated = orders
           .where((o) => o.status != OrderStatus.cancelled)
           .fold(0.0, (sum, o) => sum + (o.estimatedCost ?? 0));
-      double totalPaid = orders.fold(0.0, (sum, o) => sum + (o.paidAmount ?? 0));
+      double totalPaid = orders.fold(
+        0.0,
+        (sum, o) => sum + (o.paidAmount ?? 0),
+      );
       double totalDebt = totalEstimated - totalPaid;
 
-      // По типам работ
       final Map<String, int> workTypeCount = {};
       final Map<String, double> workTypeRevenue = {};
       for (final order in orders) {
         if (order.status == OrderStatus.cancelled) continue;
         final type = order.workType.title;
         workTypeCount[type] = (workTypeCount[type] ?? 0) + 1;
-        workTypeRevenue[type] = (workTypeRevenue[type] ?? 0) + (order.estimatedCost ?? 0);
+        workTypeRevenue[type] =
+            (workTypeRevenue[type] ?? 0) + (order.estimatedCost ?? 0);
       }
 
-      // Топ клиенты
       final Map<String, double> clientRevenue = {};
       for (final order in orders) {
         if (order.status == OrderStatus.cancelled) continue;
-        clientRevenue[order.clientName] = 
+        clientRevenue[order.clientName] =
             (clientRevenue[order.clientName] ?? 0) + (order.estimatedCost ?? 0);
       }
       final topClients = clientRevenue.entries.toList()
@@ -96,9 +103,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -117,49 +122,35 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Заявки по статусам
             _buildSection(
               title: 'Заявки по статусам',
               icon: Icons.pie_chart,
               child: _buildOrderStats(),
             ),
-
             const SizedBox(height: 16),
-
-            // Финансовая сводка
             _buildSection(
               title: 'Финансы',
               icon: Icons.attach_money,
               child: _buildFinancials(),
             ),
-
             const SizedBox(height: 16),
-
-            // По типам работ
             _buildSection(
               title: 'По видам работ',
               icon: Icons.work,
               child: _buildWorkTypeStats(),
             ),
-
             const SizedBox(height: 16),
-
-            // Топ клиенты
             _buildSection(
               title: 'Топ клиенты',
               icon: Icons.people,
               child: _buildTopClients(),
             ),
-
             const SizedBox(height: 16),
-
-            // Платежи
             _buildSection(
               title: 'Платежи',
               icon: Icons.payment,
               child: _buildPaymentStats(),
             ),
-
             const SizedBox(height: 32),
           ],
         ),
@@ -173,7 +164,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     required Widget child,
   }) {
     return Container(
-      decoration: AppDesign.cardDecoration,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -298,10 +295,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     if (workTypeCount.isEmpty) {
       return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Нет данных'),
-        ),
+        child: Padding(padding: EdgeInsets.all(16), child: Text('Нет данных')),
       );
     }
 
@@ -325,10 +319,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Expanded(
                 child: Text(
                   '$count заяв.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -355,10 +346,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     if (topClients.isEmpty) {
       return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Нет данных'),
-        ),
+        child: Padding(padding: EdgeInsets.all(16), child: Text('Нет данных')),
       );
     }
 
@@ -422,8 +410,19 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final monthlyPayments = paymentStats['monthlyPayments'] as List;
 
     final months = [
-      '', 'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
-      'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'
+      '',
+      'Янв',
+      'Фев',
+      'Мар',
+      'Апр',
+      'Май',
+      'Июн',
+      'Июл',
+      'Авг',
+      'Сен',
+      'Окт',
+      'Ноя',
+      'Дек',
     ];
 
     return Column(
@@ -503,7 +502,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 }
 
-/// Строка статуса заявки
 class _StatusRow extends StatelessWidget {
   final String label;
   final int count;
@@ -563,7 +561,6 @@ class _StatusRow extends StatelessWidget {
   }
 }
 
-/// Финансовая карточка
 class _FinanceCard extends StatelessWidget {
   final String label;
   final double value;
@@ -608,7 +605,9 @@ class _FinanceCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                isCurrency ? currencyFormat.format(value) : value.toStringAsFixed(0),
+                isCurrency
+                    ? currencyFormat.format(value)
+                    : value.toStringAsFixed(0),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

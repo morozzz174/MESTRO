@@ -1,0 +1,236 @@
+{
+  "work_type": "garages",
+  "title": "Замер гаражей",
+  "fields": [
+    {
+      "id": "garage_type",
+      "type": "select",
+      "label": "Тип гаража",
+      "required": true,
+      "options": ["отдельностоящий", "пристройка", "встроенный", "металлический", "капитальный"]
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "label": "Длина (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "width",
+      "type": "number",
+      "label": "Ширина (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "height",
+      "type": "number",
+      "label": "Высота (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "area",
+      "type": "number",
+      "label": "Площадь (м²)",
+      "hint": "м²"
+    },
+    {
+      "id": "wall_material",
+      "type": "select",
+      "label": "Материал стен",
+      "required": true,
+      "options": ["кирпич", "блоки", "бетон", "металл", "дерево", "сэндвич-панели"]
+    },
+    {
+      "id": "wall_thickness",
+      "type": "number",
+      "label": "Толщина стены (мм)",
+      "hint": "мм"
+    },
+    {
+      "id": "has_insulation",
+      "type": "boolean",
+      "label": "Утепление"
+    },
+    {
+      "id": "insulation_type",
+      "type": "select",
+      "label": "Утеплитель",
+      "options": ["минеральная вата", "пенопласт", "пенополиуретан"],
+      "condition": {
+        "field": "has_insulation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "roof_type",
+      "type": "select",
+      "label": "Тип кровли",
+      "required": true,
+      "options": ["односкатная", "двускатная", "плоская", "четырёхскатная"]
+    },
+    {
+      "id": "roof_material",
+      "type": "select",
+      "label": "Кровля",
+      "options": ["профнастил", "металлочерепица", "мягкая черепица", "ондулин", "профлист"]
+    },
+    {
+      "id": "foundation_type",
+      "type": "select",
+      "label": "Фундамент",
+      "required": true,
+      "options": ["ленточный", "плита", "столбчатый", "винтовые сваи"]
+    },
+    {
+      "id": "gate_type",
+      "type": "select",
+      "label": "Тип ворот",
+      "required": true,
+      "options": ["распашные", "секционные", "откатные", "роллетные", "подъёмные"]
+    },
+    {
+      "id": "gate_width",
+      "type": "number",
+      "label": "Ширина ворот (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "gate_height",
+      "type": "number",
+      "label": "Высота ворот (м)",
+      "hint": "м"
+    },
+    {
+      "id": "has_automat",
+      "type": "boolean",
+      "label": "Автоматика на ворота"
+    },
+    {
+      "id": "has_walk_gate",
+      "type": "boolean",
+      "label": "Калитка"
+    },
+    {
+      "id": "has_window",
+      "type": "boolean",
+      "label": "Окно"
+    },
+    {
+      "id": "window_count",
+      "type": "number",
+      "label": "Количество окон",
+      "hint": "шт",
+      "condition": {
+        "field": "has_window",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_ventilation",
+      "type": "boolean",
+      "label": "Вентиляция"
+    },
+    {
+      "id": "ventilation_type",
+      "type": "select",
+      "label": "Тип вентиляции",
+      "options": ["естественная", "принудительная"],
+      "condition": {
+        "field": "has_ventilation",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_electrical",
+      "type": "boolean",
+      "label": "Электричество"
+    },
+    {
+      "id": "outlets_count",
+      "type": "number",
+      "label": "Количество розеток",
+      "hint": "шт",
+      "condition": {
+        "field": "has_electrical",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_lighting",
+      "type": "boolean",
+      "label": "Освещение"
+    },
+    {
+      "id": "lights_count",
+      "type": "number",
+      "label": "Количество светильников",
+      "hint": "шт",
+      "condition": {
+        "field": "has_lighting",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_water",
+      "type": "boolean",
+      "label": "Водоснабжение"
+    },
+    {
+      "id": "has_sewerage",
+      "type": "boolean",
+      "label": "Канализация"
+    },
+    {
+      "id": "has_heating",
+      "type": "boolean",
+      "label": "Отопление"
+    },
+    {
+      "id": "heating_type",
+      "type": "select",
+      "label": "Тип отопления",
+      "options": ["электрическое", "газовое", "печное", "воздушное"],
+      "condition": {
+        "field": "has_heating",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_workspace",
+      "type": "boolean",
+      "label": "Рабочая зона (мастерская)"
+    },
+    {
+      "id": "has_mezzanine",
+      "type": "boolean",
+      "label": "Мезонин/антресоли"
+    },
+    {
+      "id": "interior_finish",
+      "type": "select",
+      "label": "Внутренняя отделка",
+      "options": ["без отделки", "штукатурка", "вагонка", "профлист"]
+    },
+    {
+      "id": "has_security",
+      "type": "boolean",
+      "label": "Охранная система"
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

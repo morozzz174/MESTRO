@@ -840,4 +840,11 @@ final _priceCategories = [
     color: Colors.tealAccent,
     items: 11,
   ),
+  _PriceCategory(
+    workType: 'fences',
+    title: 'Заборы',
+    icon: Icons.fence,
+    color: Colors.greenAccent,
+    items: 27,
+  ),
 ];

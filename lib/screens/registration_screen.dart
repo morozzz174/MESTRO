@@ -9,6 +9,7 @@ import '../repositories/impl/user_repository_impl.dart';
 import '../models/user.dart';
 import '../models/order.dart';
 import '../services/ucaller_service.dart';
+import '../utils/app_design.dart';
 import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/work_types/presentation/pages/work_type_selection_screen.dart';
@@ -60,11 +61,15 @@ class _RegistrationScreenState extends State<RegistrationScreen>
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF0D1B2A), Color(0xFF1B2838), Color(0xFF1A2733)],
+            colors: [
+              AppDesign.primaryLight.withOpacity(0.15),
+              AppDesign.backgroundDark,
+              AppDesign.surfaceDark,
+            ],
           ),
         ),
         child: SafeArea(
@@ -112,12 +117,10 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00B4D8), Color(0xFF0077B6)],
-                  ),
+                  gradient: AppDesign.primaryGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF00B4D8).withOpacity(0.3),
+                      color: AppDesign.primaryLight.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),

@@ -59,13 +59,15 @@ class _DashboardPageState extends State<DashboardPage> {
         await _loadUser();
       },
       child: ListView(
-        padding: const EdgeInsets.all(AppDesign.spacing20),
+        padding: EdgeInsets.all(AppDesign.spacing5),
         children: [
           // Приветствие
           Container(
-            decoration: AppDesign.cardDecoration,
+            decoration: AppDesign.cardDecoration(
+              isDark: Theme.of(context).brightness == Brightness.dark,
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(AppDesign.spacing20),
+              padding: EdgeInsets.all(AppDesign.spacing5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -86,7 +88,9 @@ class _DashboardPageState extends State<DashboardPage> {
                           padding: const EdgeInsets.all(2),
                           child: CircleAvatar(
                             radius: 28,
-                            backgroundColor: AppDesign.cardBackground,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.surface,
                             backgroundImage:
                                 _user?.avatarPath != null &&
                                     File(_user!.avatarPath!).existsSync()
@@ -104,7 +108,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: AppDesign.spacing16),
+                      SizedBox(width: AppDesign.spacing4),
                       Expanded(
                         child: InkWell(
                           onTap: () {
@@ -136,7 +140,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: AppDesign.spacing4),
+                                SizedBox(height: AppDesign.spacing1),
                                 Text(today, style: AppDesign.captionStyle),
                               ],
                             ),
@@ -145,7 +149,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppDesign.spacing16),
+                  SizedBox(height: AppDesign.spacing4),
                   Text(
                     'Добро пожаловать в MESTRO! '
                     'Управляйте замерами, клиентами и чек-листами в одном месте.',
@@ -159,7 +163,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
 
-          const SizedBox(height: AppDesign.spacing16),
+          SizedBox(height: AppDesign.spacing4),
 
           // Статистика — активные кнопки-фильтры
           BlocBuilder<OrderBloc, OrderState>(
@@ -189,41 +193,41 @@ class _DashboardPageState extends State<DashboardPage> {
                     'Заявки',
                     style: AppDesign.titleStyle.copyWith(fontSize: 18),
                   ),
-                  const SizedBox(height: AppDesign.spacing12),
+                  SizedBox(height: AppDesign.spacing3),
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
-                    crossAxisSpacing: AppDesign.spacing12,
-                    mainAxisSpacing: AppDesign.spacing12,
+                    crossAxisSpacing: AppDesign.spacing3,
+                    mainAxisSpacing: AppDesign.spacing3,
                     childAspectRatio: 1.5,
                     children: [
                       _ActiveStatCard(
                         icon: Icons.assignment_outlined,
                         label: 'Всего заявок',
                         value: totalOrders.toString(),
-                        color: AppDesign.deepSteelBlue,
+                        color: Theme.of(context).colorScheme.primary,
                         onTap: () => _openOrdersList(null),
                       ),
                       _ActiveStatCard(
                         icon: Icons.fiber_new,
                         label: 'Новые',
                         value: newOrders.toString(),
-                        color: AppDesign.statusNew,
+                        color: Theme.of(context).colorScheme.primary,
                         onTap: () => _openOrdersList(OrderStatus.newOrder),
                       ),
                       _ActiveStatCard(
                         icon: Icons.pending,
                         label: 'В работе',
                         value: inProgress.toString(),
-                        color: AppDesign.statusInProgress,
+                        color: Theme.of(context).colorScheme.secondary,
                         onTap: () => _openOrdersList(OrderStatus.inProgress),
                       ),
                       _ActiveStatCard(
                         icon: Icons.check_circle_outline,
                         label: 'Завершены',
                         value: completed.toString(),
-                        color: AppDesign.statusCompleted,
+                        color: const Color(0xFF10B981),
                         onTap: () => _openOrdersList(OrderStatus.completed),
                       ),
                     ],
@@ -233,16 +237,18 @@ class _DashboardPageState extends State<DashboardPage> {
             },
           ),
 
-          const SizedBox(height: AppDesign.spacing24),
+          SizedBox(height: AppDesign.spacing6),
 
           // Быстрые действия
           Text(
             'Быстрые действия',
             style: AppDesign.titleStyle.copyWith(fontSize: 18),
           ),
-          const SizedBox(height: AppDesign.spacing12),
+          SizedBox(height: AppDesign.spacing3),
           Container(
-            decoration: AppDesign.cardDecoration,
+            decoration: AppDesign.cardDecoration(
+              isDark: Theme.of(context).brightness == Brightness.dark,
+            ),
             child: Column(
               children: [
                 _QuickActionTile(
@@ -341,9 +347,11 @@ class _ActiveStatCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDesign.radiusCard),
         child: Container(
-          decoration: AppDesign.cardDecoration,
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
+            padding: EdgeInsets.all(AppDesign.spacing4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -418,7 +426,7 @@ class _QuickActionTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(AppDesign.spacing16),
+          padding: EdgeInsets.all(AppDesign.spacing4),
           child: Row(
             children: [
               Container(
@@ -429,13 +437,13 @@ class _QuickActionTile extends StatelessWidget {
                 ),
                 child: Icon(icon, color: color, size: 24),
               ),
-              const SizedBox(width: AppDesign.spacing16),
+              SizedBox(width: AppDesign.spacing4),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, style: AppDesign.subtitleStyle),
-                    const SizedBox(height: AppDesign.spacing4),
+                    SizedBox(height: AppDesign.spacing1),
                     Text(subtitle, style: AppDesign.captionStyle),
                   ],
                 ),

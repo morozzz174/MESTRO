@@ -298,6 +298,13 @@ class SmartChecklistAnalyzer {
       'roofing': (100000, 1500000),
       'metal_structures': (50000, 2000000),
       'external_networks': (50000, 1000000),
+      'fences': (30000, 500000),
+      'canopies': (50000, 400000),
+      'saunas': (200000, 1500000),
+      'pools': (300000, 3000000),
+      'garages': (150000, 800000),
+      'ventilation': (50000, 500000),
+      'ventilated_facades': (200000, 2000000),
     };
 
     final workType = order.workType.checklistFile;
@@ -381,6 +388,27 @@ class SmartChecklistAnalyzer {
         break;
       case 'external_networks':
         insights.addAll(_analyzeExternalNetworks(data));
+        break;
+      case 'fences':
+        insights.addAll(_analyzeFences(data));
+        break;
+      case 'canopies':
+        insights.addAll(_analyzeCanopies(data));
+        break;
+      case 'saunas':
+        insights.addAll(_analyzeSaunas(data));
+        break;
+      case 'pools':
+        insights.addAll(_analyzePools(data));
+        break;
+      case 'garages':
+        insights.addAll(_analyzeGarages(data));
+        break;
+      case 'ventilation':
+        insights.addAll(_analyzeVentilation(data));
+        break;
+      case 'ventilated_facades':
+        insights.addAll(_analyzeVentilatedFacades(data));
         break;
     }
 

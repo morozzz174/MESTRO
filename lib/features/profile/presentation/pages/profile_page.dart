@@ -284,13 +284,15 @@ class _ProfilePageState extends State<ProfilePage> {
     final dateFormat = DateFormat('dd.MM.yyyy', 'ru');
 
     return ListView(
-      padding: const EdgeInsets.all(AppDesign.spacing16),
+      padding: EdgeInsets.all(AppDesign.spacing4),
       children: [
         // Аватар и имя
         Container(
-          decoration: AppDesign.cardDecoration,
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing24),
+            padding: EdgeInsets.all(AppDesign.spacing6),
             child: Column(
               children: [
                 GestureDetector(
@@ -343,21 +345,21 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppDesign.spacing8),
+                SizedBox(height: AppDesign.spacing2),
                 Text(
                   'Нажмите чтобы изменить фото',
                   style: AppDesign.captionStyle,
                 ),
-                const SizedBox(height: AppDesign.spacing16),
+                SizedBox(height: AppDesign.spacing4),
                 Text(
                   _user!.fullName ?? 'Пользователь',
                   style: AppDesign.titleStyle,
                 ),
-                const SizedBox(height: AppDesign.spacing8),
+                SizedBox(height: AppDesign.spacing2),
                 Text(
                   _user!.phone,
                   style: AppDesign.bodyStyle.copyWith(
-                    color: AppDesign.midBlueGray,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -365,18 +367,20 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing16),
+        SizedBox(height: AppDesign.spacing4),
 
         // Информация
         Container(
-          decoration: AppDesign.cardDecoration,
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
+            padding: EdgeInsets.all(AppDesign.spacing4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Информация', style: AppDesign.subtitleStyle),
-                const SizedBox(height: AppDesign.spacing16),
+                SizedBox(height: AppDesign.spacing4),
                 _InfoRow(
                   icon: Icons.phone,
                   label: 'Телефон',
@@ -387,7 +391,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   leading: Icon(
                     Icons.person_outline,
                     size: 20,
-                    color: AppDesign.midBlueGray,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                   title: Text('ФИО', style: AppDesign.captionStyle),
                   subtitle: Text(_user!.fullName ?? 'Не указано'),
@@ -421,13 +425,15 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing16),
+        SizedBox(height: AppDesign.spacing4),
 
         // Мои ниши
         Container(
-          decoration: AppDesign.cardDecoration,
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
+            padding: EdgeInsets.all(AppDesign.spacing4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -439,17 +445,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: AppDesign.accentTeal.withOpacity(0.12),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.secondary.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(
                               AppDesign.radiusListItem,
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.work,
-                            color: AppDesign.accentTeal,
+                            color: Theme.of(context).colorScheme.secondary,
                           ),
                         ),
-                        const SizedBox(width: AppDesign.spacing12),
+                        SizedBox(width: AppDesign.spacing3),
                         Text('Мои ниши', style: AppDesign.subtitleStyle),
                       ],
                     ),
@@ -460,7 +468,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppDesign.spacing12),
+                SizedBox(height: AppDesign.spacing3),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
@@ -474,9 +482,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         wt.title,
                         style: const TextStyle(fontSize: 12),
                       ),
-                      backgroundColor: AppDesign.accentTeal.withOpacity(0.12),
-                      side: const BorderSide(
-                        color: AppDesign.accentTeal,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.secondary.withOpacity(0.12),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.secondary,
                         width: 1.5,
                       ),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -496,7 +506,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing16),
+        SizedBox(height: AppDesign.spacing4),
 
         // Премиум подписка
         InkWell(
@@ -513,12 +523,12 @@ class _ProfilePageState extends State<ProfilePage> {
               border: Border.all(
                 color: _isPremium
                     ? const Color(0xFF4CAF50).withOpacity(0.3)
-                    : AppDesign.primaryDark.withOpacity(0.2),
+                    : Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 width: 1.5,
               ),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(AppDesign.spacing16),
+              padding: EdgeInsets.all(AppDesign.spacing4),
               child: Row(
                 children: [
                   Container(
@@ -537,11 +547,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       _isPremium ? Icons.workspace_premium : Icons.lock_outline,
                       color: _isPremium
                           ? const Color(0xFF4CAF50)
-                          : AppDesign.primaryDark,
+                          : Theme.of(context).colorScheme.primary,
                       size: 28,
                     ),
                   ),
-                  const SizedBox(width: AppDesign.spacing12),
+                  SizedBox(width: AppDesign.spacing3),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,15 +582,17 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing16),
+        SizedBox(height: AppDesign.spacing4),
 
         // Настройки уведомлений (только для премиума)
         GestureDetector(
           onTap: !_isPremium ? () => _showPremiumDialog(context) : null,
           child: Container(
-            decoration: AppDesign.cardDecoration,
+            decoration: AppDesign.cardDecoration(
+              isDark: Theme.of(context).brightness == Brightness.dark,
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(AppDesign.spacing16),
+              padding: EdgeInsets.all(AppDesign.spacing4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -588,9 +600,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Icon(
                         Icons.notifications_active,
-                        color: _isPremium ? AppDesign.accentTeal : Colors.grey,
+                        color: _isPremium
+                            ? Theme.of(context).colorScheme.secondary
+                            : Colors.grey,
                       ),
-                      const SizedBox(width: AppDesign.spacing8),
+                      SizedBox(width: AppDesign.spacing2),
                       Text(
                         'Уведомления',
                         style: AppDesign.subtitleStyle.copyWith(
@@ -631,7 +645,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: AppDesign.spacing16),
+                  SizedBox(height: AppDesign.spacing4),
                   _InfoRow(
                     icon: Icons.alarm,
                     label: 'За 1 час до замера',
@@ -660,7 +674,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     valueColor: _isPremium ? null : Colors.grey,
                   ),
                   if (_isPremium) ...[
-                    const SizedBox(height: AppDesign.spacing12),
+                    SizedBox(height: AppDesign.spacing3),
                     Text(
                       'Для SMS-уведомлений укажите API ключ в настройках приложения.',
                       style: AppDesign.captionStyle.copyWith(
@@ -668,7 +682,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                   ] else ...[
-                    const SizedBox(height: AppDesign.spacing12),
+                    SizedBox(height: AppDesign.spacing3),
                     Text(
                       'Доступно в Премиум подписке',
                       style: AppDesign.captionStyle.copyWith(
@@ -683,16 +697,18 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing16),
+        SizedBox(height: AppDesign.spacing4),
         Container(
-          decoration: AppDesign.cardDecoration,
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
+            padding: EdgeInsets.all(AppDesign.spacing4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('О приложении', style: AppDesign.subtitleStyle),
-                const SizedBox(height: AppDesign.spacing16),
+                SizedBox(height: AppDesign.spacing4),
                 _InfoRow(
                   icon: Icons.info_outline,
                   label: 'Версия',
@@ -709,25 +725,29 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing24),
+        SizedBox(height: AppDesign.spacing6),
 
         // Управление данными
         Container(
-          decoration: AppDesign.cardDecoration,
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
+            padding: EdgeInsets.all(AppDesign.spacing4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Управление данными', style: AppDesign.subtitleStyle),
-                const SizedBox(height: AppDesign.spacing16),
+                SizedBox(height: AppDesign.spacing4),
                 // Экспорт в Excel (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: _isPremium
-                          ? AppDesign.accentTeal.withOpacity(0.12)
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.secondary.withOpacity(0.12)
                           : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
@@ -735,7 +755,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     child: Icon(
                       Icons.table_chart,
-                      color: _isPremium ? AppDesign.accentTeal : Colors.grey,
+                      color: _isPremium
+                          ? Theme.of(context).colorScheme.secondary
+                          : Colors.grey,
                     ),
                   ),
                   title: Text(
@@ -763,7 +785,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: _isPremium
-                          ? AppDesign.deepSteelBlue.withOpacity(0.12)
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.12)
                           : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
@@ -771,7 +795,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     child: Icon(
                       Icons.cloud_upload,
-                      color: _isPremium ? AppDesign.deepSteelBlue : Colors.grey,
+                      color: _isPremium
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.grey,
                     ),
                   ),
                   title: Text(
@@ -797,7 +823,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: _isPremium
-                          ? AppDesign.midBlueGray.withOpacity(0.12)
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withOpacity(0.12)
                           : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
@@ -805,7 +833,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     child: Icon(
                       Icons.cloud_download,
-                      color: _isPremium ? AppDesign.midBlueGray : Colors.grey,
+                      color: _isPremium
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                          : Colors.grey,
                     ),
                   ),
                   title: Text(
@@ -829,28 +859,37 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
 
-        const SizedBox(height: AppDesign.spacing24),
+        SizedBox(height: AppDesign.spacing6),
 
         // Кнопка выхода
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: _logout,
-            icon: const Icon(Icons.logout, color: AppDesign.statusCancelled),
-            label: const Text(
+            icon: Icon(
+              Icons.logout,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            label: Text(
               'Выйти из аккаунта',
-              style: TextStyle(color: AppDesign.statusCancelled, fontSize: 16),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+                fontSize: 16,
+              ),
             ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: BorderSide(color: AppDesign.statusCancelled, width: 1.5),
+              side: BorderSide(
+                color: Theme.of(context).colorScheme.error,
+                width: 1.5,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppDesign.radiusButton),
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppDesign.spacing16),
+        SizedBox(height: AppDesign.spacing4),
       ],
     );
   }
@@ -872,17 +911,21 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppDesign.spacing8),
+      padding: EdgeInsets.symmetric(vertical: AppDesign.spacing2),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppDesign.midBlueGray),
-          const SizedBox(width: AppDesign.spacing12),
+          Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          SizedBox(width: AppDesign.spacing3),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: AppDesign.captionStyle),
-                const SizedBox(height: AppDesign.spacing4),
+                SizedBox(height: AppDesign.spacing1),
                 Text(
                   value,
                   style: AppDesign.bodyStyle.copyWith(color: valueColor),

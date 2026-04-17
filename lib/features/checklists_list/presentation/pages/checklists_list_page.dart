@@ -22,12 +22,14 @@ class _ChecklistsListPageState extends State<ChecklistsListPage> {
 
   Future<void> _loadChecklists() async {
     try {
-      // Загружаем список чек-листов из assets
       final manifestContent = await rootBundle.loadString('AssetManifest.json');
       final Map<String, dynamic> manifestMap = json.decode(manifestContent);
 
       final checklists = manifestMap.keys
-          .where((String key) => key.startsWith('assets/checklists/') && key.endsWith('.json'))
+          .where(
+            (String key) =>
+                key.startsWith('assets/checklists/') && key.endsWith('.json'),
+          )
           .map((String key) => key.split('/').last)
           .toList();
 
@@ -58,16 +60,16 @@ class _ChecklistsListPageState extends State<ChecklistsListPage> {
             Icon(
               Icons.assignment_turned_in_outlined,
               size: 80,
-              color: AppDesign.warmTaupe,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(height: AppDesign.spacing16),
+            SizedBox(height: AppDesign.spacing4),
             Text(
               'Нет чек-листов',
               style: AppDesign.subtitleStyle.copyWith(
-                color: AppDesign.midBlueGray,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(height: AppDesign.spacing8),
+            SizedBox(height: AppDesign.spacing2),
             Text(
               'Чек-листы для замеров появятся здесь',
               style: AppDesign.captionStyle,
@@ -78,59 +80,70 @@ class _ChecklistsListPageState extends State<ChecklistsListPage> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(AppDesign.spacing16),
+      padding: EdgeInsets.all(AppDesign.spacing4),
       itemCount: _checklistFiles.length,
       itemBuilder: (context, index) {
         final fileName = _checklistFiles[index];
         final title = fileName.replaceAll('.json', '').replaceAll('_', ' ');
 
         return Container(
-          margin: const EdgeInsets.only(bottom: AppDesign.spacing12),
-          decoration: AppDesign.cardDecoration,
+          margin: EdgeInsets.only(bottom: AppDesign.spacing3),
+          decoration: AppDesign.cardDecoration(
+            isDark: Theme.of(context).brightness == Brightness.dark,
+          ),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Чек-лист: $title')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Чек-лист: $title')));
               },
               borderRadius: BorderRadius.circular(AppDesign.radiusCard),
               child: Padding(
-                padding: const EdgeInsets.all(AppDesign.spacing16),
+                padding: EdgeInsets.all(AppDesign.spacing4),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(AppDesign.spacing12),
+                      padding: EdgeInsets.all(AppDesign.spacing3),
                       decoration: BoxDecoration(
-                        color: AppDesign.warmTaupe.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurfaceVariant.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(
+                          AppDesign.radiusListItem,
+                        ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.assignment_outlined,
-                        color: AppDesign.warmTaupe,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(width: AppDesign.spacing16),
+                    SizedBox(width: AppDesign.spacing4),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            title.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' '),
+                            title
+                                .split(' ')
+                                .map(
+                                  (word) =>
+                                      word[0].toUpperCase() + word.substring(1),
+                                )
+                                .join(' '),
                             style: AppDesign.subtitleStyle,
                           ),
-                          const SizedBox(height: AppDesign.spacing4),
-                          Text(
-                            fileName,
-                            style: AppDesign.captionStyle,
-                          ),
+                          SizedBox(height: AppDesign.spacing1),
+                          Text(fileName, style: AppDesign.captionStyle),
                         ],
                       ),
                     ),
                     Icon(
                       Icons.chevron_right,
-                      color: AppDesign.midBlueGray.withOpacity(0.6),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurfaceVariant.withOpacity(0.6),
                     ),
                   ],
                 ),

@@ -129,8 +129,8 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
             onPressed: _takePhoto,
             icon: const Icon(Icons.camera_alt),
             label: const Text('Фото'),
-            backgroundColor: AppDesign.accentTeal,
-            foregroundColor: Colors.white,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
+            foregroundColor: Theme.of(context).colorScheme.onSecondary,
           ),
         ),
         // AI-агент
@@ -183,7 +183,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
     return Form(
       key: _formKey,
       child: ListView(
-        padding: const EdgeInsets.all(AppDesign.spacing16),
+        padding: EdgeInsets.all(AppDesign.spacing4),
         children: [
           // Информация о клиенте
           ChecklistClientInfo(
@@ -192,9 +192,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
               setState(() => _order = updatedOrder);
             },
           ),
-          const SizedBox(height: AppDesign.spacing16),
+          SizedBox(height: AppDesign.spacing4),
           AppDesign.separator(),
-          const SizedBox(height: AppDesign.spacing8),
+          SizedBox(height: AppDesign.spacing2),
 
           // Поля чек-листа
           ...state.config.fields
@@ -204,9 +204,9 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
               )
               .map((field) => _buildField(field, state)),
 
-          const SizedBox(height: AppDesign.spacing16),
+          SizedBox(height: AppDesign.spacing4),
           AppDesign.separator(),
-          const SizedBox(height: AppDesign.spacing8),
+          SizedBox(height: AppDesign.spacing2),
 
           // Фото заявки
           ChecklistPhotosSection(
@@ -216,7 +216,7 @@ class _ChecklistScreenState extends State<ChecklistScreen> {
             onViewPhoto: _viewPhoto,
             onDeletePhoto: _deletePhoto,
           ),
-          const SizedBox(height: AppDesign.spacing16),
+          SizedBox(height: AppDesign.spacing4),
         ],
       ),
     );
@@ -738,9 +738,9 @@ class _BottomActions extends StatelessWidget {
     final hasPayments = paid > 0;
 
     return Container(
-      padding: const EdgeInsets.all(AppDesign.spacing16),
+      padding: EdgeInsets.all(AppDesign.spacing4),
       decoration: BoxDecoration(
-        color: AppDesign.cardBackground,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: AppDesign.deepSteelBlue.withOpacity(0.12),
@@ -786,17 +786,17 @@ class _BottomActions extends StatelessWidget {
                   icon: Icon(
                     hasPayments ? Icons.payment : Icons.payment_outlined,
                     size: 18,
-                    color: hasPayments ? Colors.green : null,
+                    color: hasPayments ? const Color(0xFF10B981) : null,
                   ),
                   label: Text(
                     hasPayments ? 'Оплаты' : 'Оплаты',
                     style: hasPayments
-                        ? const TextStyle(color: Colors.green)
+                        ? const TextStyle(color: Color(0xFF10B981))
                         : null,
                   ),
                 ),
               ),
-              const SizedBox(width: AppDesign.spacing8),
+              SizedBox(width: AppDesign.spacing2),
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: onFloorPlan,
@@ -806,7 +806,7 @@ class _BottomActions extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppDesign.spacing8),
+          SizedBox(height: AppDesign.spacing2),
           Row(
             children: [
               Expanded(
@@ -816,13 +816,16 @@ class _BottomActions extends StatelessWidget {
                   label: const Text('Расчёт'),
                 ),
               ),
-              const SizedBox(width: AppDesign.spacing8),
+              SizedBox(width: AppDesign.spacing2),
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: onGeneratePdf,
                   icon: const Icon(Icons.picture_as_pdf, size: 18),
                   label: const Text('PDF'),
-                  style: AppDesign.accentButtonStyle,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                  ),
                 ),
               ),
             ],

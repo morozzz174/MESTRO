@@ -1,16 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../bloc/order_bloc.dart';
-import '../../../../bloc/order_event.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/order.dart';
-import '../../../../models/checklist_config.dart';
-import '../../../../utils/app_design.dart';
 import '../../../../services/app_logger.dart';
 
-/// Секция фотофиксации в чек-листе
 class ChecklistPhotosSection extends StatefulWidget {
   final String orderId;
   final VoidCallback onTakePhoto;
@@ -64,34 +58,45 @@ class ChecklistPhotosSectionState extends State<ChecklistPhotosSection> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppDesign.cardDecoration,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(AppDesign.spacing16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Фотофиксация', style: AppDesign.subtitleStyle),
+                Text(
+                  'Фотофиксация',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 ElevatedButton.icon(
                   onPressed: widget.onTakePhoto,
                   icon: const Icon(Icons.camera_alt, size: 18),
                   label: const Text('Добавить фото'),
-                  style: AppDesign.accentButtonStyle,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: AppDesign.spacing12),
+            const SizedBox(height: 12),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else if (_photos.isEmpty)
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(AppDesign.spacing24),
+                  padding: const EdgeInsets.all(24),
                   child: Text(
                     'Нет фото. Нажмите кнопку выше.',
-                    style: AppDesign.captionStyle,
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
               )
@@ -101,8 +106,8 @@ class ChecklistPhotosSectionState extends State<ChecklistPhotosSection> {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
-                  crossAxisSpacing: AppDesign.spacing8,
-                  mainAxisSpacing: AppDesign.spacing8,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                 ),
                 itemCount: _photos.length,
                 itemBuilder: (context, index) {
@@ -146,7 +151,7 @@ class _PhotoThumbnail extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(AppDesign.radiusListItem),
+            borderRadius: BorderRadius.circular(12),
             child: file.existsSync()
                 ? Image.file(file, fit: BoxFit.cover)
                 : Container(
@@ -158,15 +163,14 @@ class _PhotoThumbnail extends StatelessWidget {
             top: 4,
             right: 4,
             child: Container(
-              decoration: BoxDecoration(
-                color: AppDesign.statusCancelled.withOpacity(0.9),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE53935),
                 shape: BoxShape.circle,
               ),
               child: IconButton(
                 icon: const Icon(Icons.delete, color: Colors.white, size: 18),
                 onPressed: () async {
                   onDelete(photo);
-                  // Ждём завершения удаления в OrderBloc
                   await Future.delayed(const Duration(milliseconds: 500));
                   onDeleteSuccess();
                 },

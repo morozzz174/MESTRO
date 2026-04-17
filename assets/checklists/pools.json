@@ -1,0 +1,220 @@
+{
+  "work_type": "pools",
+  "title": "Замер бассейнов",
+  "fields": [
+    {
+      "id": "pool_type",
+      "type": "select",
+      "label": "Тип бассейна",
+      "required": true,
+      "options": ["частный", "общественный", "SPA", "детский", "переливной", "скиммерный"]
+    },
+    {
+      "id": "location",
+      "type": "select",
+      "label": "Расположение",
+      "required": true,
+      "options": ["внутри помещения", "на улице", "на веранде"]
+    },
+    {
+      "id": "length",
+      "type": "number",
+      "label": "Длина (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "width",
+      "type": "number",
+      "label": "Ширина (м)",
+      "required": true,
+      "hint": "м"
+    },
+    {
+      "id": "depth_shallow",
+      "type": "number",
+      "label": "Глубина мелкая (м)",
+      "hint": "м"
+    },
+    {
+      "id": "depth_deep",
+      "type": "number",
+      "label": "Глубина глубокая (м)",
+      "hint": "м"
+    },
+    {
+      "id": "area",
+      "type": "number",
+      "label": "Площадь зеркала (м²)",
+      "hint": "м²"
+    },
+    {
+      "id": "volume",
+      "type": "number",
+      "label": "Объём воды (м³)",
+      "hint": "м³"
+    },
+    {
+      "id": "shape",
+      "type": "select",
+      "label": "Форма",
+      "options": ["прямоугольная", "овальная", "круглая", "freeform", "угловая"]
+    },
+    {
+      "id": "construction_type",
+      "type": "select",
+      "label": "Тип конструкции",
+      "required": true,
+      "options": ["бетонный", "полипропиленовый", "композитный", "каркасный", "надувной"]
+    },
+    {
+      "id": "waterproofing_type",
+      "type": "select",
+      "label": "Гидроизоляция",
+      "options": ["обмазочная", "проникающая", "плёнка ПВХ", "мембрана"]
+    },
+    {
+      "id": "finish_type",
+      "type": "select",
+      "label": "Отделка",
+      "required": true,
+      "options": ["плитка", "мозаика", "ПВХ плёнка", "окраска", "микроцемент"]
+    },
+    {
+      "id": "coping_material",
+      "type": "select",
+      "label": "Бордюр",
+      "options": ["камень", "керамогранит", "кирпич", "дерево", "металл"]
+    },
+    {
+      "id": "has_around_pool",
+      "type": "boolean",
+      "label": "Облицовка зоны вокруг бассейна"
+    },
+    {
+      "id": "around_material",
+      "type": "select",
+      "label": "Материал вокруг",
+      "options": ["плитка", "керамогранит", "камень", "дерево", "резиновое покрытие"],
+      "condition": {
+        "field": "has_around_pool",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_heating",
+      "type": "boolean",
+      "label": "Подогрев воды"
+    },
+    {
+      "id": "heating_type",
+      "type": "select",
+      "label": "Тип подогрева",
+      "options": ["тепловой насос", "электронагреватель", "газовый котёл", "солнечные панели"],
+      "condition": {
+        "field": "has_heating",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "filtration_type",
+      "type": "select",
+      "label": "Фильтрация",
+      "required": true,
+      "options": ["песочный фильтр", "картриджный", "диатомовый"]
+    },
+    {
+      "id": "pump_power",
+      "type": "number",
+      "label": "Мощность насоса (Вт)",
+      "hint": "Вт"
+    },
+    {
+      "id": "has_counter_current",
+      "type": "boolean",
+      "label": "Противоток"
+    },
+    {
+      "id": "has_waterfall",
+      "type": "boolean",
+      "label": "Водопад/фонтан"
+    },
+    {
+      "id": "has_aeromasage",
+      "type": "boolean",
+      "label": "Аэромассаж"
+    },
+    {
+      "id": "has_hydromassage",
+      "type": "boolean",
+      "label": "Гидромассаж"
+    },
+    {
+      "id": "has_lighting",
+      "type": "boolean",
+      "label": "Подсветка"
+    },
+    {
+      "id": "lights_count",
+      "type": "number",
+      "label": "Количество светильников",
+      "hint": "шт",
+      "condition": {
+        "field": "has_lighting",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_cover",
+      "type": "boolean",
+      "label": "Укрытие (павильон)"
+    },
+    {
+      "id": "cover_type",
+      "type": "select",
+      "label": "Тип укрытия",
+      "options": ["раздвижной павильон", "поликарбонат", "плёнка", "ролетное"],
+      "condition": {
+        "field": "has_cover",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "has_chemical_system",
+      "type": "boolean",
+      "label": "Химдозирование"
+    },
+    {
+      "id": "deck_type",
+      "type": "select",
+      "label": "Тип террасы",
+      "options": ["нет", "деревянная", "композитная", "каменная"]
+    },
+    {
+      "id": "has_stairs",
+      "type": "boolean",
+      "label": "Лестница"
+    },
+    {
+      "id": "stairs_type",
+      "type": "select",
+      "label": "Тип лестницы",
+      "options": ["римская", "складная", "стационарная"],
+      "condition": {
+        "field": "has_stairs",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "id": "notes",
+      "type": "text",
+      "label": "Примечания",
+      "hint": "Дополнительная информация"
+    }
+  ]
+}

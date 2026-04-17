@@ -17,7 +17,14 @@ enum WorkType {
   facades('Фасады', 'facades'),
   roofing('Кровля', 'roofing'),
   metalStructures('Металлоконструкции', 'metal_structures'),
-  externalNetworks('Инженерные сети наружные', 'external_networks');
+  externalNetworks('Инженерные сети наружные', 'external_networks'),
+  fences('Заборы', 'fences'),
+  canopies('Навесы/Беседки', 'canopies'),
+  saunas('Бани', 'saunas'),
+  pools('Бассейны', 'pools'),
+  garages('Гаражи', 'garages'),
+  ventilation('Вентиляция', 'ventilation'),
+  ventilatedFacades('Вентфасады', 'ventilated_facades');
 
   final String title;
   final String checklistFile;

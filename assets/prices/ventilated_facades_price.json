@@ -1,0 +1,33 @@
+{
+  "work_type": "ventilated_facades",
+  "title": "Прайс-лист: Вентфасады",
+  "items": [
+    { "id": "vent_facade_per_m2", "name": "Вентфасад за м²", "unit": "м²", "price": 2500 },
+    { "id": "insulation_mineral", "name": "Утеплитель минвата", "unit": "м²", "price": 450 },
+    { "id": "insulation_penoplex", "name": "Утеплитель пенополистирол", "unit": "м²", "price": 350 },
+    { "id": "insulation_pir", "name": "Утеплитель PIR", "unit": "м²", "price": 800 },
+    { "id": "insulation_basalt", "name": "Утеплитель базальт", "unit": "м²", "price": 500 },
+    { "id": "wind_protection", "name": "Ветрозащита", "unit": "м²", "price": 150 },
+    { "id": "bracket", "name": "Кронштейн", "unit": "шт", "price": 120 },
+    { "id": "profile_galvanized", "name": "Профиль оцинковка", "unit": "м.п.", "price": 180 },
+    { "id": "profile_stainless", "name": "Профиль нержавейка", "unit": "м.п.", "price": 350 },
+    { "id": "profile_aluminum", "name": "Профиль алюминий", "unit": "м.п.", "price": 280 },
+    { "id": "cladding_ceramogranite", "name": "Керамогранит", "unit": "м²", "price": 1800 },
+    { "id": "cladding_metalcassette", "name": "Металлокассета", "unit": "м²", "price": 1500 },
+    { "id": "cladding_fibercement", "name": "Фиброцемент", "unit": "м²", "price": 2200 },
+    { "id": "cladding_composite", "name": "Композит", "unit": "м²", "price": 2500 },
+    { "id": "cladding_stone", "name": "Каменные панели", "unit": "м²", "price": 3500 },
+    { "id": "cladding_wood", "name": "Дерево", "unit": "м²", "price": 2000 },
+    { "id": "cladding_thermopanels", "name": "Термопанели", "unit": "м²", "price": 2800 },
+    { "id": "window_refurbish", "name": "Обновление оконных откосов", "unit": "м.п.", "price": 800 },
+    { "id": "balcony_refurbish", "name": "Обшивка балкона", "unit": "м²", "price": 1200 },
+    { "id": "cornice_refurbish", "name": "Обновление карниза", "unit": "м.п.", "price": 1500 },
+    { "id": "plinth_finish", "name": "Цоколь отделка", "unit": "м²", "price": 2200 },
+    { "id": "decor_elements", "name": "Декор/архитектура", "unit": "м.п.", "price": 1200 },
+    { "id": "scaffolding", "name": "Строительные леса", "unit": "м²", "price": 80 },
+    { "id": "access_tower", "name": "Автовышка", "unit": "смена", "price": 12000 },
+    { "id": "access_alpinist", "name": "Промышленный альпинизм", "unit": "м²", "price": 350 },
+    { "id": "demolition_old", "name": "Демонтаж старой отделки", "unit": "м²", "price": 250 },
+    { "id": "facade_labor", "name": "Работа", "unit": "фикс.", "price": 45000 }
+  ]
+}

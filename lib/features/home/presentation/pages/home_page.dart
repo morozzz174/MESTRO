@@ -5,6 +5,7 @@ import '../../../../bloc/order_event.dart';
 import '../../../../repositories/user_repository.dart';
 import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../utils/app_design.dart';
+import '../../../../utils/theme_provider.dart';
 import 'dashboard_page.dart';
 import '../../../appointments/presentation/pages/appointments_page.dart';
 import '../../../calendar/presentation/pages/calendar_page.dart';
@@ -22,7 +23,6 @@ class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 
-  /// Ключ для доступа к состоянию HomePage из дочерних виджетов
   static _HomePageState? of(BuildContext context) {
     return context.findAncestorStateOfType<_HomePageState>();
   }
@@ -31,7 +31,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
 
-  /// Переключить вкладку (вызывается из дочерних страниц)
   void switchTab(int index) {
     setState(() => _currentIndex = index);
   }
@@ -50,43 +49,52 @@ class _HomePageState extends State<HomePage> {
     _loadUser();
   }
 
-  Future<void> _loadUser() async {
-    // Резерв для будущей логики (например, обновление BLoC)
-  }
+  Future<void> _loadUser() async {}
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(AppDesign.appBarHeight),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: AppDesign.appBarGradient,
-            boxShadow: AppDesign.appBarShadow,
-          ),
-          child: AppBar(
-            title: const Text(
-              'MESTRO',
-              style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.2),
-            ),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Обновить',
-                onPressed: () {
-                  context.read<OrderBloc>().add(LoadOrders());
-                },
-              ),
-            ],
-          ),
+      appBar: AppBar(
+        title: const Text(
+          'MESTRO',
+          style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5),
         ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+            ),
+            tooltip: 'Сменить тему',
+            onPressed: () {
+              final provider = context.themeProvider;
+              if (provider != null) {
+                provider.toggleTheme();
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Обновить',
+            onPressed: () {
+              context.read<OrderBloc>().add(LoadOrders());
+            },
+          ),
+        ],
       ),
       body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: AppDesign.primaryDark.withOpacity(0.92),
-          boxShadow: AppDesign.bottomBarShadow,
+          color: colorScheme.surfaceContainerHighest,
+          border: Border(
+            top: BorderSide(
+              color: colorScheme.outline.withOpacity(0.2),
+              width: 0.5,
+            ),
+          ),
         ),
         child: NavigationBar(
           selectedIndex: _currentIndex,
@@ -119,25 +127,31 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppDesign.radiusButton),
-          gradient: AppDesign.accentButtonGradient,
-          boxShadow: AppDesign.fabShadow,
+          borderRadius: BorderRadius.circular(AppDesign.radiusLg),
+          gradient: AppDesign.secondaryGradient,
+          boxShadow: isDark
+              ? AppDesign.fabShadowDark
+              : AppDesign.fabShadowLight,
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: _createAppointment,
-            borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+            borderRadius: BorderRadius.circular(AppDesign.radiusLg),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: const [
-                  Icon(Icons.add, size: 20),
+                  Icon(Icons.add, size: 20, color: Colors.white),
                   SizedBox(width: 8),
                   Text(
                     'Замер',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -149,7 +163,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _createAppointment() async {
-    // Получаем ниши пользователя
     final user = await UserRepositoryImpl().getCurrentUser();
     if (!mounted) return;
     final availableWorkTypes = (user?.selectedWorkTypes ?? [])
@@ -163,27 +176,19 @@ class _HomePageState extends State<HomePage> {
       availableWorkTypes: availableWorkTypes,
     );
     if (order != null && mounted) {
-      // Отправляем в OrderBloc для сохранения в БД и обновления UI
       context.read<OrderBloc>().add(CreateOrder(order));
-      // Отправляем в CalendarBloc ТОЛЬКО для планирования уведомлений (без сохранения)
-      // CalendarCreateOrder вызывает insertOrder, поэтому OrderBloc уже сохранил
-      // Уведомления запланируем через отдельный механизм если appointmentDate установлен
       if (order.appointmentDate != null) {
-        // Планируем уведомления в фоне, не блокируя UI
         Future.delayed(const Duration(milliseconds: 500), () async {
           try {
             final scheduler = AppointmentNotificationScheduler();
             await scheduler.scheduleForAppointment(order);
-          } catch (_) {
-            // Не критично если уведомления не запланировались
-          }
+          } catch (_) {}
         });
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Замер для "${order.clientName}" создан')),
         );
-        // Переход к деталям заявки (чек-листу)
         await Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => ChecklistScreen(order: order)),
         );
