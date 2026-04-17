@@ -157,6 +157,15 @@ class FloorPlanRuleEngine {
       totalWidth: widthM,
       totalHeight: heightM,
       objectType: objectType,
+      // === ГЕНЕРАЦИЯ КОНСТРУКТИВНЫХ ЭЛЕМЕНТОВ ===
+      walls: _generateWalls(rooms, widthM, heightM),
+      foundation: _generateFoundation(widthM, heightM),
+      roof: _generateRoof(widthM, heightM),
+      engineeringSystems: _generateEngineeringSystems(rooms, widthM, heightM),
+      axisLines: _generateAxisLines(widthM, heightM),
+      columns: _generateColumns(widthM, heightM),
+      levelMarks: _generateLevelMarks(),
+      dimensionLines: _generateDimensionLines(widthM, heightM),
     );
 
     AppLogger.info(
@@ -371,4 +380,269 @@ class _RoomDefaults {
   final double width;
   final double height;
   const _RoomDefaults({required this.width, required this.height});
+}
+
+// ===== МЕТОДЫ ГЕНЕРАЦИИ КОНСТРУКТИВНЫХ ЭЛЕМЕНТОВ =====
+
+extension _ConstructionGenerator on FloorPlanRuleEngine {
+  /// Генерация наружных стен по периметру + внутренние перегородки
+  List<Wall> _generateWalls(List<Room> rooms, double widthM, double heightM) {
+    const wallThickness = 0.2; // 20 см наружные
+    const partitionThickness = 0.12; // 12 см внутренние
+    const wallHeight = 2.7;
+
+    final walls = <Wall>[
+      // Наружные стены по периметру
+      Wall(
+        x1: 0,
+        y1: 0,
+        x2: widthM,
+        y2: 0,
+        thickness: wallThickness,
+        type: WallType.exterior,
+        isLoadBearing: true,
+        height: wallHeight,
+        material: WallMaterial.brick,
+      ),
+      Wall(
+        x1: widthM,
+        y1: 0,
+        x2: widthM,
+        y2: heightM,
+        thickness: wallThickness,
+        type: WallType.exterior,
+        isLoadBearing: true,
+        height: wallHeight,
+        material: WallMaterial.brick,
+      ),
+      Wall(
+        x1: widthM,
+        y1: heightM,
+        x2: 0,
+        y2: heightM,
+        thickness: wallThickness,
+        type: WallType.exterior,
+        isLoadBearing: true,
+        height: wallHeight,
+        material: WallMaterial.brick,
+      ),
+      Wall(
+        x1: 0,
+        y1: heightM,
+        x2: 0,
+        y2: 0,
+        thickness: wallThickness,
+        type: WallType.exterior,
+        isLoadBearing: true,
+        height: wallHeight,
+        material: WallMaterial.brick,
+      ),
+    ];
+
+    // Внутренние перегородки между комнатами
+    double currentX = 0;
+    for (int i = 0; i < rooms.length - 1; i++) {
+      currentX += rooms[i].width;
+      walls.add(
+        Wall(
+          x1: currentX,
+          y1: 0,
+          x2: currentX,
+          y2: heightM,
+          thickness: partitionThickness,
+          type: WallType.partition,
+          isLoadBearing: false,
+          height: wallHeight,
+          material: WallMaterial.gypsumBoard,
+        ),
+      );
+    }
+
+    return walls;
+  }
+
+  /// Генерация фундамента (ленточный по умолчанию)
+  Foundation _generateFoundation(double widthM, double heightM) {
+    return Foundation(
+      type: FoundationType.strip,
+      width: widthM + 0.4,
+      depth: heightM + 0.4,
+      height: 0.5,
+      embedmentDepth: 1.2,
+      concreteGrade: 'М300',
+      concreteClass: ConcreteClass.B22_5,
+      reinforcement: const ReinforcementInfo(
+        mainBarDiameter: 12,
+        mainBarsCount: 4,
+        stirrupDiameter: 8,
+        stirrupSpacing: 200,
+        rebarClass: 'A500C',
+      ),
+      hasWaterproofing: true,
+      hasInsulation: false,
+      hasDrainage: false,
+      sandCushionThickness: 0.2,
+    );
+  }
+
+  /// Генерация кровли (двускатная по умолчанию)
+  Roof _generateRoof(double widthM, double heightM) {
+    final roofArea = widthM * heightM * 1.3; // с учётом уклона
+
+    return Roof(
+      type: RoofType.gable,
+      area: roofArea,
+      slopeAngle: 30,
+      roofingMaterial: RoofMaterial.metalTile,
+      rafters: RafterSystem(
+        spacing: 600,
+        sectionWidth: 50,
+        sectionHeight: 200,
+        length: widthM / 2 + 0.5,
+        count: (heightM / 0.6).round(),
+        material: RafterMaterial.pine,
+      ),
+      insulation: const RoofInsulation(
+        thickness: 0.2,
+        material: InsulationMaterial.mineralWool,
+      ),
+      hasWaterproofingMembrane: true,
+      hasVaporBarrier: true,
+      hasSnowRetention: true,
+      snowRetentionCount: (widthM / 2).round(),
+    );
+  }
+
+  /// Генерация инженерных систем
+  EngineeringSystems _generateEngineeringSystems(
+    List<Room> rooms,
+    double widthM,
+    double heightM,
+  ) {
+    return EngineeringSystems(
+      heating: HeatingSystem(
+        type: HeatingType.radiators,
+        radiatorCount: rooms.length,
+        pipeLength: widthM * 2 + heightM * 2,
+        boilerPower: (widthM * heightM * 0.1).round().toDouble(),
+        hasWarmFloor: false,
+        warmFloorArea: 0,
+      ),
+      waterSupply: WaterSupplySystem(
+        coldPipeLength: widthM + heightM,
+        hotPipeLength: widthM + heightM,
+        fixtureCount:
+            rooms
+                .where(
+                  (r) =>
+                      r.type == RoomType.bathroom || r.type == RoomType.kitchen,
+                )
+                .length *
+            2,
+        hasWaterHeater: true,
+        waterHeaterVolume: 100,
+      ),
+      sewage: SewageSystem(
+        pipeLength: widthM + heightM,
+        fixtureCount:
+            rooms
+                .where(
+                  (r) =>
+                      r.type == RoomType.bathroom || r.type == RoomType.toilet,
+                )
+                .length *
+            2,
+        hasSeptic: false,
+      ),
+      electrical: ElectricalSystem(
+        cableLength: widthM * heightM * 5,
+        socketCount: rooms.length * 3,
+        switchCount: rooms.length,
+        lightPointCount: rooms.length,
+        breakerCount: 12,
+        hasRCD: true,
+        hasGrounding: true,
+        hasLightningProtection: false,
+        hasSmartHome: false,
+      ),
+      ventilation: VentilationSystem(
+        type: VentilationType.natural,
+        exhaustPoints: 2,
+        supplyPoints: 1,
+        ductLength: widthM + heightM,
+        hasRecuperator: false,
+      ),
+    );
+  }
+
+  /// Генерация осевых линий
+  List<AxisLine> _generateAxisLines(double widthM, double heightM) {
+    return [
+      AxisLine(label: '1', x1: 0, y1: 0, x2: widthM, y2: 0),
+      AxisLine(label: '2', x1: 0, y1: heightM / 2, x2: widthM, y2: heightM / 2),
+      AxisLine(label: 'A', x1: 0, y1: 0, x2: 0, y2: heightM),
+      AxisLine(label: 'B', x1: widthM / 2, y1: 0, x2: widthM / 2, y2: heightM),
+    ];
+  }
+
+  /// Генерация колонн (по углам и пересечениям стен)
+  List<Column> _generateColumns(double widthM, double heightM) {
+    return [
+      // Угловые колонны
+      Column(x: 0, y: 0, width: 0.3, height: 0.3),
+      Column(x: widthM, y: 0, width: 0.3, height: 0.3),
+      Column(x: widthM, y: heightM, width: 0.3, height: 0.3),
+      Column(x: 0, y: heightM, width: 0.3, height: 0.3),
+      // Центральная колонна (если площадь > 50 м²)
+      if (widthM * heightM > 50)
+        Column(x: widthM / 2, y: heightM / 2, width: 0.3, height: 0.3),
+    ];
+  }
+
+  /// Генерация отметок уровней
+  List<LevelMark> _generateLevelMarks() {
+    return [
+      const LevelMark(x: 0, y: 0, level: 0.0, description: 'Пол 1 этажа'),
+      const LevelMark(x: 0, y: 0, level: 2.7, description: 'Потолок'),
+      const LevelMark(
+        x: 0,
+        y: 0,
+        level: -1.2,
+        description: 'Подошва фундамента',
+      ),
+    ];
+  }
+
+  /// Генерация размерных линий
+  List<DimensionLine> _generateDimensionLines(double widthM, double heightM) {
+    return [
+      // Общий габарит по ширине
+      DimensionLine(
+        x1: 0,
+        y1: -0.5,
+        x2: widthM,
+        y2: -0.5,
+        value: widthM.toStringAsFixed(2),
+        offset: 0.5,
+      ),
+      // Общий габарит по высоте
+      DimensionLine(
+        x1: -0.5,
+        y1: 0,
+        x2: -0.5,
+        y2: heightM,
+        value: heightM.toStringAsFixed(2),
+        offset: 0.5,
+      ),
+      // Оси
+      DimensionLine(
+        x1: 0,
+        y1: heightM + 0.5,
+        x2: widthM,
+        y2: heightM + 0.5,
+        value: widthM.toStringAsFixed(2),
+        offset: 0.5,
+      ),
+    ];
+  }
 }

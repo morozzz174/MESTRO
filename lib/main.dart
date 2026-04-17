@@ -34,6 +34,7 @@ void main() async {
 Future<void> _initializePrices() async {
   try {
     final service = PriceListService();
+    // Все 15 типов работ
     final workTypes = [
       'windows',
       'doors',
@@ -43,6 +44,13 @@ Future<void> _initializePrices() async {
       'furniture',
       'engineering',
       'electrical',
+      'foundations',
+      'walls_box',
+      'roofing',
+      'facades',
+      'metal_structures',
+      'external_networks',
+      'house_construction',
     ];
     int totalSynced = 0;
     for (final workType in workTypes) {
@@ -54,7 +62,7 @@ Future<void> _initializePrices() async {
     }
     AppLogger.success(
       'Main',
-      'Синхронизировано $totalSynced цен из прайс-листа',
+      'Синхронизировано $totalSynced цен из прайс-листа (${workTypes.length} типов)',
     );
   } catch (e, st) {
     AppLogger.error('Main', 'Ошибка инициализации цен', e, st);

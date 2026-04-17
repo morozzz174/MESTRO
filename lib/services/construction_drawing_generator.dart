@@ -3,11 +3,13 @@
 /// Соответствует ГОСТ 21.501-2011 (правила оформления строительной документации)
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import '../features/floor_plan/models/floor_plan_models_extended.dart';
 import '../models/order.dart';
+import '../services/app_logger.dart';
 
 class ConstructionDrawingGenerator {
   // ==========================================================================
@@ -19,56 +21,61 @@ class ConstructionDrawingGenerator {
     required Order order,
     String projectName = 'Проект',
   }) async {
-    final pdf = pw.Document();
+    try {
+      final pdf = pw.Document();
 
-    // Шрифты
-    final regular = await _loadFont('arial.ttf');
-    final bold = await _loadFont('arial_bold.ttf');
+      // Шрифты — используем Noto Sans с полной поддержкой кириллицы
+      final regular = await _loadFont('noto_sans_cyrillic.ttf');
+      final bold = await _loadFont('noto_sans_cyrillic.ttf');
 
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4.landscape,
-        margin: const pw.EdgeInsets.all(10),
-        header: (context) => _drawHeader(context, plan, projectName),
-        footer: (context) => _drawFooter(context, plan),
-        build: (context) => [
-          _buildTitlePage(plan, order, projectName, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildPlanView(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildDimensionLines(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildRoomSchedule(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildWallSchedule(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildFoundationSchedule(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildRoofSchedule(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildEngineeringSchedule(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildSpecifications(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildHeatLossCalculation(plan, regular, bold),
-          pw.SizedBox(height: 20),
-          _buildFacadeView(plan, regular, bold, 'Фасад спереди', 'front'),
-          pw.SizedBox(height: 20),
-          _buildFacadeView(plan, regular, bold, 'Фасад сзади', 'back'),
-          pw.SizedBox(height: 20),
-          _buildSectionView(plan, regular, bold, 'Разрез А-А', 'section_a'),
-          pw.SizedBox(height: 20),
-          _buildSectionView(plan, regular, bold, 'Разрез Б-Б', 'section_b'),
-        ],
-      ),
-    );
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4.landscape,
+          margin: const pw.EdgeInsets.all(10),
+          header: (context) => _drawHeader(context, plan, projectName),
+          footer: (context) => _drawFooter(context, plan),
+          build: (context) => [
+            _buildTitlePage(plan, order, projectName, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildPlanView(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildDimensionLines(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildRoomSchedule(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildWallSchedule(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildFoundationSchedule(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildRoofSchedule(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildEngineeringSchedule(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildSpecifications(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildHeatLossCalculation(plan, regular, bold),
+            pw.SizedBox(height: 20),
+            _buildFacadeView(plan, regular, bold, 'Фасад спереди', 'front'),
+            pw.SizedBox(height: 20),
+            _buildFacadeView(plan, regular, bold, 'Фасад сзади', 'back'),
+            pw.SizedBox(height: 20),
+            _buildSectionView(plan, regular, bold, 'Разрез А-А', 'section_a'),
+            pw.SizedBox(height: 20),
+            _buildSectionView(plan, regular, bold, 'Разрез Б-Б', 'section_b'),
+          ],
+        ),
+      );
 
-    final output = await getTemporaryDirectory();
-    final file = File(
-      '${output.path}/Чертеж_${order.clientName}_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-    await file.writeAsBytes(await pdf.save());
-    return file;
+      final output = await getTemporaryDirectory();
+      final file = File(
+        '${output.path}/Чертеж_${order.clientName}_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      );
+      await file.writeAsBytes(await pdf.save());
+      return file;
+    } catch (e, st) {
+      AppLogger.error('ConstructionDrawing', 'Ошибка генерации чертежа', e, st);
+      rethrow;
+    }
   }
 
   // ==========================================================================
@@ -1223,9 +1230,10 @@ class ConstructionDrawingGenerator {
 
   static Future<pw.Font> _loadFont(String assetName) async {
     try {
-      final fontData = File('assets/fonts/$assetName').readAsBytesSync();
-      return pw.Font.ttf(fontData.buffer.asByteData());
-    } catch (_) {
+      final data = await rootBundle.load('assets/fonts/$assetName');
+      return pw.Font.ttf(data.buffer.asByteData());
+    } catch (e) {
+      AppLogger.warn('ConstructionDrawing', 'Шрифт не найден: $e');
       return pw.Font.helvetica();
     }
   }

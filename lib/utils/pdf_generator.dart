@@ -4,23 +4,54 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import '../models/order.dart';
+import '../services/app_logger.dart';
 import '../features/floor_plan/models/floor_plan_models_extended.dart'
     hide Column;
 import '../features/floor_plan/engine/floor_plan_rule_engine.dart';
 
 class PdfGenerator {
-  /// Загрузить шрифт с поддержкой кириллицы из assets
+  static pw.Font? _cachedFont;
+  static pw.Font? _cachedFontBold;
+
+  /// Загрузить шрифт с поддержкой кириллицы
   static Future<pw.Font> _loadFont(String assetName) async {
+    // Возвращаем кэшированный шрифт если есть
+    if (assetName.contains('bold') && _cachedFontBold != null)
+      return _cachedFontBold!;
+    if (_cachedFont != null) return _cachedFont!;
+
     try {
       final data = await rootBundle.load('assets/fonts/$assetName');
-      return pw.Font.ttf(data);
-    } catch (e) {
-      // Fallback: встроенный шрифт (может не поддерживать кириллицу)
+      final bytes = data.buffer.asUint8List(
+        data.offsetInBytes,
+        data.lengthInBytes,
+      );
+      final font = pw.Font.ttf(bytes.buffer.asByteData());
+
+      if (assetName.contains('bold')) {
+        _cachedFontBold = font;
+      } else {
+        _cachedFont = font;
+      }
+
+      AppLogger.info(
+        'PdfGenerator',
+        'Шрифт $assetName загружен (${bytes.length} байт)',
+      );
+      return font;
+    } catch (e, st) {
+      AppLogger.error(
+        'PdfGenerator',
+        'Ошибка загрузки шрифта $assetName',
+        e,
+        st,
+      );
       return pw.Font.helvetica();
     }
   }
 
   static Future<File> generateProposal(Order order) async {
+    // Используем arial.ttf — он содержит кириллицу
     final font = await _loadFont('arial.ttf');
     final fontBold = await _loadFont('arial_bold.ttf');
     final pdf = pw.Document();
@@ -164,9 +195,7 @@ class PdfGenerator {
               );
             }),
           ],
-
-          // Floor Plan — генерация плана помещения на основе замеров
-          ..._buildFloorPlanSection(order, smallStyle),
+          // Floor Plan убран отсюда — генерируется отдельным PDF файлом
         ],
         footer: (context) => pw.Container(
           alignment: pw.Alignment.center,
@@ -625,8 +654,8 @@ class PdfGenerator {
 
   /// Генерация PDF плана помещения (для Floor Plan)
   static Future<File> generateFloorPlanPdf(Order order) async {
-    final font = await _loadFont('arial.ttf');
-    final fontBold = await _loadFont('arial_bold.ttf');
+    final font = await _loadFont('noto_sans_cyrillic.ttf');
+    final fontBold = await _loadFont('noto_sans_cyrillic.ttf');
     final pdf = pw.Document();
 
     final currencyFormat = NumberFormat.currency(
@@ -906,24 +935,267 @@ class PdfGenerator {
   ) {
     // Масштаб: 1 метр = 50 пикселей
     const pixelsPerMeter = 50.0;
+
+    // Генерируем SVG БЕЗ текста (только графика)
+    final svgContent = _generateFloorPlanSVGNoText(plan, pixelsPerMeter);
+
     final planWidth = plan.totalWidth * pixelsPerMeter;
     final planHeight = plan.totalHeight * pixelsPerMeter;
 
-    // Рисуем план как SVG
-    final svgContent = _generateFloorPlanSVG(plan, pixelsPerMeter);
-
-    return pw.Container(
-      width: planWidth,
-      height: planHeight,
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey800, width: 2),
-        color: PdfColors.grey50,
-      ),
-      child: pw.SvgImage(svg: svgContent),
+    // Комбинируем SVG графическую часть и PDF-текст
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        // Графическая часть плана (SVG без текста)
+        pw.Container(
+          width: planWidth,
+          height: planHeight,
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(color: PdfColors.grey800, width: 2),
+            color: PdfColors.grey50,
+          ),
+          child: pw.SvgImage(svg: svgContent),
+        ),
+        pw.SizedBox(height: 12),
+        // Текстовая часть плана (с кириллическим шрифтом)
+        pw.Container(
+          padding: const pw.EdgeInsets.all(12),
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(color: PdfColors.grey400),
+            borderRadius: const pw.BorderRadius.all(pw.Radius.circular(8)),
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'План помещения',
+                style: pw.TextStyle(
+                  fontSize: 14,
+                  fontWeight: pw.FontWeight.bold,
+                  font: fontBold,
+                ),
+              ),
+              pw.SizedBox(height: 6),
+              pw.Text(
+                'Размеры: ${plan.totalWidth.toInt()} × ${plan.totalHeight.toInt()} м',
+                style: pw.TextStyle(fontSize: 10, font: font),
+              ),
+              pw.Text(
+                'Тип: ${_floorPlanTypeLabel(plan.objectType)}',
+                style: pw.TextStyle(fontSize: 10, font: font),
+              ),
+              pw.Text(
+                'Площадь: ${plan.totalArea.toStringAsFixed(1)} м²',
+                style: pw.TextStyle(fontSize: 10, font: font),
+              ),
+              pw.SizedBox(height: 6),
+              pw.Text(
+                'Комнаты:',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  font: font,
+                ),
+              ),
+              ...plan.rooms.map(
+                (room) => pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 12, top: 2),
+                  child: pw.Text(
+                    '${room.type.label} (${room.area.toStringAsFixed(1)} м²)',
+                    style: pw.TextStyle(fontSize: 10, font: font),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  /// Генерировать SVG плана помещения
+  static String _floorPlanTypeLabel(FloorPlanType type) {
+    switch (type) {
+      case FloorPlanType.apartment:
+        return 'Квартира';
+      case FloorPlanType.house:
+        return 'Частный дом';
+      case FloorPlanType.office:
+        return 'Офис';
+      case FloorPlanType.studio:
+        return 'Студия';
+      case FloorPlanType.cottage:
+        return 'Коттедж';
+      case FloorPlanType.duplex:
+        return 'Дуплекс';
+      case FloorPlanType.townhouse:
+        return 'Таунхаус';
+    }
+  }
+
+  /// Генерировать SVG плана помещения БЕЗ текста (текст будет в PDF-виджетах с кириллицей)
+  static String _generateFloorPlanSVGNoText(
+    FloorPlan plan,
+    double pixelsPerMeter,
+  ) {
+    final width = plan.totalWidth * pixelsPerMeter;
+    final height = plan.totalHeight * pixelsPerMeter;
+
+    final buffer = StringBuffer();
+    buffer.writeln('<?xml version="1.0" encoding="UTF-8"?>');
+    buffer.writeln(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="$width" height="$height">',
+    );
+
+    // Фон
+    buffer.writeln('<rect width="$width" height="$height" fill="#f5f5f5"/>');
+
+    // Сетка (1 клетка = 1 метр)
+    buffer.writeln('<g stroke="#e0e0e0" stroke-width="0.5">');
+    for (double x = 0; x <= plan.totalWidth; x += 1) {
+      final px = x * pixelsPerMeter;
+      buffer.writeln('<line x1="$px" y1="0" x2="$px" y2="$height"/>');
+    }
+    for (double y = 0; y <= plan.totalHeight; y += 1) {
+      final py = y * pixelsPerMeter;
+      buffer.writeln('<line x1="0" y1="$py" x2="$width" y2="$py"/>');
+    }
+    buffer.writeln('</g>');
+
+    // Комнаты (только графика, без текста)
+    for (final room in plan.rooms) {
+      final x = room.x * pixelsPerMeter;
+      final y = room.y * pixelsPerMeter;
+      final w = room.width * pixelsPerMeter;
+      final h = room.height * pixelsPerMeter;
+
+      // Цвет комнаты в зависимости от типа
+      String fillColor = '#e3f2fd'; // default
+      switch (room.type) {
+        case RoomType.kitchen:
+          fillColor = '#fff3e0';
+          break;
+        case RoomType.livingRoom:
+          fillColor = '#e8f5e9';
+          break;
+        case RoomType.bedroom:
+          fillColor = '#fce4ec';
+          break;
+        case RoomType.bathroom:
+          fillColor = '#e0f7fa';
+          break;
+        case RoomType.toilet:
+          fillColor = '#f3e5f5';
+          break;
+        case RoomType.hallway:
+          fillColor = '#fff9c4';
+          break;
+        case RoomType.balcony:
+          fillColor = '#e8eaf6';
+          break;
+        case RoomType.storage:
+          fillColor = '#efebe9';
+          break;
+        case RoomType.office:
+          fillColor = '#e0f2f1';
+          break;
+        case RoomType.childrenRoom:
+          fillColor = '#fff3e0';
+          break;
+        case RoomType.garage:
+          fillColor = '#cfd8dc';
+          break;
+        case RoomType.boilerRoom:
+          fillColor = '#ffcdd2';
+          break;
+        case RoomType.terrace:
+          fillColor = '#c8e6c9';
+          break;
+        case RoomType.attic:
+          fillColor = '#e1bee7';
+          break;
+        case RoomType.basement:
+          fillColor = '#eeeeee';
+          break;
+        case RoomType.wardrobe:
+          fillColor = '#ffe0b2';
+          break;
+        case RoomType.laundry:
+          fillColor = '#b2ebf2';
+          break;
+        case RoomType.pantry:
+          fillColor = '#d7ccc8';
+          break;
+        case RoomType.workshop:
+          fillColor = '#ffccbc';
+          break;
+        case RoomType.sauna:
+          fillColor = '#ffab91';
+          break;
+        case RoomType.pool:
+          fillColor = '#81d4fa';
+          break;
+        case RoomType.gym:
+          fillColor = '#ef9a9a';
+          break;
+        case RoomType.cinema:
+          fillColor = '#9fa8da';
+          break;
+        case RoomType.elevator:
+          fillColor = '#b0bec5';
+          break;
+      }
+
+      // Комната (без текста)
+      buffer.writeln(
+        '<rect x="$x" y="$y" width="$w" height="$h" fill="$fillColor" stroke="#1976d2" stroke-width="2"/>',
+      );
+
+      // Двери
+      for (final door in room.doors) {
+        final dx = (room.x + door.x) * pixelsPerMeter;
+        final dy = (room.y + door.y) * pixelsPerMeter;
+        final dw = door.width * pixelsPerMeter;
+
+        buffer.writeln(
+          '<line x1="$dx" y1="$dy" x2="${dx + dw}" y2="$dy" stroke="#795548" stroke-width="3"/>',
+        );
+        // Дуга открывания
+        buffer.writeln(
+          '<path d="M $dx $dy Q ${dx + dw / 2} ${dy - dw / 2} ${dx + dw} $dy" fill="none" stroke="#795548" stroke-width="1" stroke-dasharray="3,3"/>',
+        );
+      }
+
+      // Окна
+      for (final window in room.windows) {
+        final wx = (room.x + window.x) * pixelsPerMeter;
+        final wy = (room.y + window.y) * pixelsPerMeter;
+        final ww = window.width * pixelsPerMeter;
+
+        buffer.writeln(
+          '<rect x="$wx" y="${wy - 3}" width="$ww" height="6" fill="#4fc3f7" stroke="#0288d1" stroke-width="1.5"/>',
+        );
+      }
+      // ТЕКСТ УБРАН — будет добавлен через PDF-виджеты с кириллическим шрифтом
+    }
+
+    // Размерные линии (только линии, без текста)
+    // Верхняя размерная линия
+    final dimY = -10;
+    buffer.writeln(
+      '<line x1="0" y1="$dimY" x2="$width" y2="$dimY" stroke="#333" stroke-width="1"/>',
+    );
+
+    // Правая размерная линия
+    final dimX = width + 10;
+    buffer.writeln(
+      '<line x1="$dimX" y1="0" x2="$dimX" y2="$height" stroke="#333" stroke-width="1"/>',
+    );
+
+    buffer.writeln('</svg>');
+    return buffer.toString();
+  }
+
+  /// Генерировать SVG плана помещения (старая версия с текстом — для совместимости)
   static String _generateFloorPlanSVG(FloorPlan plan, double pixelsPerMeter) {
     final width = plan.totalWidth * pixelsPerMeter;
     final height = plan.totalHeight * pixelsPerMeter;
@@ -1104,6 +1376,8 @@ class PdfGenerator {
   static List<pw.Widget> _buildFloorPlanSection(
     Order order,
     pw.TextStyle smallStyle,
+    pw.Font font,
+    pw.Font fontBold,
   ) {
     final cd = order.checklistData;
 
@@ -1125,7 +1399,11 @@ class PdfGenerator {
       pw.SizedBox(height: 20),
       pw.Text(
         'План помещения',
-        style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+        style: pw.TextStyle(
+          fontSize: 18,
+          fontWeight: pw.FontWeight.bold,
+          font: fontBold,
+        ),
       ),
       pw.SizedBox(height: 10),
       pw.Container(
@@ -1147,6 +1425,7 @@ class PdfGenerator {
                   style: pw.TextStyle(
                     fontSize: 12,
                     fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
                   ),
                 ),
               ],
@@ -1156,7 +1435,10 @@ class PdfGenerator {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text('Тип помещения:', style: smallStyle),
-                pw.Text(plan.objectType.label),
+                pw.Text(
+                  _floorPlanTypeLabel(plan.objectType),
+                  style: pw.TextStyle(font: font),
+                ),
               ],
             ),
             pw.SizedBox(height: 4),
@@ -1166,7 +1448,10 @@ class PdfGenerator {
                 pw.Text('Площадь:', style: smallStyle),
                 pw.Text(
                   '${plan.totalArea.toStringAsFixed(1)} м²',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold,
+                    font: fontBold,
+                  ),
                 ),
               ],
             ),
@@ -1178,6 +1463,7 @@ class PdfGenerator {
                   padding: const pw.EdgeInsets.only(left: 12, top: 2),
                   child: pw.Text(
                     '• ${room.type.label} (${room.area.toStringAsFixed(1)} м²)',
+                    style: pw.TextStyle(font: font),
                   ),
                 ),
               ),

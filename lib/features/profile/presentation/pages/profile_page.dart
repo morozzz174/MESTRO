@@ -72,6 +72,39 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  /// Показать диалог о необходимости Премиум
+  void _showPremiumDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.lock_outline, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Требуется Премиум'),
+          ],
+        ),
+        content: const Text(
+          'Эта функция доступна только для подписчиков Премиум.\n\n'
+          'Получите доступ ко всем возможностям приложения.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Позже'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, '/subscription');
+            },
+            child: const Text('Оформить Премиум'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Смена аватара пользователя
   Future<void> _changeAvatar() async {
     final picker = ImagePicker();
@@ -351,7 +384,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 AppDesign.separator(),
                 ListTile(
-                  leading: Icon(Icons.person_outline, size: 20, color: AppDesign.midBlueGray),
+                  leading: Icon(
+                    Icons.person_outline,
+                    size: 20,
+                    color: AppDesign.midBlueGray,
+                  ),
                   title: Text('ФИО', style: AppDesign.captionStyle),
                   subtitle: Text(_user!.fullName ?? 'Не указано'),
                   trailing: IconButton(
@@ -463,9 +500,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
         // Премиум подписка
         InkWell(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
-          ),
+          onTap: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const SubscriptionScreen())),
           borderRadius: BorderRadius.circular(AppDesign.radiusCard),
           child: Container(
             decoration: BoxDecoration(
@@ -487,18 +524,17 @@ class _ProfilePageState extends State<ProfilePage> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: (_isPremium
-                              ? const Color(0xFF4CAF50)
-                              : AppDesign.primaryDark)
-                          .withOpacity(0.15),
+                      color:
+                          (_isPremium
+                                  ? const Color(0xFF4CAF50)
+                                  : AppDesign.primaryDark)
+                              .withOpacity(0.15),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
                     child: Icon(
-                      _isPremium
-                          ? Icons.workspace_premium
-                          : Icons.lock_outline,
+                      _isPremium ? Icons.workspace_premium : Icons.lock_outline,
                       color: _isPremium
                           ? const Color(0xFF4CAF50)
                           : AppDesign.primaryDark,
@@ -513,9 +549,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           _isPremium ? 'Премиум активен' : 'Премиум подписка',
                           style: AppDesign.subtitleStyle.copyWith(
-                            color: _isPremium
-                                ? const Color(0xFF4CAF50)
-                                : null,
+                            color: _isPremium ? const Color(0xFF4CAF50) : null,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -540,56 +574,111 @@ class _ProfilePageState extends State<ProfilePage> {
 
         const SizedBox(height: AppDesign.spacing16),
 
-        // Настройки уведомлений
-        Container(
-          decoration: AppDesign.cardDecoration,
-          child: Padding(
-            padding: const EdgeInsets.all(AppDesign.spacing16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.notifications_active,
-                      color: AppDesign.accentTeal,
-                    ),
-                    const SizedBox(width: AppDesign.spacing8),
-                    Text('Уведомления', style: AppDesign.subtitleStyle),
-                  ],
-                ),
-                const SizedBox(height: AppDesign.spacing16),
-                _InfoRow(
-                  icon: Icons.alarm,
-                  label: 'За 1 час до замера',
-                  value: 'Локальное ✓',
-                ),
-                AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.alarm,
-                  label: 'За 30 мин до замера',
-                  value: 'Локальное ✓',
-                ),
-                AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.sms,
-                  label: 'Клиенту за 24 часа',
-                  value: 'SMS (настр.)',
-                ),
-                AppDesign.separator(),
-                _InfoRow(
-                  icon: Icons.sms,
-                  label: 'Клиенту за 2 часа',
-                  value: 'SMS (настр.)',
-                ),
-                const SizedBox(height: AppDesign.spacing12),
-                Text(
-                  'Для SMS-уведомлений укажите API ключ в настройках приложения.',
-                  style: AppDesign.captionStyle.copyWith(
-                    fontStyle: FontStyle.italic,
+        // Настройки уведомлений (только для премиума)
+        GestureDetector(
+          onTap: !_isPremium ? () => _showPremiumDialog(context) : null,
+          child: Container(
+            decoration: AppDesign.cardDecoration,
+            child: Padding(
+              padding: const EdgeInsets.all(AppDesign.spacing16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.notifications_active,
+                        color: _isPremium ? AppDesign.accentTeal : Colors.grey,
+                      ),
+                      const SizedBox(width: AppDesign.spacing8),
+                      Text(
+                        'Уведомления',
+                        style: AppDesign.subtitleStyle.copyWith(
+                          color: _isPremium ? null : Colors.grey,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!_isPremium)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.orange.shade200),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.lock,
+                                size: 12,
+                                color: Colors.orange,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Премиум',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.orange.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: AppDesign.spacing16),
+                  _InfoRow(
+                    icon: Icons.alarm,
+                    label: 'За 1 час до замера',
+                    value: _isPremium ? 'Локальное ✓' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  AppDesign.separator(),
+                  _InfoRow(
+                    icon: Icons.alarm,
+                    label: 'За 30 мин до замера',
+                    value: _isPremium ? 'Локальное ✓' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  AppDesign.separator(),
+                  _InfoRow(
+                    icon: Icons.sms,
+                    label: 'Клиенту за 24 часа',
+                    value: _isPremium ? 'SMS (настр.)' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  AppDesign.separator(),
+                  _InfoRow(
+                    icon: Icons.sms,
+                    label: 'Клиенту за 2 часа',
+                    value: _isPremium ? 'SMS (настр.)' : '—',
+                    valueColor: _isPremium ? null : Colors.grey,
+                  ),
+                  if (_isPremium) ...[
+                    const SizedBox(height: AppDesign.spacing12),
+                    Text(
+                      'Для SMS-уведомлений укажите API ключ в настройках приложения.',
+                      style: AppDesign.captionStyle.copyWith(
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ] else ...[
+                    const SizedBox(height: AppDesign.spacing12),
+                    Text(
+                      'Доступно в Премиум подписке',
+                      style: AppDesign.captionStyle.copyWith(
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
@@ -632,67 +721,108 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Text('Управление данными', style: AppDesign.subtitleStyle),
                 const SizedBox(height: AppDesign.spacing16),
-                // Экспорт в Excel
+                // Экспорт в Excel (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppDesign.accentTeal.withOpacity(0.12),
+                      color: _isPremium
+                          ? AppDesign.accentTeal.withOpacity(0.12)
+                          : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.table_chart,
-                      color: AppDesign.accentTeal,
+                      color: _isPremium ? AppDesign.accentTeal : Colors.grey,
                     ),
                   ),
-                  title: const Text('Экспорт в Excel'),
-                  subtitle: const Text('Выгрузка заявок с ценами'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _exportToExcel,
+                  title: Text(
+                    'Экспорт в Excel',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  subtitle: Text(
+                    _isPremium
+                        ? 'Выгрузка заявок с ценами'
+                        : 'Доступно в Премиум',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  trailing: Icon(
+                    _isPremium ? Icons.chevron_right : Icons.lock,
+                    color: _isPremium ? null : Colors.grey,
+                  ),
+                  onTap: _isPremium
+                      ? _exportToExcel
+                      : () => _showPremiumDialog(context),
                 ),
                 AppDesign.separator(),
-                // Резервная копия
+                // Резервная копия (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppDesign.deepSteelBlue.withOpacity(0.12),
+                      color: _isPremium
+                          ? AppDesign.deepSteelBlue.withOpacity(0.12)
+                          : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.cloud_upload,
-                      color: AppDesign.deepSteelBlue,
+                      color: _isPremium ? AppDesign.deepSteelBlue : Colors.grey,
                     ),
                   ),
-                  title: const Text('Резервная копия'),
-                  subtitle: const Text('Экспорт базы данных'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _exportDatabase,
+                  title: Text(
+                    'Резервная копия',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  subtitle: Text(
+                    _isPremium ? 'Экспорт базы данных' : 'Доступно в Премиум',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  trailing: Icon(
+                    _isPremium ? Icons.chevron_right : Icons.lock,
+                    color: _isPremium ? null : Colors.grey,
+                  ),
+                  onTap: _isPremium
+                      ? _exportDatabase
+                      : () => _showPremiumDialog(context),
                 ),
                 AppDesign.separator(),
-                // Восстановление
+                // Восстановление (только для премиума)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppDesign.midBlueGray.withOpacity(0.12),
+                      color: _isPremium
+                          ? AppDesign.midBlueGray.withOpacity(0.12)
+                          : Colors.grey.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(
                         AppDesign.radiusListItem,
                       ),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.cloud_download,
-                      color: AppDesign.midBlueGray,
+                      color: _isPremium ? AppDesign.midBlueGray : Colors.grey,
                     ),
                   ),
-                  title: const Text('Восстановить из копии'),
-                  subtitle: const Text('Импорт базы данных'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: _importDatabase,
+                  title: Text(
+                    'Восстановить из копии',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  subtitle: Text(
+                    _isPremium ? 'Импорт базы данных' : 'Доступно в Премиум',
+                    style: TextStyle(color: _isPremium ? null : Colors.grey),
+                  ),
+                  trailing: Icon(
+                    _isPremium ? Icons.chevron_right : Icons.lock,
+                    color: _isPremium ? null : Colors.grey,
+                  ),
+                  onTap: _isPremium
+                      ? _importDatabase
+                      : () => _showPremiumDialog(context),
                 ),
               ],
             ),
@@ -730,11 +860,13 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Color? valueColor;
 
   const _InfoRow({
     required this.icon,
     required this.label,
     required this.value,
+    this.valueColor,
   });
 
   @override
@@ -751,7 +883,10 @@ class _InfoRow extends StatelessWidget {
               children: [
                 Text(label, style: AppDesign.captionStyle),
                 const SizedBox(height: AppDesign.spacing4),
-                Text(value, style: AppDesign.bodyStyle),
+                Text(
+                  value,
+                  style: AppDesign.bodyStyle.copyWith(color: valueColor),
+                ),
               ],
             ),
           ),

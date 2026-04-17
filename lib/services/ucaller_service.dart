@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 /// Сервис для работы с API ucaller.ru
+/// Документация: https://ucaller.ru/docs/api/
 class UCallerService {
-  static const String _baseUrl = 'https://api.ucaller.ru';
+  // API v2 — актуальная версия
+  static const String _baseUrl = 'https://api.ucaller.ru/v2';
 
   /// ID сервиса из личного кабинета ucaller
   final int serviceId;

@@ -45,6 +45,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
   bool _isAIOptimized = false;
   bool _isAIFloorPlanGenerated = false;
   bool _isEditing = false;
+  bool _is25DMode = false;
+  bool _isPanelExpanded = true;
+  double _panelHeight = 380;
   final TransformationController _transformationController =
       TransformationController();
 
@@ -196,10 +199,8 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     final rooms = <RoomState>[];
 
     for (final room in plan.rooms) {
-      // Генерируем уникальный ID для комнаты
       final roomId = const Uuid().v4();
 
-      // Конвертируем двери
       final doors = room.doors
           .map(
             (door) => DoorState(
@@ -212,7 +213,6 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           )
           .toList();
 
-      // Конвертируем окна
       final windows = room.windows
           .map(
             (window) => WindowState(
@@ -243,6 +243,193 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
       rooms: rooms,
       totalWidth: plan.totalWidth,
       totalHeight: plan.totalHeight,
+      walls: plan.walls
+          .map(
+            (w) => WallState(
+              id: const Uuid().v4(),
+              x1: w.x1,
+              y1: w.y1,
+              x2: w.x2,
+              y2: w.y2,
+              thickness: w.thickness,
+              type: w.type.name,
+              material: w.material.name,
+              height: w.height,
+              isLoadBearing: w.isLoadBearing,
+              insulationThickness: w.insulationThickness,
+            ),
+          )
+          .toList(),
+      foundation: plan.foundation != null
+          ? FoundationState(
+              id: 'foundation',
+              type: plan.foundation!.type.name,
+              width: plan.foundation!.width,
+              depth: plan.foundation!.depth,
+              height: plan.foundation!.height,
+              embedmentDepth: plan.foundation!.embedmentDepth,
+              concreteGrade: plan.foundation!.concreteGrade,
+              concreteClass: plan.foundation!.concreteClass.name,
+              mainBarDiameter: plan.foundation!.reinforcement.mainBarDiameter,
+              mainBarsCount: plan.foundation!.reinforcement.mainBarsCount,
+              stirrupDiameter: plan.foundation!.reinforcement.stirrupDiameter,
+              stirrupSpacing: plan.foundation!.reinforcement.stirrupSpacing,
+              rebarClass: plan.foundation!.reinforcement.rebarClass,
+              hasWaterproofing: plan.foundation!.hasWaterproofing,
+              hasInsulation: plan.foundation!.hasInsulation,
+              hasDrainage: plan.foundation!.hasDrainage,
+              sandCushionThickness: plan.foundation!.sandCushionThickness,
+            )
+          : null,
+      roof: plan.roof != null
+          ? RoofState(
+              id: 'roof',
+              type: plan.roof!.type.name,
+              area: plan.roof!.area,
+              slopeAngle: plan.roof!.slopeAngle,
+              roofingMaterial: plan.roof!.roofingMaterial.name,
+              rafterSpacing: plan.roof!.rafters.spacing,
+              rafterSectionWidth: plan.roof!.rafters.sectionWidth,
+              rafterSectionHeight: plan.roof!.rafters.sectionHeight,
+              rafterLength: plan.roof!.rafters.length,
+              rafterCount: plan.roof!.rafters.count,
+              rafterMaterial: plan.roof!.rafters.material.name,
+              insulationThickness: plan.roof!.insulation.thickness,
+              insulationMaterial: plan.roof!.insulation.material.name,
+              hasWaterproofingMembrane: plan.roof!.hasWaterproofingMembrane,
+              hasVaporBarrier: plan.roof!.hasVaporBarrier,
+              hasSnowRetention: plan.roof!.hasSnowRetention,
+              snowRetentionCount: plan.roof!.snowRetentionCount,
+            )
+          : null,
+      engineeringSystems: plan.engineeringSystems != null
+          ? EngineeringSystemsState(
+              heating: plan.engineeringSystems!.heating != null
+                  ? HeatingSystemState(
+                      type: plan.engineeringSystems!.heating!.type.name,
+                      radiatorCount:
+                          plan.engineeringSystems!.heating!.radiatorCount,
+                      pipeLength: plan.engineeringSystems!.heating!.pipeLength,
+                      boilerPower:
+                          plan.engineeringSystems!.heating!.boilerPower,
+                      hasWarmFloor:
+                          plan.engineeringSystems!.heating!.hasWarmFloor,
+                      warmFloorArea:
+                          plan.engineeringSystems!.heating!.warmFloorArea,
+                    )
+                  : null,
+              waterSupply: plan.engineeringSystems!.waterSupply != null
+                  ? WaterSupplyState(
+                      coldPipeLength:
+                          plan.engineeringSystems!.waterSupply!.coldPipeLength,
+                      hotPipeLength:
+                          plan.engineeringSystems!.waterSupply!.hotPipeLength,
+                      fixtureCount:
+                          plan.engineeringSystems!.waterSupply!.fixtureCount,
+                      hasWaterHeater:
+                          plan.engineeringSystems!.waterSupply!.hasWaterHeater,
+                      waterHeaterVolume: plan
+                          .engineeringSystems!
+                          .waterSupply!
+                          .waterHeaterVolume,
+                    )
+                  : null,
+              electrical: plan.engineeringSystems!.electrical != null
+                  ? ElectricalState(
+                      cableLength:
+                          plan.engineeringSystems!.electrical!.cableLength,
+                      socketCount:
+                          plan.engineeringSystems!.electrical!.socketCount,
+                      switchCount:
+                          plan.engineeringSystems!.electrical!.switchCount,
+                      lightPointCount:
+                          plan.engineeringSystems!.electrical!.lightPointCount,
+                      breakerCount:
+                          plan.engineeringSystems!.electrical!.breakerCount,
+                      hasRCD: plan.engineeringSystems!.electrical!.hasRCD,
+                      hasGrounding:
+                          plan.engineeringSystems!.electrical!.hasGrounding,
+                      hasLightningProtection: plan
+                          .engineeringSystems!
+                          .electrical!
+                          .hasLightningProtection,
+                      hasSmartHome:
+                          plan.engineeringSystems!.electrical!.hasSmartHome,
+                    )
+                  : null,
+              ventilation: plan.engineeringSystems!.ventilation != null
+                  ? VentilationState(
+                      type: plan.engineeringSystems!.ventilation!.type.name,
+                      exhaustPoints:
+                          plan.engineeringSystems!.ventilation!.exhaustPoints,
+                      supplyPoints:
+                          plan.engineeringSystems!.ventilation!.supplyPoints,
+                      ductLength:
+                          plan.engineeringSystems!.ventilation!.ductLength,
+                      hasRecuperator:
+                          plan.engineeringSystems!.ventilation!.hasRecuperator,
+                    )
+                  : null,
+              sewage: plan.engineeringSystems!.sewage != null
+                  ? SewageState(
+                      pipeLength: plan.engineeringSystems!.sewage!.pipeLength,
+                      fixtureCount:
+                          plan.engineeringSystems!.sewage!.fixtureCount,
+                      hasSeptic: plan.engineeringSystems!.sewage!.hasSeptic,
+                      septicType:
+                          plan.engineeringSystems!.sewage!.septicType?.name,
+                    )
+                  : null,
+            )
+          : null,
+      axisLines: plan.axisLines
+          .map(
+            (a) => AxisLineState(
+              id: const Uuid().v4(),
+              label: a.label,
+              x1: a.x1,
+              y1: a.y1,
+              x2: a.x2,
+              y2: a.y2,
+            ),
+          )
+          .toList(),
+      dimensionLines: plan.dimensionLines
+          .map(
+            (d) => DimensionLineState(
+              id: const Uuid().v4(),
+              x1: d.x1,
+              y1: d.y1,
+              x2: d.x2,
+              y2: d.y2,
+              value: d.value,
+              offset: d.offset,
+            ),
+          )
+          .toList(),
+      levelMarks: plan.levelMarks
+          .map(
+            (l) => LevelMarkState(
+              id: const Uuid().v4(),
+              x: l.x,
+              y: l.y,
+              level: l.level,
+              description: l.description,
+            ),
+          )
+          .toList(),
+      columns: plan.columns
+          .map(
+            (c) => ColumnState(
+              id: const Uuid().v4(),
+              x: c.x,
+              y: c.y,
+              width: c.width,
+              height: c.height,
+              material: c.material.name,
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -1201,12 +1388,9 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                 onAddElectrical: _addElectrical,
                 onReset: _resetPlan,
               ),
-            // Панель конструктива
+            // Панель конструктива (перетаскиваемая)
             if (_editorState != null && _isEditing)
-              ConstructionPanel(
-                state: _editorState!,
-                onChanged: _onEditorChanged,
-              ),
+              _buildDraggableConstructionPanel(),
             // AI кнопка
             if (!_isEditing)
               Padding(
@@ -1251,6 +1435,19 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Кнопка переключения 2D/2.5D
+                  FloatingActionButton(
+                    heroTag: 'view_mode',
+                    onPressed: () => setState(() => _is25DMode = !_is25DMode),
+                    backgroundColor: _is25DMode
+                        ? Colors.orange
+                        : AppDesign.deepSteelBlue,
+                    child: Icon(
+                      _is25DMode ? Icons.view_in_ar : Icons.view_quilt,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   FloatingActionButton(
                     heroTag: 'zoom_in',
                     onPressed: () =>
@@ -1327,14 +1524,28 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                         padding: const EdgeInsets.all(40),
                         child: CustomPaint(
                           size: Size(
-                            _plan!.totalWidth * 50 * _zoom,
-                            _plan!.totalHeight * 50 * _zoom,
+                            (_is25DMode
+                                    ? (_plan!.totalWidth + _plan!.totalHeight) *
+                                          40
+                                    : _plan!.totalWidth * 50) *
+                                _zoom,
+                            (_is25DMode
+                                    ? (_plan!.totalWidth + _plan!.totalHeight) *
+                                          25
+                                    : _plan!.totalHeight * 50) *
+                                _zoom,
                           ),
-                          painter: FloorPlanPainter(
-                            _plan!,
-                            50 * _zoom,
-                            editorState: _editorState,
-                          ),
+                          painter: _is25DMode
+                              ? IsoPlanPainter(
+                                  _plan!,
+                                  40 * _zoom,
+                                  editorState: _editorState,
+                                )
+                              : FloorPlanPainter(
+                                  _plan!,
+                                  50 * _zoom,
+                                  editorState: _editorState,
+                                ),
                         ),
                       ),
                     ),
@@ -1451,6 +1662,142 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
               _InfoItem('Жилая', '${_plan!.livingArea.toStringAsFixed(1)} м²'),
               _InfoItem('Комнат', '${_plan!.roomCount}'),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Перетаскиваемая панель конструктива
+  Widget _buildDraggableConstructionPanel() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      height: _isPanelExpanded ? _panelHeight : 50,
+      decoration: BoxDecoration(
+        color: AppDesign.cardBackground,
+        boxShadow: [
+          BoxShadow(
+            color: AppDesign.deepSteelBlue.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Перетаскиваемая ручка
+          GestureDetector(
+            onVerticalDragUpdate: (details) {
+              setState(() {
+                _panelHeight = (_panelHeight - details.delta.dy).clamp(
+                  50.0,
+                  500.0,
+                );
+                if (_panelHeight < 100) {
+                  _isPanelExpanded = false;
+                } else {
+                  _isPanelExpanded = true;
+                }
+              });
+            },
+            onDoubleTap: () {
+              setState(() {
+                _isPanelExpanded = !_isPanelExpanded;
+                _panelHeight = _isPanelExpanded ? 380 : 50;
+              });
+            },
+            child: Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppDesign.deepSteelBlue, AppDesign.accentTeal],
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.drag_indicator, color: Colors.white70),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.construction, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Конструктив',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const Spacer(),
+                  // Статистика элементов
+                  _buildElementCountBadge(
+                    Icons.wallpaper,
+                    '${_editorState!.walls.length}',
+                    'стен',
+                  ),
+                  const SizedBox(width: 8),
+                  _buildElementCountBadge(
+                    Icons.foundation,
+                    _editorState!.foundation != null ? '1' : '0',
+                    'фунд.',
+                  ),
+                  const SizedBox(width: 8),
+                  _buildElementCountBadge(
+                    Icons.roofing,
+                    _editorState!.roof != null ? '1' : '0',
+                    'кров.',
+                  ),
+                  const SizedBox(width: 16),
+                  IconButton(
+                    icon: Icon(
+                      _isPanelExpanded
+                          ? Icons.keyboard_arrow_down
+                          : Icons.keyboard_arrow_up,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPanelExpanded = !_isPanelExpanded;
+                        _panelHeight = _isPanelExpanded ? 380 : 50;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Контент панели
+          if (_isPanelExpanded && _editorState != null)
+            Expanded(
+              child: ConstructionPanel(
+                state: _editorState!,
+                onChanged: _onEditorChanged,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildElementCountBadge(IconData icon, String count, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 14),
+          const SizedBox(width: 4),
+          Text(
+            '$count',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
