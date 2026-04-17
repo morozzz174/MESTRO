@@ -111,10 +111,7 @@ class VoiceInputService {
   /// Извлечь структурированные данные из распознанного текста
   /// Для окон — использует extractDataForWindows
   /// Для дверей — extractDataForDoors и т.д.
-  Map<String, dynamic> extractDataForWorkType(
-    String text,
-    String workTypeKey,
-  ) {
+  Map<String, dynamic> extractDataForWorkType(String text, String workTypeKey) {
     switch (workTypeKey) {
       case 'windows':
         return extractDataForWindows(text);
@@ -146,6 +143,20 @@ class VoiceInputService {
         return extractDataForMetalStructures(text);
       case 'external_networks':
         return extractDataForExternalNetworks(text);
+      case 'fences':
+        return extractDataForFences(text);
+      case 'canopies':
+        return extractDataForCanopies(text);
+      case 'saunas':
+        return extractDataForSaunas(text);
+      case 'pools':
+        return extractDataForPools(text);
+      case 'garages':
+        return extractDataForGarages(text);
+      case 'ventilation':
+        return extractDataForVentilation(text);
+      case 'ventilated_facades':
+        return extractDataForVentilatedFacades(text);
       default:
         return extractDataForWindows(text);
     }
@@ -187,7 +198,8 @@ class VoiceInputService {
     if (lower.contains('поворотн.*?откидн') ||
         (lower.contains('поворотн') && lower.contains('откидн'))) {
       data['opening_type'] = 'поворотно-откидное';
-    } else if (lower.contains('раздвижн') || lower.contains('сдвижн') ||
+    } else if (lower.contains('раздвижн') ||
+        lower.contains('сдвижн') ||
         lower.contains('слайд')) {
       data['opening_type'] = 'раздвижное';
     } else if (lower.contains('глух') || lower.contains('не открыв')) {
@@ -335,7 +347,8 @@ class VoiceInputService {
     final lower = text.toLowerCase();
 
     // Тип монтажа
-    if (lower.contains('сложн') || lower.contains('альпин') ||
+    if (lower.contains('сложн') ||
+        lower.contains('альпин') ||
         lower.contains('леса')) {
       data['install_type'] = 'complex';
     } else {
@@ -362,8 +375,10 @@ class VoiceInputService {
     }
 
     // Wi-Fi модуль
-    if (lower.contains('wi-?fi') || lower.contains('вай.*?фай') ||
-        lower.contains('вайфай') || lower.contains('модуль')) {
+    if (lower.contains('wi-?fi') ||
+        lower.contains('вай.*?фай') ||
+        lower.contains('вайфай') ||
+        lower.contains('модуль')) {
       data['has_wifi_module'] = true;
     }
 
@@ -522,7 +537,8 @@ class VoiceInputService {
     }
 
     // Тёплый пол
-    if (lower.contains('тёпл.*?пол') || lower.contains('тепл.*?пол') ||
+    if (lower.contains('тёпл.*?пол') ||
+        lower.contains('тепл.*?пол') ||
         lower.contains('подогрев')) {
       data['has_underfloor_heating'] = true;
       final heatingArea = _extractDouble(lower, [
@@ -587,7 +603,8 @@ class VoiceInputService {
     }
 
     // Двери
-    if (lower.contains('раздвижн') || lower.contains('слайд') ||
+    if (lower.contains('раздвижн') ||
+        lower.contains('слайд') ||
         lower.contains('купе')) {
       data['door_type'] = 'раздвижные';
     } else {
@@ -621,7 +638,8 @@ class VoiceInputService {
         data['boiler_type'] = 'Газовый';
       } else if (lower.contains('электр')) {
         data['boiler_type'] = 'Электрический';
-      } else if (lower.contains('твёрд') || lower.contains('тверд') ||
+      } else if (lower.contains('твёрд') ||
+          lower.contains('тверд') ||
           lower.contains('пеллет')) {
         data['boiler_type'] = 'Твёрдотопливный';
       }
@@ -636,7 +654,8 @@ class VoiceInputService {
       } else if (lower.contains('настенн')) {
         data['boiler_position'] = 'Настенный';
       }
-    } else if (lower.contains('отоплен') || lower.contains('радиатор') ||
+    } else if (lower.contains('отоплен') ||
+        lower.contains('радиатор') ||
         lower.contains('батаре')) {
       data['system_type'] = 'Отопление';
       final sections = _extractInt(lower, [
@@ -651,7 +670,8 @@ class VoiceInputService {
       } else if (lower.contains('чугун')) {
         data['radiator_type'] = 'чугун';
       }
-    } else if (lower.contains('водоснабжен') || lower.contains('водопровод') ||
+    } else if (lower.contains('водоснабжен') ||
+        lower.contains('водопровод') ||
         lower.contains('вод')) {
       data['system_type'] = 'Водоснабжение';
     } else if (lower.contains('канализац') || lower.contains('сточн')) {
@@ -661,7 +681,8 @@ class VoiceInputService {
     }
 
     // Утепление
-    if (lower.contains('утеплен') || lower.contains('утепл') ||
+    if (lower.contains('утеплен') ||
+        lower.contains('утепл') ||
         lower.contains('изоляц')) {
       data['has_insulation'] = true;
     }
@@ -726,7 +747,8 @@ class VoiceInputService {
     }
 
     // Щиток
-    if (lower.contains('трёхфазн') || lower.contains('380') ||
+    if (lower.contains('трёхфазн') ||
+        lower.contains('380') ||
         lower.contains('три фаз')) {
       data['input_voltage'] = 'Трёхфазный 380В';
     } else {
@@ -752,7 +774,8 @@ class VoiceInputService {
     }
 
     // Умный дом
-    if (lower.contains('умн.*?дом') || lower.contains('smart.*?home') ||
+    if (lower.contains('умн.*?дом') ||
+        lower.contains('smart.*?home') ||
         lower.contains('умный дом')) {
       data['has_smart_home'] = true;
     }
@@ -863,10 +886,12 @@ class VoiceInputService {
     // Материал стен
     if (lower.contains('кирпич') || lower.contains('керамич')) {
       data['wall_material'] = 'кирпич';
-    } else if (lower.contains('газоблок') || lower.contains('газобетон') ||
+    } else if (lower.contains('газоблок') ||
+        lower.contains('газобетон') ||
         lower.contains('блок')) {
       data['wall_material'] = 'газоблок';
-    } else if (lower.contains('дерев') || lower.contains('брус') ||
+    } else if (lower.contains('дерев') ||
+        lower.contains('брус') ||
         lower.contains('бревен')) {
       data['wall_material'] = 'дерево';
     } else if (lower.contains('каркасн')) {
@@ -876,7 +901,8 @@ class VoiceInputService {
     // Перекрытия
     if (lower.contains('деревянн') && lower.contains('перекрыт')) {
       data['ceiling_type'] = 'деревянные';
-    } else if (lower.contains('жб') || lower.contains('железобетон') ||
+    } else if (lower.contains('жб') ||
+        lower.contains('железобетон') ||
         lower.contains('плит')) {
       data['ceiling_type'] = 'ж/б плиты';
     }
@@ -993,7 +1019,8 @@ class VoiceInputService {
     }
 
     // Декоративные элементы
-    if (lower.contains('декор') || lower.contains('карниз') ||
+    if (lower.contains('декор') ||
+        lower.contains('карниз') ||
         lower.contains('пилястр')) {
       data['has_decorative_elements'] = true;
     }
@@ -1012,7 +1039,8 @@ class VoiceInputService {
     // Тип кровли
     if (lower.contains('металлочерепиц') || lower.contains('металл')) {
       data['roof_type'] = 'металлочерепица';
-    } else if (lower.contains('мягк') || lower.contains('гибк') ||
+    } else if (lower.contains('мягк') ||
+        lower.contains('гибк') ||
         lower.contains('черепиц')) {
       data['roof_type'] = 'мягкая кровля';
     } else if (lower.contains('профнастил') || lower.contains('профлист')) {
@@ -1070,10 +1098,12 @@ class VoiceInputService {
     final lower = text.toLowerCase();
 
     // Тип конструкции
-    if (lower.contains('навес') || lower.contains('козырек') ||
+    if (lower.contains('навес') ||
+        lower.contains('козырек') ||
         lower.contains('козырёк')) {
       data['metal_structure_type'] = 'навес';
-    } else if (lower.contains('ангар') || lower.contains('склад') ||
+    } else if (lower.contains('ангар') ||
+        lower.contains('склад') ||
         lower.contains('ангарн')) {
       data['metal_structure_type'] = 'ангар';
     } else if (lower.contains('лестниц')) {
@@ -1090,7 +1120,8 @@ class VoiceInputService {
     if (weight != null) data['metal_weight'] = weight;
 
     // Антикоррозийная обработка
-    if (lower.contains('антикорроз') || lower.contains('грунтовк') ||
+    if (lower.contains('антикорроз') ||
+        lower.contains('грунтовк') ||
         lower.contains('покраск')) {
       data['has_antikorrosion'] = true;
     }

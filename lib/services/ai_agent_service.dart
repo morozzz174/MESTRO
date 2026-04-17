@@ -758,4 +758,359 @@ class SmartChecklistAnalyzer {
 
     return score.clamp(0.0, 1.0);
   }
+
+  // ===== Анализ новых типов работ =====
+
+  List<AIInsight> _analyzeFences(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final length = (data['fence_length'] as num?)?.toDouble() ?? 0;
+    final height = (data['fence_height'] as num?)?.toDouble() ?? 0;
+
+    if (height > 2.5) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Высокий забор',
+          description:
+              'Забор выше 2.5м требует усиленной конструкции и可能有 разрешения.',
+          suggestion: 'Рекомендуется использовать профильные столбы 80х80мм',
+        ),
+      );
+    }
+
+    if (data['gate_automat'] == true && data['gate_type'] == 'распашные') {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.medium,
+          title: 'Автоматика на распашные ворота',
+          description:
+              'Для распашных ворот требуется мощный привод и свободное пространство для открывания.',
+        ),
+      );
+    }
+
+    if (data['terrain_type'] == 'перепад_высот' &&
+        (data['height_difference'] as num?)?.toDouble() != null) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Перепад высот',
+          description:
+              'При большом перепаде высот рекомендуется ступенчатая установка забора.',
+        ),
+      );
+    }
+
+    return insights;
+  }
+
+  List<AIInsight> _analyzeCanopies(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final area = (data['area'] as num?)?.toDouble() ?? 0;
+    final roofType = data['roof_type'] as String?;
+
+    if (area > 50) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Большая площадь навеса',
+          description:
+              'Навес более 50м² требует усиленного каркаса и расчёта на снеговую нагрузку.',
+          suggestion: 'Используйте профильную трубу 80х80мм или 100х100мм',
+        ),
+      );
+    }
+
+    if (roofType == 'купольная') {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Купольная кровля',
+          description:
+              'Купольная форма требует специального каркаса и поликарбоната.',
+        ),
+      );
+    }
+
+    if (data['has_foundation'] == false &&
+        data['placement'] != 'пристройка к дому') {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Нет фундамента',
+          description:
+              'Для капитальной беседки/навеса рекомендуется фундамент.',
+          suggestion: 'Минимум — столбчатый фундамент',
+        ),
+      );
+    }
+
+    return insights;
+  }
+
+  List<AIInsight> _analyzeSaunas(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final area = (data['area'] as num?)?.toDouble() ?? 0;
+    final heaterType = data['heater_type'] as String?;
+    final wallMaterial = data['wall_material'] as String?;
+
+    if (area > 30 && heaterType == 'электрическая') {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Большая электрическая печь',
+          description:
+              'Электропечь более 15кВт требует отдельную электролинию 380В.',
+        ),
+      );
+    }
+
+    if (wallMaterial == 'каркас' && data['has_insulation'] != true) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Каркас без утепления',
+          description:
+              'Каркасная баня обязательно требует утепление минватой 100-150мм.',
+        ),
+      );
+    }
+
+    if (heaterType == 'дровяная' &&
+        data['ventilation_type'] != 'принудительная') {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.medium,
+          title: 'Дровяная печь без принудительной вентиляции',
+          description: 'Для безопасности рекомендуется принудительная вытяжка.',
+        ),
+      );
+    }
+
+    return insights;
+  }
+
+  List<AIInsight> _analyzePools(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final volume = (data['volume'] as num?)?.toDouble() ?? 0;
+    final depthDeep = (data['depth_deep'] as num?)?.toDouble() ?? 0;
+    final location = data['location'] as String?;
+
+    if (depthDeep > 2.5) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Большая глубина',
+          description:
+              'Бассейн глубже 2.5м требует усиленные меры безопасности.',
+        ),
+      );
+    }
+
+    if (location == 'внутри помещения' && data['has_cover'] != true) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.medium,
+          title: 'Рекомендуется укрытие',
+          description:
+              'В indoor бассейнах без укрытия повышенная влажность повреждает отделку.',
+        ),
+      );
+    }
+
+    if (volume > 50 && data['has_heating'] != true) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.medium,
+          title: 'Большой бассейн без подогрева',
+          description:
+              'Бассейн более 50м³ без подогрева будет холодным для купания.',
+        ),
+      );
+    }
+
+    return insights;
+  }
+
+  List<AIInsight> _analyzeGarages(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final gateType = data['gate_type'] as String?;
+    final hasHeating = data['has_heating'] as bool? ?? false;
+
+    if (gateType == 'откатные' && data['gate_width'] != null) {
+      final gateWidth = (data['gate_width'] as num).toDouble();
+      if (gateWidth > 4) {
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.high,
+            title: 'Широкие откатные ворота',
+            description:
+                'Ворота более 4м требуют усиленную балку и направляющие.',
+          ),
+        );
+      }
+    }
+
+    if (hasHeating && data['wall_material'] == 'металл') {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.medium,
+          title: 'Металлический гараж с отоплением',
+          description:
+              'Металлический гараж с отоплением требует утепление (минвата/пенопласт).',
+        ),
+      );
+    }
+
+    if (data['has_electrical'] != true) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.low,
+          title: 'Без электричества',
+          description:
+              'Рекомендуется провести электричество даже в базовой комплектации.',
+        ),
+      );
+    }
+
+    return insights;
+  }
+
+  List<AIInsight> _analyzeVentilation(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final systemType = data['system_type'] as String?;
+    final ahuCapacity = (data['ahu_capacity'] as num?)?.toDouble() ?? 0;
+    final totalArea = (data['total_area'] as num?)?.toDouble() ?? 0;
+
+    if (totalArea > 0 && ahuCapacity > 0) {
+      final airChangeRate = ahuCapacity / totalArea;
+      if (airChangeRate < 3) {
+        insights.add(
+          AIInsight(
+            id: _uuid.v4(),
+            type: AIInsightType.warning,
+            priority: AIInsightPriority.high,
+            title: 'Низкая кратность воздухообмена',
+            description:
+                'Менее 3-х крат — недостаточно для жилых помещений (норма 3-5).',
+            suggestion: 'Увеличьте производительность ПУ',
+          ),
+        );
+      }
+    }
+
+    if (systemType == 'приточно-вытяжная' &&
+        data['has_heat_recovery'] != true) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.medium,
+          title: 'Приточно-вытяжная без рекуперации',
+          description: 'Без рекуперации тепла большие теплопотери зимой.',
+        ),
+      );
+    }
+
+    if (data['has_filter'] != true) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.recommendation,
+          priority: AIInsightPriority.low,
+          title: 'Рекомендуется фильтрация',
+          description:
+              'Фильтры G-F класса очищают воздух от пыли и аллергенов.',
+        ),
+      );
+    }
+
+    return insights;
+  }
+
+  List<AIInsight> _analyzeVentilatedFacades(Map<String, dynamic> data) {
+    final insights = <AIInsight>[];
+
+    final totalArea = (data['total_area'] as num?)?.toDouble() ?? 0;
+    final floorsCount = (data['floors_count'] as num?)?.toDouble() ?? 0;
+    final insulationThickness =
+        (data['insulation_thickness'] as num?)?.toDouble() ?? 0;
+
+    if (totalArea > 1000 && floorsCount > 3) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Многоэтажный фасад',
+          description: 'Для зданий выше 3 этажей требуется許可 (проект).',
+          suggestion: 'Обязателен проект с расчётом ветровых нагрузок',
+        ),
+      );
+    }
+
+    if (data['insulation_type'] == 'пенополистирол' && floorsCount > 2) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.high,
+          title: 'Пенополистирол на высоте',
+          description:
+              'Пенополистирол имеет ограничения по высоте (до 75м по пожарным нормам).',
+        ),
+      );
+    }
+
+    if (insulationThickness > 0 && insulationThickness < 100) {
+      insights.add(
+        AIInsight(
+          id: _uuid.v4(),
+          type: AIInsightType.warning,
+          priority: AIInsightPriority.medium,
+          title: 'Малая толщина утеплителя',
+          description: 'Менее 100мм — недостаточно для средней полосы России.',
+          suggestion: 'Рекомендуется 100-150мм минваты',
+        ),
+      );
+    }
+
+    return insights;
+  }
 }
