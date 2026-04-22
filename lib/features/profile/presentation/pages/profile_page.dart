@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../../../database/database_helper.dart';
 import '../../../../models/user.dart';
 import '../../../../models/order.dart';
+import '../../../../repositories/impl/user_repository_impl.dart';
 import '../../../../screens/registration_screen.dart';
 import '../../../../utils/app_design.dart';
 import '../../../../services/export_service.dart';
@@ -226,10 +227,57 @@ class _ProfilePageState extends State<ProfilePage> {
             backgroundColor: Colors.green,
           ),
         );
-      }
+}
+  }
+
+  /// Удаление аккаунта и всех данных (GDPR/Play Store compliance)
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Удаление аккаунта'),
+        content: const Text(
+          'Все ваши данные будут удалены безвозвратно:\n\n'
+          '• Заявки и замеры\n'
+          '• Фото и аннотации\n'
+          '• История платежей\n'
+          '• Настройки и прайсы\n\n'
+          'Это действие нельзя отменить.',
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppDesign.radiusCard),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppDesign.statusCancelled,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final userRepo = UserRepositoryImpl();
+      await userRepo.deleteUser();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const RegistrationScreen()),
+        (route) => false,
+      );
     }
   }
 
+  /// Выход из аккаунта (без удаления данных)
   Future<void> _logout() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -890,6 +938,37 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         SizedBox(height: AppDesign.spacing4),
+
+        SizedBox(height: AppDesign.spacing4),
+
+        // Кнопка удаления аккаунта
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: _deleteAccount,
+            icon: Icon(
+              Icons.delete_forever,
+              color: Colors.red,
+            ),
+            label: Text(
+              'Удалить аккаунт',
+              style: TextStyle(
+                color: Colors.red,
+                fontSize: 16,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              side: BorderSide(
+                color: Colors.red,
+                width: 1.5,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDesign.radiusButton),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

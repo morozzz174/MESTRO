@@ -17,4 +17,7 @@ class UserRepositoryImpl implements UserRepository {
 
   @override
   Future<bool> isUserRegistered() => _db.isUserRegistered();
+
+  @override
+  Future<void> deleteUser() => _db.deleteCurrentUser();
 }

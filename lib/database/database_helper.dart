@@ -437,6 +437,23 @@ class DatabaseHelper {
     return user != null;
   }
 
+  /// Удаление пользователя и всех его данных (GDPR/Play Store compliance)
+  Future<void> deleteCurrentUser() async {
+    final db = await database;
+    final user = await getCurrentUser();
+    if (user == null) return;
+
+    // Удаляем связанные данные
+    await db.delete('orders', where: 'client_phone = ?', whereArgs: [user.phone]);
+    await db.delete('photo_annotations');
+    await db.delete('notifications');
+    await db.delete('custom_prices', where: 'work_type LIKE ?', whereArgs: ['%']);
+    await db.delete('payments');
+
+    // Удаляем пользователя
+    await db.delete('users', where: 'id = ?', whereArgs: [user.id]);
+  }
+
   // ===== Методы для календаря =====
 
   /// Получить заявки за конкретную дату (по appointment_date или date)

@@ -10,4 +10,6 @@ abstract class UserRepository {
   Future<void> updateUser(User user);
 
   Future<bool> isUserRegistered();
+
+  Future<void> deleteUser();
 }
