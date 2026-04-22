@@ -1,4 +1,4 @@
-# 📦 Инструкция по сборке APK для RUstore
+# 📦 Инструкция по сборке APK для RuStore
 
 ## Шаг 1: Подготовка
 
@@ -9,7 +9,7 @@ cd c:\mestro_2
 # Обновление зависимостей
 flutter pub get
 
-# Очистка старыхых артефактов
+# Очистка старых артефактов
 flutter clean
 ```
 
@@ -20,12 +20,9 @@ flutter clean
 ```env
 UCALLER_SERVICE_ID=ваш_service_id
 UCALLER_SECRET_KEY=ваш_secret_key
-# ЮKassa пока не настроена — оплата работает в демо-режиме
 ```
 
-> ⚠️ **Не коммитьте `.env` в git!** Он уже в `.gitignore`.
-
-## Шаг 3: Сборка APK
+## Шаг 3: Сборка APK v1.3.0
 
 ```bash
 flutter build apk --release
@@ -36,27 +33,12 @@ flutter build apk --release
 c:\mestro_2\build\app\outputs\flutter-apk\app-release.apk
 ```
 
+**Переименуйте в:**
+```
+mestro_v1.3.0.apk
+```
+
 **Время сборки:** 2-5 минут (первый раз дольше).
-
-## Шаг 4: Проверка APK
-
-```bash
-# Проверка размера (должен быть < 150 МБ для RUstore)
-dir c:\mestro_2\build\app\outputs\flutter-apk\app-release.apk
-
-# Проверка подписи (должна быть debug-подпись)
-jarsigner -verify c:\mestro_2\build\app\outputs\flutter-apk\app-release.apk
-```
-
-> ⚠️ Для продакшена нужна release-подпись (keystore). Но для первого релиза в RUstore подойдёт и debug.
-
-## Шаг 5: Сборка AAB (опционально)
-
-RUstore принимает и APK, и AAB. AAB меньше по размеру:
-
-```bash
-flutter build appbundle --release
-```
 
 **Файл:** `c:\mestro_2\build\app\outputs\bundle\release\app-release.aab`
 
