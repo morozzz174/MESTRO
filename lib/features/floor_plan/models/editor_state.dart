@@ -1,4 +1,3 @@
-import 'floor_plan_models.dart';
 import 'floor_plan_models_extended.dart' as ext;
 
 /// Состояние редактора плана

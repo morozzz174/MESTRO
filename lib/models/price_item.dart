@@ -1,5 +1,3 @@
-import '../services/app_logger.dart';
-
 /// Элемент прайс-листа — одна позиция расценки
 class PriceItem {
   /// Уникальный ID позиции (например: frame_per_m2, socket, tile_per_m2)

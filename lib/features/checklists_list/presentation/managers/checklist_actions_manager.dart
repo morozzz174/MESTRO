@@ -8,7 +8,6 @@ import '../../../../bloc/checklist_bloc.dart';
 import '../../../../bloc/checklist_event.dart';
 import '../../../../models/order.dart';
 import '../../../../models/checklist_config.dart';
-import '../../../../utils/app_design.dart';
 import '../../../../utils/condition_evaluator.dart';
 import '../../../../utils/cost_calculator.dart';
 import '../../../../utils/pdf_generator.dart';

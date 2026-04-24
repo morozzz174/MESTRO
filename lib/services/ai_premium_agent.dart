@@ -1,4 +1,3 @@
-import 'package:uuid/uuid.dart';
 import '../models/order.dart';
 import '../models/checklist_config.dart';
 import '../models/ai_insight.dart';

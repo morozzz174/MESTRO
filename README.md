@@ -2,7 +2,7 @@
 
 > *«Мастер, единый стандарт точности расчёта объекта»*
 
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/morozzz174/MESTRO)
+[![Version](https://img.shields.io/badge/version-1.2.0%2B12-blue.svg)](https://play.google.com/store)
 [![Platform](https://img.shields.io/badge/platform-Android-green.svg)](https://play.google.com/store)
 [![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
@@ -61,7 +61,7 @@
 
 ### Тарифы
 
-| Тариф | Цена | Описание |
+| Тариф | Цена | Описа��ие |
 |-------|------|---------|
 | Пробный | 149 ₽ | 7 дней для тестирования |
 | Месяц | 299 ₽ | 30 дней |
@@ -136,37 +136,37 @@ lib/
 │
 ├── screens/                          # Основные экраны
 │   ├── registration_screen.dart      # Авторизация по телефону
-│   ├── checklist_screen.dart         # Замер (AI-агент, голос)
-│   └── consent_screen.dart           # Согласие на ПДн
+│   ├── checklist_screen.dart     # Замер (AI-агент, голос)
+│   └── consent_screen.dart       # Согласие на ПДн
 │
-├── features/                         # Модули приложения
-│   ├── home/                        # Дашборд (4 вкладки)
-│   ├── calendar/                    # Календарь замеров
-│   ├── floor_plan/                 # Планы + 2.5D
-│   │   ├── models/                 # FloorPlan, EditorState
-│   │   ├── engine/                 # RuleEngine, AI, Validator
-│   │   └── presentation/          # Editor, Painter, Toolbar
-│   ├── profile/                    # Профиль + Premium
-│   ├── price_list/                 # Прайс-листы
-│   ├── voice/                      # Голосовой ввод
-│   └── notifications/              # Уведомления
+├── features/                       # Модули приложения
+│   ├── home/                  # Дашборд (4 вкладки)
+│   ├── calendar/              # Календарь замеров
+│   ├── floor_plan/          # Планы + 2.5D
+│   │   ├── models/         # FloorPlan, EditorState
+│   │   ├── engine/        # RuleEngine, AI, Validator
+│   │   └── presentation/  # Editor, Painter, Toolbar
+│   ├── profile/              # Профиль + Premium
+│   ├── price_list/         # Прайс-листы
+│   ├── voice/             # Голосовой ввод
+│   └── notifications/     # Уведомления
 │
-├── services/                        # Бизнес-логика
-│   ├── ai_agent_service.dart       # SmartChecklistAnalyzer
-│   ├── ai_premium_agent.dart       # AI-валидация, заметки
-│   ├── voice_input_service.dart    # Голос → данные
-│   ├── pdf_generator.dart          # PDF КП
-│   ├── construction_drawing_generator.dart # Строительные чертежи
-│   └── subscription_service.dart   # Premium подписка
+├── services/                    # Бизнес-логика
+│   ├── ai_agent_service.dart   # SmartChecklistAnalyzer
+│   ├── ai_premium_agent.dart   # AI-валидация, заметки
+│   ├── voice_input_service.dart # Голос → данные
+│   ├── pdf_generator.dart   # PDF КП
+│   ├── construction_drawing_generator.dart
+│   └── subscription_service.dart
 │
 └── utils/
     ├── cost_calculator.dart        # Расчёт стоимости
     ├── app_design.dart             # Дизайн-система
-    └── database_backup_service.dart # Резервное копирование
+    └── database_backup_service.dart
 
 assets/
-├── checklists/                       # 15 JSON-шаблонов
-├── prices/                          # 15 прайс-листов
+├── checklists/                       # JSON-шаблоны
+├── prices/                          # Прайс-листы
 ├── fonts/                          # Шрифты для PDF
 └── models/                         # TFLite модели
 ```
@@ -178,7 +178,7 @@ assets/
 | **Framework** | Flutter 3.x |
 | **State** | flutter_bloc |
 | **Database** | SQLite (sqflite) |
-| **AI** | TFLite (on-device) |
+| **AI** | TFLite (on-device) + OpenRouter |
 | **Camera** | image_picker |
 | **Voice** | speech_to_text |
 | **Location** | geolocator |
@@ -201,11 +201,14 @@ flutter run
 
 # Сборка APK
 flutter build apk --release
+
+# Анализ
+flutter analyze
 ```
 
 ## 📱 Установка
 
-**Android:** `build/app/outputs/flutter-apk/app-release.apk`
+**Android:** Скопируйте `build/app/outputs/flutter-apk/app-release.apk` на устройство и установите.
 
 **iOS:** Требуется Mac + Xcode: `flutter build ios --release`
 
@@ -229,6 +232,17 @@ flutter build apk --release
 - Согласие на ПДн (152-ФЗ)
 - Offline-first архитектура
 
+## ⚠️ Статический анализ
+
+```bash
+flutter analyze
+```
+
+| Метрика | Значение |
+|---------|----------|
+| Warnings | 45 |
+| Info | ~200 |
+
 ## 📈 Roadmap
 
 | Версия | Функции |
@@ -236,7 +250,7 @@ flutter build apk --release
 | v1.0 | Базовый функционал, 8 типов работ |
 | v1.1 | Генератор планов, AI-оптимизация |
 | v1.2 | 7 строительных типов, Premium, 2.5D |
-| v1.3 | 22 типа работ, AI-агент обновлён, инструкция Floor Plan |
+| v1.2.0+12 | Статический анализ исправлен, 22 типа работ |
 | v2.0 | Mestro AI Server |
 
 ## 📄 Лицензия
@@ -246,4 +260,4 @@ flutter build apk --release
 
 ---
 
-**MESTRO v1.3.0** — [github.com/morozzz174/MESTRO](https://github.com/morozzz174/MESTRO)
+**MESTRO v1.2.0+12** — Мастер, Единый Стандарт Точности Расчёта Объекта

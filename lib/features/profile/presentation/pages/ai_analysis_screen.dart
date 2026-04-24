@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../models/ai_insight.dart';
-import '../../../../utils/app_design.dart';
 
 class AIAnalysisScreen extends StatelessWidget {
   final AIAnalysisReport report;

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../services/payment_service.dart';
 import '../../../../services/subscription_service.dart';
 import '../../../../utils/app_design.dart';

@@ -6,7 +6,6 @@ import '../database/database_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import '../features/profile/presentation/widgets/ai_agent_button.dart';
 import '../models/checklist_config.dart';

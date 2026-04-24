@@ -620,6 +620,89 @@ class PdfGenerator {
         'has_water_crossing': 'Пересечение водных преград',
         'restoration_work': 'Восстановление покрытия',
       },
+      // Заборы
+      'fences': {
+        ...commonLabels,
+        'fence_type': 'Тип забора',
+        'fence_material': 'Материал забора',
+        'fence_length': 'Длина забора',
+        'fence_height': 'Высота забора',
+        'fence_has_gate': 'Калитка',
+        'fence_has_automation': 'Автоматика ворот',
+        'fence_pillars_material': 'Материал столбов',
+        'fence_foundations': 'Фундамент под забор',
+        'fence_finishing': 'Отделка забора',
+        'fence_labor': 'Работа (монтаж)',
+      },
+      // Навесы/Беседки
+      'canopies': {
+        ...commonLabels,
+        'canopy_type': 'Тип навеса',
+        'canopy_length': 'Длина',
+        'canopy_width': 'Ширина',
+        'canopy_height': 'Высота',
+        'canopy_has_legs': 'Опоры/стойки',
+        'canopy_legs_count': 'Кол-во опор',
+        'canopy_material': 'Материал каркаса',
+        'canopy_roof_material': 'Материал кровли',
+        'canopy_foundation': 'Фундамент',
+        'canopy_per_m2': 'Стоимость м²',
+        'canopy_leg': 'Стоимость опоры',
+      },
+      // Бани
+      'saunas': {
+        ...commonLabels,
+        'sauna_area': 'Площадь бани',
+        'sauna_height': 'Высота потолка',
+        'sauna_wall_material': 'Материал стен',
+        'sauna_has_stove': 'Печь',
+        'sauna_stove': 'Печь (стоимость)',
+        'sauna_per_m2': 'Стоимость м²',
+        'sauna_typ': 'Тип бани',
+      },
+      // Бассейны
+      'pools': {
+        ...commonLabels,
+        'pool_area': 'Площадь бассейна',
+        'pool_length': 'Длина',
+        'pool_width': 'Ширина',
+        'pool_depth': 'Глубина',
+        'pool_type': 'Тип бассейна',
+        'pool_per_m2': 'Стоимость м²',
+        'pool_filtration': 'Фильтрация',
+      },
+      // Гаражи
+      'garages': {
+        ...commonLabels,
+        'garage_type': 'Тип гаража',
+        'garage_area': 'Площадь',
+        'garage_length': 'Длина',
+        'garage_width': 'Ширина',
+        'garage_height': 'Высота',
+        'garage_per_m2': 'Стоимость м²',
+        'garage_automation': 'Автоматика',
+      },
+      // Вентиляция
+      'ventilation': {
+        ...commonLabels,
+        'ventilation_type': 'Тип вентиляции',
+        'room_area': 'Площадь помещения',
+        'ventilation_per_m2': 'Стоимость м²',
+        'ventilation_recovery': 'Рекуперация',
+        'ventilation_exhaust_points': 'Точки вытяжки',
+        'ventilation_supply_points': 'Точки притока',
+        'ventilation_duct_length': 'Длина воздуховодов',
+      },
+      // Вентфасады
+      'ventilated_facades': {
+        ...commonLabels,
+        'facade_area': 'Площадь фасада',
+        'facade_height': 'Высота фасада',
+        'facade_per_m2': 'Стоимость м²',
+        'facade_insulation': 'Утепление',
+        'facade_insulation_thickness': 'Толщина утеплителя',
+        'facade_material': 'Облицовочный материал',
+      },
     };
 
     return allLabels[workType.checklistFile]?[key] ?? commonLabels[key] ?? key;

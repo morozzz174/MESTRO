@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "autoupdate": true,
+  "providers": {
+    "openrouter": {
+      "apiKey": "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",
+      "disabled": false
+    }
+  },
+  "agents": {
+    "coder": {
+      "model": "qwen/qwen3-coder:free",
+      "provider": "openrouter",
+      "maxTokens": 8192,
+      "temperature": 0.2,
+      "systemPrompt": "Ты эксперт по мобильной разработке. Пиши чистый, производственный код с учётом актуальных гайдлайнов (Material 3, Human Interface Guidelines, Jetpack Compose, SwiftUI). Используй современную архитектуру (Clean/Feature-first), типизацию, обработку ошибок и паттерны реактивного программирования. Всегда объясняй выбор зависимостей и архитектурных решений. Код должен быть готов к публикации в App Store/Google Play."
+    },
+    "chat": {
+      "model": "qwen/qwen3-coder:free",
+      "provider": "openrouter",
+      "systemPrompt": "Помогай с мобильной разработкой: объясняй ошибки, предлагай оптимизации, разбирай архитектуру. Отвечай на русском."
+    }
+  }
+}

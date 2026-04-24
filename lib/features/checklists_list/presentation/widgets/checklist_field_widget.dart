@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../../models/checklist_config.dart';
-import '../../../../utils/app_design.dart';
 
 /// Виджет для отображения поля чек-листа в зависимости от типа
 class ChecklistFieldWidget extends StatelessWidget {

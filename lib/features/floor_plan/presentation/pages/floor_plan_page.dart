@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:math' as math;
-import 'dart:convert';
 import '../../../../models/order.dart';
 import '../../../../services/ai_agent_service.dart';
 import '../../../../services/subscription_service.dart';
@@ -316,80 +314,80 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
           : null,
       engineeringSystems: plan.engineeringSystems != null
           ? EngineeringSystemsState(
-              heating: plan.engineeringSystems!.heating != null
+              heating: plan.engineeringSystems.heating != null
                   ? HeatingSystemState(
-                      type: plan.engineeringSystems!.heating!.type.name,
+                      type: plan.engineeringSystems.heating!.type.name,
                       radiatorCount:
-                          plan.engineeringSystems!.heating!.radiatorCount,
-                      pipeLength: plan.engineeringSystems!.heating!.pipeLength,
+                          plan.engineeringSystems.heating!.radiatorCount,
+                      pipeLength: plan.engineeringSystems.heating!.pipeLength,
                       boilerPower:
-                          plan.engineeringSystems!.heating!.boilerPower,
+                          plan.engineeringSystems.heating!.boilerPower,
                       hasWarmFloor:
-                          plan.engineeringSystems!.heating!.hasWarmFloor,
+                          plan.engineeringSystems.heating!.hasWarmFloor,
                       warmFloorArea:
-                          plan.engineeringSystems!.heating!.warmFloorArea,
+                          plan.engineeringSystems.heating!.warmFloorArea,
                     )
                   : null,
-              waterSupply: plan.engineeringSystems!.waterSupply != null
+              waterSupply: plan.engineeringSystems.waterSupply != null
                   ? WaterSupplyState(
                       coldPipeLength:
-                          plan.engineeringSystems!.waterSupply!.coldPipeLength,
+                          plan.engineeringSystems.waterSupply!.coldPipeLength,
                       hotPipeLength:
-                          plan.engineeringSystems!.waterSupply!.hotPipeLength,
+                          plan.engineeringSystems.waterSupply!.hotPipeLength,
                       fixtureCount:
-                          plan.engineeringSystems!.waterSupply!.fixtureCount,
+                          plan.engineeringSystems.waterSupply!.fixtureCount,
                       hasWaterHeater:
-                          plan.engineeringSystems!.waterSupply!.hasWaterHeater,
+                          plan.engineeringSystems.waterSupply!.hasWaterHeater,
                       waterHeaterVolume: plan
                           .engineeringSystems!
                           .waterSupply!
                           .waterHeaterVolume,
                     )
                   : null,
-              electrical: plan.engineeringSystems!.electrical != null
+              electrical: plan.engineeringSystems.electrical != null
                   ? ElectricalState(
                       cableLength:
-                          plan.engineeringSystems!.electrical!.cableLength,
+                          plan.engineeringSystems.electrical!.cableLength,
                       socketCount:
-                          plan.engineeringSystems!.electrical!.socketCount,
+                          plan.engineeringSystems.electrical!.socketCount,
                       switchCount:
-                          plan.engineeringSystems!.electrical!.switchCount,
+                          plan.engineeringSystems.electrical!.switchCount,
                       lightPointCount:
-                          plan.engineeringSystems!.electrical!.lightPointCount,
+                          plan.engineeringSystems.electrical!.lightPointCount,
                       breakerCount:
-                          plan.engineeringSystems!.electrical!.breakerCount,
-                      hasRCD: plan.engineeringSystems!.electrical!.hasRCD,
+                          plan.engineeringSystems.electrical!.breakerCount,
+                      hasRCD: plan.engineeringSystems.electrical!.hasRCD,
                       hasGrounding:
-                          plan.engineeringSystems!.electrical!.hasGrounding,
+                          plan.engineeringSystems.electrical!.hasGrounding,
                       hasLightningProtection: plan
                           .engineeringSystems!
                           .electrical!
                           .hasLightningProtection,
                       hasSmartHome:
-                          plan.engineeringSystems!.electrical!.hasSmartHome,
+                          plan.engineeringSystems.electrical!.hasSmartHome,
                     )
                   : null,
-              ventilation: plan.engineeringSystems!.ventilation != null
+              ventilation: plan.engineeringSystems.ventilation != null
                   ? VentilationState(
-                      type: plan.engineeringSystems!.ventilation!.type.name,
+                      type: plan.engineeringSystems.ventilation!.type.name,
                       exhaustPoints:
-                          plan.engineeringSystems!.ventilation!.exhaustPoints,
+                          plan.engineeringSystems.ventilation!.exhaustPoints,
                       supplyPoints:
-                          plan.engineeringSystems!.ventilation!.supplyPoints,
+                          plan.engineeringSystems.ventilation!.supplyPoints,
                       ductLength:
-                          plan.engineeringSystems!.ventilation!.ductLength,
+                          plan.engineeringSystems.ventilation!.ductLength,
                       hasRecuperator:
-                          plan.engineeringSystems!.ventilation!.hasRecuperator,
+                          plan.engineeringSystems.ventilation!.hasRecuperator,
                     )
                   : null,
-              sewage: plan.engineeringSystems!.sewage != null
+              sewage: plan.engineeringSystems.sewage != null
                   ? SewageState(
-                      pipeLength: plan.engineeringSystems!.sewage!.pipeLength,
+                      pipeLength: plan.engineeringSystems.sewage!.pipeLength,
                       fixtureCount:
-                          plan.engineeringSystems!.sewage!.fixtureCount,
-                      hasSeptic: plan.engineeringSystems!.sewage!.hasSeptic,
+                          plan.engineeringSystems.sewage!.fixtureCount,
+                      hasSeptic: plan.engineeringSystems.sewage!.hasSeptic,
                       septicType:
-                          plan.engineeringSystems!.sewage!.septicType?.name,
+                          plan.engineeringSystems.sewage!.septicType?.name,
                     )
                   : null,
             )
@@ -1332,11 +1330,12 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         // Автосохранение при выходе
         await _savePlanToOrder();
-        return true;
       },
       child: Scaffold(
         appBar: PreferredSize(

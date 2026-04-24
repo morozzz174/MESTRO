@@ -227,7 +227,8 @@ class _ProfilePageState extends State<ProfilePage> {
             backgroundColor: Colors.green,
           ),
         );
-}
+      }
+    }
   }
 
   /// Удаление аккаунта и всех данных (GDPR/Play Store compliance)
