@@ -1822,4 +1822,87 @@ class CostCalculator {
 
     return total;
   }
+
+  static double _calculateCanopies(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final length = (data['length'] as num?)?.toDouble() ?? 0;
+    final width = (data['width'] as num?)?.toDouble() ?? 0;
+    final area = (length / 1000) * (width / 1000);
+    total += area * (prices['canopy_per_m2'] ?? 0);
+    if (data['has_legs'] == true) {
+      final legsCount = (data['legs_count'] as num?)?.toDouble() ?? 4;
+      total += legsCount * (prices['canopy_leg'] ?? 0);
+    }
+    return total;
+  }
+
+  static double _calculateSaunas(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final area = (data['area'] as num?)?.toDouble() ?? 0;
+    total += area * (prices['sauna_per_m2'] ?? 0);
+    if (data['has_stove'] == true) {
+      total += prices['sauna_stove'] ?? 0;
+    }
+    return total;
+  }
+
+  static double _calculatePools(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final area = (data['area'] as num?)?.toDouble() ?? 0;
+    final depth = (data['depth'] as num?)?.toDouble() ?? 0;
+    total += area * (prices['pool_per_m2'] ?? 0);
+    if (data['has_filtration'] == true) {
+      total += prices['pool_filtration'] ?? 0;
+    }
+    return total;
+  }
+
+  static double _calculateGarages(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final area = (data['area'] as num?)?.toDouble() ?? 0;
+    final height = (data['height'] as num?)?.toDouble() ?? 0;
+    total += area * (prices['garage_per_m2'] ?? 0);
+    if (data['has_automation'] == true) {
+      total += prices['garage_automation'] ?? 0;
+    }
+    return total;
+  }
+
+  static double _calculateVentilation(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final roomArea = (data['room_area'] as num?)?.toDouble() ?? 0;
+    total += roomArea * (prices['ventilation_per_m2'] ?? 0);
+    if (data['has_recovery'] == true) {
+      total += prices['ventilation_recovery'] ?? 0;
+    }
+    return total;
+  }
+
+  static double _calculateVentilatedFacades(
+    Map<String, dynamic> data,
+    Map<String, double> prices,
+  ) {
+    double total = 0;
+    final area = (data['area'] as num?)?.toDouble() ?? 0;
+    total += area * (prices['ventilated_facade_per_m2'] ?? 0);
+    if (data['has_insulation'] == true) {
+      total += area * (prices['ventilated_facade_insulation'] ?? 0);
+    }
+    return total;
+  }
 }

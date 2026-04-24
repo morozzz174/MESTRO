@@ -1197,6 +1197,100 @@ class VoiceInputService {
     return data;
   }
 
+  // ===== ЗАБОРЫ =====
+  Map<String, dynamic> extractDataForFences(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final length = _extractDouble(lower, [r'длин[аы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (length != null) data['length'] = length;
+    final height = _extractDouble(lower, [r'высот[аы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (height != null) data['height'] = height;
+    if (lower.contains('профнастил')) data['fence_material'] = 'профнастил';
+    else if (lower.contains('дерев') || lower.contains('штакет')) data['fence_material'] = 'дерево';
+    else if (lower.contains('кирпич')) data['fence_material'] = 'кирпич';
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
+  // ===== НАВЕСЫ =====
+  Map<String, dynamic> extractDataForCanopies(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final length = _extractDouble(lower, [r'длин[аы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (length != null) data['length'] = length;
+    final width = _extractDouble(lower, [r'ширин[аы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (width != null) data['width'] = width;
+    if (lower.contains('опор') || lower.contains('стойк')) data['has_legs'] = true;
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
+  // ===== БАНИ =====
+  Map<String, dynamic> extractDataForSaunas(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final area = _extractDouble(lower, [r'площад[ьы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (area != null) data['area'] = area;
+    if (lower.contains('печ') || lower.contains('камин')) data['has_stove'] = true;
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
+  // ===== БАССЕЙНЫ =====
+  Map<String, dynamic> extractDataForPools(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final area = _extractDouble(lower, [r'площад[ьы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (area != null) data['area'] = area;
+    final depth = _extractDouble(lower, [r'глубин[аы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (depth != null) data['depth'] = depth;
+    if (lower.contains('фильтрац') || lower.contains('фильтр')) data['has_filtration'] = true;
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
+  // ===== ГАРАЖИ =====
+  Map<String, dynamic> extractDataForGarages(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final area = _extractDouble(lower, [r'площад[ьы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (area != null) data['area'] = area;
+    final height = _extractDouble(lower, [r'высот[аы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (height != null) data['height'] = height;
+    if (lower.contains('автоматик') || lower.contains('привод')) data['has_automation'] = true;
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
+  // ===== ВЕНТИЛЯЦИЯ =====
+  Map<String, dynamic> extractDataForVentilation(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final area = _extractDouble(lower, [r'площад[ьы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (area != null) data['room_area'] = area;
+    if (lower.contains('рекуперац') || lower.contains('рекупер')) data['has_recovery'] = true;
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
+  // ===== ВЕНТИЛИРУЕМЫЕ ФАСАДЫ =====
+  Map<String, dynamic> extractDataForVentilatedFacades(String text) {
+    final data = <String, dynamic>{};
+    final lower = text.toLowerCase();
+    final area = _extractDouble(lower, [r'площад[ьы]?\s*[:=]?\s*([0-9]+[,.]?[0-9]*)']);
+    if (area != null) data['area'] = area;
+    if (lower.contains('утеплен')) data['has_insulation'] = true;
+    final notes = _extractNotes(text);
+    if (notes.isNotEmpty) data['notes'] = notes.join('; ');
+    return data;
+  }
+
   // ===== УТИЛИТЫ =====
 
   /// Извлечь заметки из текста

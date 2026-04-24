@@ -58,13 +58,25 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
     _ruleEngine = FloorPlanRuleEngine(aiOptimizer: _aiOptimizer);
     _undoRedo = EditorUndoRedoManager();
     _initializeAI();
-    // Загружаем сохранённый план или генерируем новый
-    _loadPlanFromOrder();
+    // Загружаем сохранённый план или генерируем новый (асинхронно)
+    _loadPlanFromOrderAsync();
   }
 
   Future<void> _initializeAI() async {
     await _aiOptimizer.initialize();
     if (mounted) setState(() {});
+  }
+
+  /// Асинхронная загрузка плана
+  Future<void> _loadPlanFromOrderAsync() async {
+    setState(() => _isGenerating = true);
+    
+    // Даём UI обновиться перед тяжёлой работой
+    await Future.delayed(const Duration(milliseconds: 50));
+    
+    _loadPlanFromOrder();
+    
+    if (mounted) setState(() => _isGenerating = false);
   }
 
   /// AI-генерация Floor Plan из данных замера
@@ -1527,30 +1539,34 @@ class _FloorPlanPageState extends State<FloorPlanPage> {
                     child: Center(
                       child: Padding(
                         padding: const EdgeInsets.all(40),
-                        child: CustomPaint(
-                          size: Size(
-                            (_is25DMode
-                                    ? (_plan!.totalWidth + _plan!.totalHeight) *
-                                          40
-                                    : _plan!.totalWidth * 50) *
-                                _zoom,
-                            (_is25DMode
-                                    ? (_plan!.totalWidth + _plan!.totalHeight) *
-                                          25
-                                    : _plan!.totalHeight * 50) *
-                                _zoom,
+                        child: RepaintBoundary(
+                          child: CustomPaint(
+                            size: Size(
+                              (_is25DMode
+                                      ? (_plan!.totalWidth + _plan!.totalWidth) *
+                                            40
+                                      : _plan!.totalWidth * 50) *
+                                  _zoom,
+                              (_is25DMode
+                                      ? (_plan!.totalWidth + _plan!.totalHeight) *
+                                            25
+                                      : _plan!.totalHeight * 50) *
+                                  _zoom,
+                            ),
+                            isComplex: true,
+                            willChange: false,
+                            painter: _is25DMode
+                                ? IsoPlanPainter(
+                                    _plan!,
+                                    40 * _zoom,
+                                    editorState: _editorState,
+                                  )
+                                : FloorPlanPainter(
+_plan!,
+                                    50 * _zoom,
+                                    editorState: _editorState,
+                                  ),
                           ),
-                          painter: _is25DMode
-                              ? IsoPlanPainter(
-                                  _plan!,
-                                  40 * _zoom,
-                                  editorState: _editorState,
-                                )
-                              : FloorPlanPainter(
-                                  _plan!,
-                                  50 * _zoom,
-                                  editorState: _editorState,
-                                ),
                         ),
                       ),
                     ),
