@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 /// Сервис для работы с API ucaller.ru
 /// Документация: https://ucaller.ru/docs/api/
 class UCallerService {
-  // API v2 — актуальная версия
-  static const String _baseUrl = 'https://api.ucaller.ru/v2';
+  // API v1.0 — актуальная версия
+  static const String _baseUrl = 'https://api.ucaller.ru/v1.0';
 
   /// ID сервиса из личного кабинета ucaller
   final int serviceId;
@@ -29,10 +29,18 @@ class UCallerService {
   }) async {
     final cleanPhone = phone.replaceAll(RegExp(r'\D'), '');
 
+    final phoneNum = int.tryParse(cleanPhone);
+    if (phoneNum == null) {
+      return ResponseInitCall(
+        status: false,
+        error: 'Некорректный номер телефона: $phone',
+      );
+    }
+
     final body = <String, dynamic>{
-      'phone': int.parse(cleanPhone),
+      'phone': phoneNum,
       'key': secretKey,
-      'service_id': serviceId.toString(),
+      'service_id': serviceId,
     };
 
     if (code != null) body['code'] = code;
@@ -43,16 +51,33 @@ class UCallerService {
     debugPrint('[uCaller] POST $url');
     debugPrint('[uCaller] Body: ${jsonEncode(body)}');
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+    try {
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
 
-    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
+      debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
-    return ResponseInitCall.fromJson(json);
+      if (response.statusCode != 200) {
+        return ResponseInitCall(
+          status: false,
+          error: 'HTTP ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return ResponseInitCall.fromJson(json);
+    } catch (e) {
+      debugPrint('[uCaller] initCall error: $e');
+      return ResponseInitCall(
+        status: false,
+        error: e.toString(),
+      );
+    }
   }
 
   /// =====================
@@ -61,25 +86,42 @@ class UCallerService {
   /// =====================
   Future<ResponseInitRepeat> initRepeat(int ucallerId) async {
     final body = {
-      'ucaller_id': ucallerId,
+      'uid': ucallerId,
       'key': secretKey,
-      'service_id': serviceId.toString(),
+      'service_id': serviceId,
     };
 
     final url = '$_baseUrl/initRepeat';
     debugPrint('[uCaller] POST $url');
     debugPrint('[uCaller] Body: ${jsonEncode(body)}');
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+    try {
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
 
-    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
+      debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
-    return ResponseInitRepeat.fromJson(json);
+      if (response.statusCode != 200) {
+        return ResponseInitRepeat(
+          status: false,
+          error: 'HTTP ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return ResponseInitRepeat.fromJson(json);
+    } catch (e) {
+      debugPrint('[uCaller] initRepeat error: $e');
+      return ResponseInitRepeat(
+        status: false,
+        error: e.toString(),
+      );
+    }
   }
 
   /// =====================
@@ -88,15 +130,32 @@ class UCallerService {
   /// =====================
   Future<ResponseInfo> getInfo(int ucallerId) async {
     final url =
-        '$_baseUrl/getInfo?key=$secretKey&service_id=$serviceId&ucaller_id=$ucallerId';
+        '$_baseUrl/getInfo?key=$secretKey&service_id=$serviceId&uid=$ucallerId';
     debugPrint('[uCaller] GET $url');
 
-    final response = await http.get(Uri.parse(url));
+    try {
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 15));
 
-    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
+      debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
-    return ResponseInfo.fromJson(json);
+      if (response.statusCode != 200) {
+        return ResponseInfo(
+          status: false,
+          error: 'HTTP ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return ResponseInfo.fromJson(json);
+    } catch (e) {
+      debugPrint('[uCaller] getInfo error: $e');
+      return ResponseInfo(
+        status: false,
+        error: e.toString(),
+      );
+    }
   }
 
   /// =====================
@@ -107,12 +166,29 @@ class UCallerService {
     final url = '$_baseUrl/getBalance?key=$secretKey&service_id=$serviceId';
     debugPrint('[uCaller] GET $url');
 
-    final response = await http.get(Uri.parse(url));
+    try {
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 15));
 
-    debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
+      debugPrint('[uCaller] Response: ${response.statusCode} ${response.body}');
 
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
-    return ResponseBalance.fromJson(json);
+      if (response.statusCode != 200) {
+        return ResponseBalance(
+          status: false,
+          error: 'HTTP ${response.statusCode}: ${response.body}',
+        );
+      }
+
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      return ResponseBalance.fromJson(json);
+    } catch (e) {
+      debugPrint('[uCaller] getBalance error: $e');
+      return ResponseBalance(
+        status: false,
+        error: e.toString(),
+      );
+    }
   }
 }
 

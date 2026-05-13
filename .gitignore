@@ -81,3 +81,7 @@ android-sdk/
 .env
 .env.*
 !.env.example
+
+# Keystore и ключи подписи
+android/key.properties
+android/app/mestro-release.keystore

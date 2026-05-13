@@ -69,12 +69,7 @@ class _HomePageState extends State<HomePage> {
               isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
             ),
             tooltip: 'Сменить тему',
-            onPressed: () {
-              final provider = context.themeProvider;
-              if (provider != null) {
-                provider.toggleTheme();
-              }
-            },
+            onPressed: () => context.appTheme.toggleTheme(),
           ),
           IconButton(
             icon: const Icon(Icons.refresh),

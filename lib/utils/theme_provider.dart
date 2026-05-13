@@ -1,48 +1,25 @@
 import 'package:flutter/material.dart';
 
-class ThemeProvider extends StatefulWidget {
-  final Widget child;
+class ThemeProvider extends InheritedWidget {
+  final ThemeMode themeMode;
+  final VoidCallback toggleTheme;
 
-  const ThemeProvider({super.key, required this.child});
+  const ThemeProvider({
+    super.key,
+    required this.themeMode,
+    required this.toggleTheme,
+    required super.child,
+  });
 
-  @override
-  State<ThemeProvider> createState() => ThemeProviderState();
-}
-
-class ThemeProviderState extends State<ThemeProvider> {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  ThemeMode get themeMode => _themeMode;
-  bool get isDarkMode => _themeMode == ThemeMode.dark;
-
-  void setThemeMode(ThemeMode mode) {
-    setState(() => _themeMode = mode);
-  }
-
-  void toggleTheme() {
-    setState(() {
-      _themeMode = _themeMode == ThemeMode.light
-          ? ThemeMode.dark
-          : ThemeMode.light;
-    });
-  }
-
-  static ThemeProviderState of(BuildContext context) {
-    final state = context.findAncestorStateOfType<ThemeProviderState>();
-    assert(state != null, 'ThemeProvider not found in widget tree');
-    return state!;
+  static ThemeProvider of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<ThemeProvider>()!;
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  bool updateShouldNotify(ThemeProvider oldWidget) =>
+      themeMode != oldWidget.themeMode;
 }
 
 extension ThemeProviderExtension on BuildContext {
-  ThemeProviderState? get themeProvider {
-    try {
-      return ThemeProviderState.of(this);
-    } catch (_) {
-      return null;
-    }
-  }
+  ThemeProvider get appTheme => ThemeProvider.of(this);
 }

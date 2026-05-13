@@ -14,9 +14,9 @@ import 'features/home/presentation/pages/home_page.dart';
 import 'utils/cost_calculator.dart';
 import 'services/price_list_service.dart';
 import 'services/app_logger.dart';
-import 'utils/theme_provider.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_design.dart';
+import 'utils/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -157,8 +157,29 @@ Future<void> _ensureDatabaseTables() async {
   }
 }
 
-class MestroApp extends StatelessWidget {
+class MestroApp extends StatefulWidget {
   const MestroApp({super.key});
+
+  @override
+  State<MestroApp> createState() => MestroAppState();
+
+  static MestroAppState of(BuildContext context) {
+    return context.findAncestorStateOfType<MestroAppState>()!;
+  }
+}
+
+class MestroAppState extends State<MestroApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeMode get themeMode => _themeMode;
+
+  void toggleTheme() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.light
+          ? ThemeMode.dark
+          : ThemeMode.light;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,12 +194,14 @@ class MestroApp extends StatelessWidget {
         BlocProvider.value(value: calendarBloc),
       ],
       child: ThemeProvider(
+        themeMode: _themeMode,
+        toggleTheme: toggleTheme,
         child: MaterialApp(
           title: 'MESTRO',
           debugShowCheckedModeBanner: false,
           theme: AppDesign.lightTheme,
           darkTheme: AppDesign.darkTheme,
-          themeMode: ThemeMode.system,
+          themeMode: _themeMode,
           routes: {
             '/registration': (_) => const RegistrationScreen(),
             '/home': (_) => const HomePage(),

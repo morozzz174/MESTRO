@@ -4,21 +4,19 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../repositories/user_repository.dart';
 import '../repositories/impl/user_repository_impl.dart';
 import '../models/user.dart';
 import '../models/order.dart';
-import '../services/ucaller_service.dart';
+import '../services/loginbot_service.dart';
 import '../utils/app_design.dart';
 import 'consent_screen.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/work_types/presentation/pages/work_type_selection_screen.dart';
 
-/// Конфигурация uCaller — читается из .env с fallback на значения по умолчанию
-final _ucallerServiceId =
-    int.tryParse(dotenv.env['UCALLER_SERVICE_ID'] ?? '366080') ?? 366080;
-final _ucallerSecretKey =
-    dotenv.env['UCALLER_SECRET_KEY'] ?? '2Fgpaau5OeJE7tLJKdSVgLNIhLnvzGzM';
+const _defaultLoginBotToken = 'd0ac07f0-ef42-4d11-87d7-f6fee1680086';
+final _loginBotToken = dotenv.env['LOGINBOT_TOKEN'] ?? _defaultLoginBotToken;
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -444,7 +442,7 @@ class _RegistrationFormState extends State<_RegistrationForm> {
   }
 }
 
-// ===== ШАГ 1: Верификация телефона через звонок uCaller =====
+// ===== ШАГ 1: Верификация телефона через LoginBot =====
 
 class _PhoneVerificationStep extends StatefulWidget {
   final ValueChanged<String> onVerified;
@@ -457,24 +455,19 @@ class _PhoneVerificationStep extends StatefulWidget {
 
 class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
   final _phoneController = TextEditingController();
-  final _codeController = TextEditingController();
   bool _isLoading = false;
-  bool _codeSent = false;
+  bool _waitingCall = false;
   String? _errorMessage;
-  int? _ucallerId;
-  int _remainingTime = 0;
-  Timer? _timer;
+  String? _requestId;
+  String? _callToPhone;
+  Timer? _pollTimer;
 
-  final _ucaller = UCallerService(
-    serviceId: _ucallerServiceId,
-    secretKey: _ucallerSecretKey,
-  );
+  final _loginBot = LoginBotService(apiToken: _loginBotToken);
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _codeController.dispose();
-    _timer?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -491,300 +484,236 @@ class _PhoneVerificationStepState extends State<_PhoneVerificationStep> {
         TextField(
           controller: _phoneController,
           keyboardType: TextInputType.phone,
-          enabled: !_codeSent,
+          enabled: !_waitingCall,
           decoration: InputDecoration(
             labelText: 'Номер телефона',
             hintText: '+7 (999) 123-45-67',
             prefixIcon: const Icon(Icons.phone_outlined),
           ),
         ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0077B6).withOpacity(0.08),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                size: 18,
-                color: Color(0xFF0077B6),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Тест: 79000000001 — всегда успешный звонок',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF0077B6),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
         const SizedBox(height: 16),
 
-        if (_codeSent) ...[
-          TextField(
-            controller: _codeController,
-            keyboardType: TextInputType.number,
-            maxLength: 6,
-            decoration: const InputDecoration(
-              labelText: 'Код из звонка',
-              hintText: 'Введите код, который продиктует оператор',
-              prefixIcon: Icon(Icons.pin_outlined),
-              counterText: '',
+        if (_waitingCall && _callToPhone != null) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0077B6).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF0077B6).withOpacity(0.3)),
+            ),
+            child: Column(
+              children: [
+                const Icon(Icons.phone_callback, size: 40, color: Color(0xFF0077B6)),
+                const SizedBox(height: 12),
+                const Text(
+                  'Позвоните на этот номер:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _callToPhone!,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2,
+                    color: Color(0xFF0077B6),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Звонок будет сброшен — это нормально.\nВы ни за что не платите.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _callServiceNumber,
+                    icon: const Icon(Icons.dialpad),
+                    label: const Text('Позвонить'),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(48),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Вам поступит входящий звонок. Оператор продиктует код — введите его выше.',
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _remainingTime > 0 ? null : _requestCall,
-                  icon: const Icon(Icons.phone_callback),
-                  label: _remainingTime > 0
-                      ? Text('Повтор через $_remainingTimeс')
-                      : const Text('Повторный звонок'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
         ],
 
         if (_errorMessage != null)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(top: 12),
             child: Text(
               _errorMessage!,
               style: const TextStyle(color: Colors.redAccent, fontSize: 13),
             ),
           ),
 
-        ElevatedButton.icon(
-          onPressed: _isLoading
-              ? null
-              : (_codeSent ? _verifyCode : _requestCall),
-          icon: _isLoading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(_codeSent ? Icons.check : Icons.phone),
-          label: Text(_codeSent ? 'Подтвердить код' : 'Получить звонок'),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
+        if (!_waitingCall)
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0077B6).withOpacity(0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 18, color: Color(0xFF0077B6)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'После нажатия "Продолжить" вам нужно будет\nпозвонить на указанный номер',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF0077B6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+
+        if (!_waitingCall)
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: ElevatedButton.icon(
+              onPressed: _isLoading ? null : _requestAuth,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.phone),
+              label: const Text('Продолжить'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  /// Запрос звонка от uCaller
-  Future<void> _requestCall() async {
+  String _normalizePhone(String phone) {
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('8') && digits.length == 11) {
+      return '7${digits.substring(1)}';
+    }
+    if (!digits.startsWith('7')) {
+      return '7$digits';
+    }
+    return digits;
+  }
+
+  Future<void> _requestAuth() async {
     final phone = _phoneController.text.trim();
     if (phone.isEmpty) {
       setState(() => _errorMessage = 'Введите номер телефона');
       return;
     }
 
-    final digits = phone.replaceAll(RegExp(r'\D'), '');
-    if (digits.length < 10) {
+    final normalizedPhone = _normalizePhone(phone);
+    if (normalizedPhone.length < 11) {
       setState(() => _errorMessage = 'Введите корректный номер телефона');
       return;
     }
 
-    // Нормализуем номер: убираем 8 в начале, добавляем 7
-    String normalizedPhone = digits;
-    if (normalizedPhone.startsWith('8') && normalizedPhone.length == 11) {
-      normalizedPhone = '7' + normalizedPhone.substring(1);
-    }
-    if (!normalizedPhone.startsWith('7')) {
-      normalizedPhone = '7$normalizedPhone';
-    }
-
-    debugPrint('[Registration] Phone: $phone → normalized: $normalizedPhone');
-
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final result = await _ucaller.initCall(phone: normalizedPhone);
-
+      final result = await _loginBot.requestAuth(normalizedPhone);
       if (!mounted) return;
 
-      if (result.status && !result.hasError) {
+      if (!result.success) {
         setState(() {
-          _codeSent = true;
-          _ucallerId = result.ucallerId;
-          _remainingTime = 60;
-          _errorMessage = null;
+          _errorMessage = result.error ?? 'Ошибка запроса авторизации';
         });
-
-        _startTimer();
-
-        // Запускаем опрос статуса звонка
-        _pollCallStatus();
-      } else if (!result.status) {
-        // Ошибка запроса
-        final errorMsg = result.error ?? 'Ошибка запроса звонка';
-        debugPrint('[Registration] initCall failed: $errorMsg');
-
-        String userMessage;
-        if (errorMsg.contains('баланс') || errorMsg.contains('средств')) {
-          userMessage = 'Недостаточно средств на балансе сервиса';
-        } else if (errorMsg.contains('заблокирован') ||
-            errorMsg.contains('block')) {
-          userMessage = 'Сервис авторизации временно недоступен';
-        } else if (errorMsg.contains('дозвониться') ||
-            errorMsg.contains('абонент')) {
-          userMessage =
-              'Не удалось дозвониться. Проверьте номер или попробуйте позже.\n\n'
-              'Совет: для проверки используйте тестовый номер 79000000001';
-        } else {
-          userMessage = 'Ошибка: $errorMsg';
-        }
-
-        setState(() => _errorMessage = userMessage);
-      } else {
-        // status=true но есть error (uCaller иногда шлёт код в error) — игнорируем
-        debugPrint('[Registration] initCall OK (ignoring non-error message)');
-        setState(() {
-          _codeSent = true;
-          _ucallerId = result.ucallerId;
-          _remainingTime = 60;
-          _errorMessage = null;
-        });
-
-        _startTimer();
-        _pollCallStatus();
+        return;
       }
+
+      if (result.requestId == null || result.callToPhone == null) {
+        setState(() {
+          _errorMessage = 'Не удалось получить номер для звонка';
+        });
+        return;
+      }
+
+      setState(() {
+        _waitingCall = true;
+        _requestId = result.requestId;
+        _callToPhone = result.callToPhone;
+        _errorMessage = null;
+      });
+
+      _startPolling();
     } catch (e) {
       if (!mounted) return;
-      debugPrint('[Registration] Exception: $e');
-      setState(() {
-        _errorMessage = 'Ошибка: $e';
-      });
+      setState(() => _errorMessage = 'Ошибка: $e');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  /// Опрос статуса звонка каждые 5 секунд
-  Future<void> _pollCallStatus() async {
-    if (_ucallerId == null) return;
+  void _startPolling() {
+    _pollTimer?.cancel();
+    int attempts = 0;
 
-    for (int i = 0; i < 24; i++) {
-      // максимум 2 минуты опроса
-      await Future.delayed(const Duration(seconds: 5));
-      if (!mounted) return;
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (!mounted || _requestId == null) {
+        timer.cancel();
+        return;
+      }
+
+      attempts++;
+      if (attempts > 60) {
+        timer.cancel();
+        if (mounted) {
+          setState(() {
+            _errorMessage = 'Время ожидания истекло. Попробуйте снова.';
+            _waitingCall = false;
+            _callToPhone = null;
+          });
+        }
+        return;
+      }
 
       try {
-        final info = await _ucaller.getInfo(_ucallerId!);
-        if (info.isCallSuccessful) {
-          // Звонок успешен — код доступен на сервере, пользователь его услышит
-          debugPrint('[uCaller] Call successful, ucallerId: $_ucallerId');
-        } else if (info.callStatus == 0) {
-          // Звонок провален
-          debugPrint('[uCaller] Call failed, ucallerId: $_ucallerId');
-          if (mounted) {
-            setState(() {
-              _errorMessage =
-                  'Звонок не выполнен. Проверьте номер или попробуйте тестовый: 79000000001';
-            });
-          }
-          break;
+        final status = await _loginBot.checkStatus(_requestId!);
+        if (!mounted) return;
+
+        if (status.isAccepted) {
+          timer.cancel();
+          widget.onVerified(_phoneController.text.trim());
+        } else if (status.isRejected || status.isCancelled) {
+          timer.cancel();
+          setState(() {
+            _errorMessage = 'Звонок не получен. Попробуйте снова.';
+            _waitingCall = false;
+            _callToPhone = null;
+          });
         }
-      } catch (_) {
-        // Игнорируем ошибки опроса
-      }
-    }
+      } catch (_) {}
+    });
   }
 
-  /// Проверка введённого кода
-  Future<void> _verifyCode() async {
-    final code = _codeController.text.trim();
-    if (code.isEmpty) {
-      setState(() => _errorMessage = 'Введите код из звонка');
-      return;
+  Future<void> _callServiceNumber() async {
+    if (_callToPhone == null) return;
+    final uri = Uri.parse('tel:${_callToPhone!.replaceAll(RegExp(r'\D'), '')}');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      setState(() => _errorMessage = 'Не удалось открыть звонилку');
     }
-
-    if (_ucallerId == null) {
-      setState(() => _errorMessage = 'Сначала запросите звонок');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final info = await _ucaller.getInfo(_ucallerId!);
-
-      if (!mounted) return;
-
-      if (!info.isCallSuccessful) {
-        setState(() {
-          _errorMessage =
-              'Звонок ещё не завершён. Дождитесь звонка или запросите повторный.';
-        });
-        return;
-      }
-
-      final expectedCode = info.code?.toString() ?? '';
-      debugPrint(
-        '[Registration] User entered: "$code", expected: "$expectedCode"',
-      );
-      if (code != expectedCode) {
-        setState(() {
-          _errorMessage = 'Неверный код. Проверьте и попробуйте снова.';
-        });
-        return;
-      }
-
-      // Код верный — сохраняем телефон и переходим далее
-      widget.onVerified(_phoneController.text.trim());
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = 'Ошибка проверки: $e';
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  void _startTimer() {
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      if (_remainingTime > 0) {
-        setState(() => _remainingTime--);
-      } else {
-        timer.cancel();
-      }
-    });
   }
 }
 
